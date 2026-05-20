@@ -2,6 +2,7 @@ import { Router } from "express";
 import { prisma } from "@repo/database";
 import { createRouteSchema, successResponse, AppError, ErrorCode } from "@repo/shared";
 import { authenticateRequired, requireRole } from "../../middleware/auth.js";
+import { adminRouteBoardingPointsRouter } from "./route-boarding-points.routes.js";
 
 function slugify(from: string, to: string) {
   return `${from}-${to}`
@@ -12,6 +13,11 @@ function slugify(from: string, to: string) {
 
 export const adminRoutesRouter = Router();
 adminRoutesRouter.use(authenticateRequired, requireRole("ADMIN", "COUNTER_SELLER"));
+
+adminRoutesRouter.use(
+  "/:routeId/boarding-points",
+  adminRouteBoardingPointsRouter,
+);
 
 adminRoutesRouter.get("/", async (_req, res, next) => {
   try {

@@ -60,6 +60,7 @@ Each **Epic** is independently deliverable. Each **micro-task** should be one PR
 | [x] E02-06 | Admin API: CRUD coaches | api | — |
 | [x] E02-07 | Web admin: stops/routes/coaches management UI | web | Basic tables + forms |
 | [x] E02-08 | Seed script: sample Dhaka–Pabna route | db | Dev data |
+| [x] E02-09 | Admin API + UI: boarding points per route | api/web | CRUD under `/admin/routes/:routeId/boarding-points` |
 
 ---
 
