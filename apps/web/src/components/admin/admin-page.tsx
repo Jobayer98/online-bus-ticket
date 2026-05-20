@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { BrandLogo } from "@/components/brand-logo";
+import { MobileNavMenu } from "@/components/mobile-nav-menu";
 import { clearAuthSession, getAuthRole, getAuthToken } from "@/lib/auth-session";
 import { AdminDashboardPanel } from "./admin-dashboard-panel";
 import { AdminStopsPanel } from "./admin-stops-panel";
@@ -97,6 +98,15 @@ export function AdminPage() {
         </div>
         <div className="home-header-main">
           <BrandLogo className="brand-logo home-logo" />
+          <MobileNavMenu
+            menuLabel="Admin navigation"
+            items={TABS.map(({ id, label }) => ({
+              type: "button" as const,
+              label,
+              active: tab === id,
+              onClick: () => setTab(id),
+            }))}
+          />
           <nav className="adm-nav" aria-label="Admin">
             {TABS.map(({ id, label }) => (
               <button

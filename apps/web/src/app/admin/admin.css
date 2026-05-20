@@ -388,12 +388,6 @@
   }
 }
 
-@media (max-width: 900px) {
-  .admin-page .adm-nav {
-    display: none;
-  }
-}
-
 @media (max-width: 640px) {
   .admin-page .cp-section {
     padding: 0 1rem 2rem;

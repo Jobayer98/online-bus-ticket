@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BrandLogo } from "@/components/brand-logo";
+import { MobileNavMenu, type MobileNavItem } from "@/components/mobile-nav-menu";
 
 function HomeIcon() {
   return (
@@ -37,6 +38,21 @@ export function HomeHeader() {
   const isPrivacy = pathname === "/privacy-policy";
   const isContentsActive = isReturnPolicy || isTerms || isPrivacy;
 
+  const mobileItems: MobileNavItem[] = [
+    { type: "link", href: "/", label: "Home", active: isHome },
+    { type: "link", href: "/about", label: "About Us", active: isAbout },
+    { type: "link", href: "/ticket", label: "Download Ticket", active: isTicket },
+    { type: "link", href: "/return-policy", label: "Return Policy", active: isReturnPolicy },
+    {
+      type: "link",
+      href: "/terms-and-conditions",
+      label: "Terms & Conditions",
+      active: isTerms,
+    },
+    { type: "link", href: "/privacy-policy", label: "Privacy Policy", active: isPrivacy },
+    { type: "link", href: "/#contact", label: "Contact Us" },
+  ];
+
   return (
     <header className="home-header">
       <div className="home-header-top">
@@ -47,6 +63,7 @@ export function HomeHeader() {
       </div>
       <div className="home-header-main">
         <BrandLogo className="brand-logo home-logo" />
+        <MobileNavMenu items={mobileItems} menuLabel="Main navigation" />
         <nav className="home-nav" aria-label="Main">
           <Link href="/" className={isHome ? "is-active" : undefined}>
             Home

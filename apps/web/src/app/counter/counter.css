@@ -296,7 +296,4 @@
     border-bottom: 1px solid var(--sp-border, #d5d5d5);
   }
 
-  .counter-page .cp-nav {
-    display: none;
-  }
 }

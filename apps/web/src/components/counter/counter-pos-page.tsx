@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { BrandLogo } from "@/components/brand-logo";
+import { MobileNavMenu } from "@/components/mobile-nav-menu";
 import { clearAuthSession, getAuthRole, getAuthToken } from "@/lib/auth-session";
 import { CounterSellFlow } from "./counter-sell-flow";
 import { CounterHistoryPanel } from "./counter-history-panel";
@@ -79,6 +80,29 @@ export function CounterPosPage() {
         </div>
         <div className="home-header-main">
           <BrandLogo className="brand-logo home-logo" />
+          <MobileNavMenu
+            menuLabel="Counter navigation"
+            items={[
+              {
+                type: "button",
+                label: "Sell ticket",
+                active: tab === "sell",
+                onClick: () => setTab("sell"),
+              },
+              {
+                type: "button",
+                label: "Today\u2019s sales",
+                active: tab === "history",
+                onClick: () => setTab("history"),
+              },
+              {
+                type: "button",
+                label: "Refund / change",
+                active: tab === "manage",
+                onClick: () => setTab("manage"),
+              },
+            ]}
+          />
           <nav className="cp-nav" aria-label="Counter">
             {(
               [

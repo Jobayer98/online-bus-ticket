@@ -120,6 +120,24 @@ label {
   margin-right: auto;
 }
 
+.site-nav {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.site-nav a {
+  text-decoration: none;
+  color: var(--text);
+}
+
+.site-nav a.is-active {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+
 .grid-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
