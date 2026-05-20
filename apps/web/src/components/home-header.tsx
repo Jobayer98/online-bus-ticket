@@ -36,6 +36,7 @@ export function HomeHeader() {
   const isReturnPolicy = pathname === "/return-policy";
   const isTerms = pathname === "/terms-and-conditions";
   const isPrivacy = pathname === "/privacy-policy";
+  const isLogin = pathname === "/login";
   const isContentsActive = isReturnPolicy || isTerms || isPrivacy;
 
   const mobileItems: MobileNavItem[] = [
@@ -51,6 +52,7 @@ export function HomeHeader() {
     },
     { type: "link", href: "/privacy-policy", label: "Privacy Policy", active: isPrivacy },
     { type: "link", href: "/#contact", label: "Contact Us" },
+    { type: "link", href: "/login", label: "Login", active: isLogin },
   ];
 
   return (
@@ -114,6 +116,9 @@ export function HomeHeader() {
             </ul>
           </div>
           <Link href="/#contact">Contact Us</Link>
+          <Link href="/login" className={isLogin ? "is-active" : undefined}>
+            Login
+          </Link>
         </nav>
       </div>
     </header>

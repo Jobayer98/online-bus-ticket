@@ -1,42 +1,21 @@
-"use client";
+import type { Metadata } from "next";
+import { HomeHeader } from "@/components/home-header";
+import { CustomerDashboard } from "@/components/dashboard/customer-dashboard";
+import { SiteFooter } from "@/components/site-footer";
+import "../home.css";
+import "./dashboard.css";
 
-import { useEffect, useState } from "react";
-import { apiGet } from "@/lib/api-client";
-
-type BookingRow = {
-  id: string;
-  status: string;
-  routeSlug: string;
-  departureAt: string;
-  seatLabels: string[];
-  totalAmount: number;
+export const metadata: Metadata = {
+  title: "My bookings — Shahzadpur Travels",
+  description: "View your bus ticket bookings and account.",
 };
 
 export default function DashboardPage() {
-  const [bookings, setBookings] = useState<BookingRow[]>([]);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    apiGet<BookingRow[]>("/users/me/bookings")
-      .then((r) => setBookings(r.data))
-      .catch((e) => setError(e.message));
-  }, []);
-
   return (
-    <section className="container">
-      <h1>My bookings</h1>
-      {error && <p className="error">{error}</p>}
-      {bookings.length === 0 && <p>No bookings yet.</p>}
-      {bookings.map((b) => (
-        <article className="card" key={b.id}>
-          <p>
-            <strong>{b.routeSlug}</strong> — {b.status}
-          </p>
-          <p>{new Date(b.departureAt).toLocaleString()}</p>
-          <p>Seats: {b.seatLabels.join(", ")}</p>
-          <p>৳{(b.totalAmount / 100).toFixed(2)}</p>
-        </article>
-      ))}
-    </section>
+    <div className="home-page dash-page">
+      <HomeHeader />
+      <CustomerDashboard />
+      <SiteFooter />
+    </div>
   );
 }

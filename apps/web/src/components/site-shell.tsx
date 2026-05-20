@@ -32,6 +32,8 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
     isHome ||
     pathname === "/about" ||
     pathname === "/ticket" ||
+    pathname === "/login" ||
+    pathname === "/dashboard" ||
     pathname === "/return-policy" ||
     pathname === "/terms-and-conditions" ||
     pathname === "/privacy-policy";
