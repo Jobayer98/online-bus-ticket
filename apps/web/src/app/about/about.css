@@ -1,0 +1,62 @@
+.about-page {
+  background: #fff;
+}
+
+.about-hero {
+  background: var(--home-green-dark);
+  color: #fff;
+  padding: 2.25rem 1.5rem;
+  text-align: center;
+}
+
+.about-hero h1 {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.about-content {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 3rem;
+  color: #333;
+  line-height: 1.75;
+  font-size: 1rem;
+}
+
+.about-content p {
+  margin: 0 0 1.25rem;
+}
+
+.about-fleet-list {
+  margin: 0 0 1.25rem;
+  padding-left: 1.35rem;
+}
+
+.about-fleet-list li {
+  margin-bottom: 0.85rem;
+}
+
+.about-fleet-list li:last-child {
+  margin-bottom: 0;
+}
+
+.about-fleet-list strong {
+  font-weight: 600;
+  color: #222;
+}
+
+@media (max-width: 560px) {
+  .about-hero {
+    padding: 1.75rem 1rem;
+  }
+
+  .about-hero h1 {
+    font-size: 1.4rem;
+  }
+
+  .about-content {
+    padding: 2rem 1rem 2.5rem;
+  }
+}

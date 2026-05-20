@@ -1,0 +1,109 @@
+.policy-page {
+  background: #fff;
+  min-height: 100vh;
+}
+
+.policy-main {
+  flex: 1;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2.75rem 1.5rem 0;
+}
+
+.policy-title {
+  margin: 0 0 2.5rem;
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 400;
+  color: #111;
+  letter-spacing: 0.01em;
+}
+
+.policy-body {
+  color: #222;
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.policy-body--indented {
+  padding-left: 2.5rem;
+}
+
+.policy-subtitle {
+  margin: 0 0 1rem;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.policy-section {
+  margin-bottom: 1.75rem;
+}
+
+.policy-section h2 {
+  margin: 0 0 0.85rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111;
+  line-height: 1.45;
+}
+
+.policy-section p {
+  margin: 0 0 1rem;
+}
+
+.policy-section p:last-child {
+  margin-bottom: 0;
+}
+
+.policy-section ul {
+  margin: 0 0 1rem;
+  padding-left: 1.35rem;
+}
+
+.policy-section li {
+  margin-bottom: 0.5rem;
+}
+
+.policy-section li:last-child {
+  margin-bottom: 0;
+}
+
+.policy-section a {
+  color: #1565c0;
+  text-decoration: none;
+}
+
+.policy-section a:hover {
+  text-decoration: underline;
+}
+
+.policy-list {
+  margin: 0;
+  padding-left: 1.25rem;
+  line-height: 1.65;
+}
+
+.policy-list li {
+  margin: 0;
+}
+
+.policy-divider {
+  margin: 3.5rem 0 0;
+  border: none;
+  border-top: 1px solid #d8d8d8;
+}
+
+@media (max-width: 560px) {
+  .policy-main {
+    padding: 2rem 1rem 0;
+  }
+
+  .policy-title {
+    font-size: 1.6rem;
+    margin-bottom: 2rem;
+  }
+
+  .policy-body--indented {
+    padding-left: 0.5rem;
+  }
+}
