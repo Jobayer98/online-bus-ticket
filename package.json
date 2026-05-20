@@ -1,0 +1,30 @@
+{
+  "name": "online-bus-ticket",
+  "private": true,
+  "scripts": {
+    "postinstall": "pnpm db:generate && pnpm --filter @repo/shared build",
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "test:api": "pnpm --filter @repo/api test",
+    "test:api:manual": "bash scripts/manual-api-test.sh",
+    "test:api:admin": "bash scripts/admin-api-test.sh",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "db:migrate": "pnpm --filter @repo/database migrate:init",
+    "db:generate": "pnpm --filter @repo/database generate",
+    "db:seed": "pnpm --filter @repo/database seed",
+    "db:studio": "pnpm --filter @repo/database studio",
+    "smoke": "curl -sf http://localhost:4000/api/v1/health"
+  },
+  "devDependencies": {
+    "turbo": "^2.5.4",
+    "typescript": "^5.8.3"
+  },
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=20"
+  }
+}

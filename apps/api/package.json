@@ -1,0 +1,47 @@
+{
+  "name": "@repo/api",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "echo lint api"
+  },
+  "dependencies": {
+    "@repo/database": "workspace:*",
+    "@repo/shared": "workspace:*",
+    "bcryptjs": "^3.0.2",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "express-rate-limit": "^7.5.0",
+    "@apidevtools/swagger-parser": "^10.1.1",
+    "swagger-ui-express": "^5.0.1",
+    "jsonwebtoken": "^9.0.2",
+    "pino": "^9.7.0",
+    "pino-http": "^10.4.0",
+    "uuid": "^11.1.0",
+    "zod": "^3.25.51"
+  },
+  "devDependencies": {
+    "@repo/config": "workspace:*",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cookie-parser": "^1.4.8",
+    "@types/cors": "^2.8.18",
+    "@types/express": "^5.0.2",
+    "@types/swagger-ui-express": "^4.1.8",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/node": "^22.15.21",
+    "@types/uuid": "^10.0.0",
+    "supertest": "^7.1.1",
+    "@types/supertest": "^6.0.3",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
+  }
+}
