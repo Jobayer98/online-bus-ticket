@@ -1,0 +1,338 @@
+// SaaS-ready: add tenantId to tenant-scoped models when enabling multi-tenancy
+// tenantId String? @map("tenant_id")
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// prisma seed config in package.json
+
+enum Role {
+  USER
+  COUNTER_SELLER
+  ADMIN
+}
+
+enum BusType {
+  AC
+  NON_AC
+}
+
+enum SeatClass {
+  STANDARD
+  PREMIUM
+  BUSINESS
+}
+
+enum SeatStatus {
+  AVAILABLE
+  HELD
+  SOLD
+}
+
+enum BookingStatus {
+  DRAFT
+  HELD
+  PAID
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  CASH
+  ONLINE
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum ScheduleStatus {
+  SCHEDULED
+  CANCELLED
+  COMPLETED
+}
+
+enum CounterTransactionType {
+  SELL
+  CHANGE
+  REFUND
+  CANCEL
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String?  @unique
+  phone        String   @unique
+  passwordHash String   @map("password_hash")
+  role         Role     @default(USER)
+  name         String?
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  bookings            Booking[]
+  counterTransactions CounterTransaction[] @relation("SellerTransactions")
+
+  @@map("users")
+}
+
+model Stop {
+  id        String   @id @default(cuid())
+  name      String
+  city      String
+  code      String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  routesFrom Route[] @relation("RouteFrom")
+  routesTo   Route[] @relation("RouteTo")
+
+  @@map("stops")
+}
+
+model Route {
+  id         String   @id @default(cuid())
+  fromStopId String   @map("from_stop_id")
+  toStopId   String   @map("to_stop_id")
+  slug       String   @unique
+  distanceKm Int?     @map("distance_km")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  fromStop       Stop            @relation("RouteFrom", fields: [fromStopId], references: [id])
+  toStop         Stop            @relation("RouteTo", fields: [toStopId], references: [id])
+  schedules      Schedule[]
+  boardingPoints BoardingPoint[]
+
+  @@unique([fromStopId, toStopId])
+  @@index([slug])
+  @@map("routes")
+}
+
+model Coach {
+  id           String   @id @default(cuid())
+  coachNumber  String   @unique @map("coach_number")
+  busType      BusType  @map("bus_type")
+  seatLayoutId String?  @map("seat_layout_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  seatLayout SeatLayout? @relation(fields: [seatLayoutId], references: [id])
+  schedules  Schedule[]
+
+  @@map("coaches")
+}
+
+model SeatLayout {
+  id        String   @id @default(cuid())
+  name      String
+  rows      Int
+  cols      Int
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  templates SeatTemplate[]
+  coaches   Coach[]
+
+  @@map("seat_layouts")
+}
+
+model SeatTemplate {
+  id           String    @id @default(cuid())
+  seatLayoutId String    @map("seat_layout_id")
+  label        String
+  row          Int
+  col          Int
+  seatClass    SeatClass @map("seat_class")
+
+  seatLayout SeatLayout @relation(fields: [seatLayoutId], references: [id], onDelete: Cascade)
+
+  @@unique([seatLayoutId, label])
+  @@map("seat_templates")
+}
+
+model BoardingPoint {
+  id        String @id @default(cuid())
+  routeId   String @map("route_id")
+  name      String
+  sortOrder Int    @map("sort_order")
+
+  route    Route     @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  bookings Booking[]
+
+  @@index([routeId])
+  @@map("boarding_points")
+}
+
+model Schedule {
+  id                 String         @id @default(cuid())
+  routeId            String         @map("route_id")
+  coachId            String         @map("coach_id")
+  departureAt        DateTime       @map("departure_at")
+  estimatedArrivalAt DateTime       @map("estimated_arrival_at")
+  status             ScheduleStatus @default(SCHEDULED)
+  baseFare           Int            @map("base_fare")
+  createdAt          DateTime       @default(now()) @map("created_at")
+  updatedAt          DateTime       @updatedAt @map("updated_at")
+
+  route          Route           @relation(fields: [routeId], references: [id])
+  coach          Coach           @relation(fields: [coachId], references: [id])
+  scheduleSeats  ScheduleSeat[]
+  bookings       Booking[]
+  rescheduleLogs RescheduleLog[]
+
+  @@index([routeId, departureAt])
+  @@map("schedules")
+}
+
+model RescheduleLog {
+  id                String   @id @default(cuid())
+  scheduleId        String   @map("schedule_id")
+  previousDeparture DateTime @map("previous_departure")
+  newDeparture      DateTime @map("new_departure")
+  reason            String?
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  schedule Schedule @relation(fields: [scheduleId], references: [id])
+
+  @@map("reschedule_logs")
+}
+
+model ScheduleSeat {
+  id         String     @id @default(cuid())
+  scheduleId String     @map("schedule_id")
+  label      String
+  seatClass  SeatClass  @map("seat_class")
+  status     SeatStatus @default(AVAILABLE)
+  price      Int
+
+  schedule     Schedule       @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  holdItems    SeatHoldItem[]
+  bookingSeats BookingSeat[]
+
+  @@unique([scheduleId, label])
+  @@index([scheduleId, status])
+  @@map("schedule_seats")
+}
+
+model SeatHold {
+  id         String   @id @default(cuid())
+  scheduleId String   @map("schedule_id")
+  sessionId  String   @map("session_id")
+  expiresAt  DateTime @map("expires_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  items   SeatHoldItem[]
+  booking Booking?
+
+  @@index([expiresAt])
+  @@map("seat_holds")
+}
+
+model SeatHoldItem {
+  id             String @id @default(cuid())
+  holdId         String @map("hold_id")
+  scheduleSeatId String @map("schedule_seat_id")
+
+  hold         SeatHold     @relation(fields: [holdId], references: [id], onDelete: Cascade)
+  scheduleSeat ScheduleSeat @relation(fields: [scheduleSeatId], references: [id])
+
+  @@unique([holdId, scheduleSeatId])
+  @@map("seat_hold_items")
+}
+
+model Booking {
+  id              String        @id @default(cuid())
+  scheduleId      String        @map("schedule_id")
+  userId          String?       @map("user_id")
+  holdId          String?       @unique @map("hold_id")
+  boardingPointId String        @map("boarding_point_id")
+  passengerName   String        @map("passenger_name")
+  passengerPhone  String        @map("passenger_phone")
+  passengerEmail  String?       @map("passenger_email")
+  status          BookingStatus @default(DRAFT)
+  totalAmount     Int           @map("total_amount")
+  soldById        String?       @map("sold_by_id")
+  channel         String        @default("ONLINE")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  schedule      Schedule             @relation(fields: [scheduleId], references: [id])
+  user          User?                @relation(fields: [userId], references: [id])
+  hold          SeatHold?            @relation(fields: [holdId], references: [id])
+  boardingPoint BoardingPoint        @relation(fields: [boardingPointId], references: [id])
+  seats         BookingSeat[]
+  payment       Payment?
+  ticket        Ticket?
+  counterTxns   CounterTransaction[]
+
+  @@index([passengerPhone])
+  @@index([userId])
+  @@map("bookings")
+}
+
+model BookingSeat {
+  id             String @id @default(cuid())
+  bookingId      String @map("booking_id")
+  scheduleSeatId String @map("schedule_seat_id")
+  price          Int
+
+  booking      Booking      @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  scheduleSeat ScheduleSeat @relation(fields: [scheduleSeatId], references: [id])
+
+  @@unique([bookingId, scheduleSeatId])
+  @@map("booking_seats")
+}
+
+model Payment {
+  id             String        @id @default(cuid())
+  bookingId      String        @unique @map("booking_id")
+  amount         Int
+  method         PaymentMethod
+  status         PaymentStatus @default(PENDING)
+  idempotencyKey String?       @unique @map("idempotency_key")
+  providerRef    String?       @map("provider_ref")
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+
+  booking Booking @relation(fields: [bookingId], references: [id])
+
+  @@map("payments")
+}
+
+model Ticket {
+  id              String   @id @default(cuid())
+  bookingId       String   @unique @map("booking_id")
+  passengerNumber String   @unique @map("passenger_number")
+  qrPayload       String?  @map("qr_payload")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  booking Booking @relation(fields: [bookingId], references: [id])
+
+  @@map("tickets")
+}
+
+model CounterTransaction {
+  id        String                 @id @default(cuid())
+  type      CounterTransactionType
+  sellerId  String                 @map("seller_id")
+  bookingId String                 @map("booking_id")
+  amount    Int
+  note      String?
+  createdAt DateTime               @default(now()) @map("created_at")
+
+  seller  User    @relation("SellerTransactions", fields: [sellerId], references: [id])
+  booking Booking @relation(fields: [bookingId], references: [id])
+
+  @@index([sellerId, createdAt])
+  @@map("counter_transactions")
+}
