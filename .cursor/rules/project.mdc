@@ -1,0 +1,28 @@
+---
+description: Core project rules for online bus ticket platform
+alwaysApply: true
+---
+
+# Online Bus Ticket Platform
+
+Read `AGENTS.md` before coding. Contracts: `docs/CONTRACTS.md`. Architecture: `docs/ARCHITECTURE.md`. Tasks: `docs/FEATURES.md`.
+
+## Stack
+
+TypeScript, Express (`apps/api`), Next.js App Router (`apps/web`), Prisma 7 + PostgreSQL, Zod in `packages/shared`.
+
+## Non-negotiables
+
+1. **Contract before code** — Zod in `packages/shared` + `docs/contracts/` before API/web. See `docs/CONTRACTS.md`.
+2. **One micro-task per change** — e.g. `E06-05` only; update checkbox in `docs/FEATURES.md` when done.
+3. **Modular monolith** — modules under `apps/api/src/modules/{name}/` with routes → controller → service → repository. No cross-module repository imports.
+4. **Zod at API boundary** — request schemas + response DTOs in `packages/shared`; envelope `{ data }` / `{ error }`; reject past trip dates server-side.
+5. **DB access in API only** — web app calls HTTP API, not Prisma directly.
+6. **Transactions** for seat holds, payment confirm, refunds.
+7. **RBAC** on `/admin/*` and `/counter/*` routes.
+8. **Results URL:** `/search/[routeSlug]/[date]` with filter query params per spec.
+9. **Do not commit** unless the user explicitly requests it.
+
+## Commits
+
+Conventional commits: `feat(booking): ...`, `db(schedule): ...`. See `docs/GIT-WORKFLOW.md`.

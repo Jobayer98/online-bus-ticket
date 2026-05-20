@@ -1,0 +1,16 @@
+---
+description: Prisma and database rules
+globs: "packages/database/**/*.prisma"
+alwaysApply: false
+---
+
+# Database Rules
+
+- Schema file: `packages/database/prisma/schema.prisma`
+- Every model: `id`, `createdAt`, `updatedAt` unless join-only.
+- Relations: both sides with `@relation` names.
+- Add `@@index` for: route+date search, scheduleId+seat, passengerNumber+phone lookup.
+- Money: `Int` minor units (e.g. poisa).
+- Enums: `BusType`, `SeatClass`, `SeatStatus`, `BookingStatus`, `PaymentMethod`, `PaymentStatus`, `Role`.
+- One focused migration per micro-task; review generated SQL before merge.
+- Do not use `db push` in shared/prod workflows — use `migrate dev`.

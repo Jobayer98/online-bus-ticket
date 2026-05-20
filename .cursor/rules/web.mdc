@@ -1,0 +1,37 @@
+---
+description: Next.js web app rules
+globs: "apps/web/**/*.{ts,tsx}"
+alwaysApply: false
+---
+
+# Web App Rules
+
+## Data fetching
+
+- Import request/response types and Zod schemas from `@repo/shared` only — no duplicate API interfaces in `apps/web`.
+- Use typed API client (`lib/api-client.ts`); parse responses with shared DTO schemas where critical.
+- No direct Prisma or database imports in `apps/web`.
+- Do not implement UI for an endpoint until its contract exists in `packages/shared`.
+
+## Routes (do not rename without doc update)
+
+| Path | Purpose |
+|------|---------|
+| `/` | Search home |
+| `/search/[routeSlug]/[date]` | Schedule results |
+| `/booking/[scheduleId]` | Seat selection |
+| `/booking/[scheduleId]/payment` | Payment |
+| `/ticket` | Lookup by passenger # + phone |
+| `/dashboard` | User booking history (auth) |
+| `/counter/*` | Counter POS |
+| `/admin/*` | Admin + reports |
+
+## UX
+
+- Date picker: `min` = today; show loading/error on all fetches.
+- Seat map: visual states available / selected / sold / held.
+- Guest checkout must work without login.
+
+## Components
+
+- Prefer Server Components for lists; Client Components for seat map and forms with interaction.

@@ -1,0 +1,34 @@
+---
+description: Contract-first rules for shared Zod schemas and API contracts
+globs: "{packages/shared/**,docs/contracts/**,apps/api/**/modules/**}"
+alwaysApply: false
+---
+
+# Contract-First Rules
+
+Read `docs/CONTRACTS.md` before adding endpoints or schemas.
+
+## Order
+
+1. Zod request schema + response DTO in `packages/shared`
+2. Update `docs/contracts/` for HTTP endpoints
+3. Then API controller/service
+4. Then web client (import from `@repo/shared`)
+
+## Forbidden
+
+- Duplicate request/response interfaces in `apps/web` that mirror API shapes
+- Implementing controllers without existing Zod schemas in `packages/shared`
+- Returning Prisma models directly from HTTP handlers
+- Cross-module repository imports (use port interfaces + DTOs)
+
+## Files
+
+- Requests: `packages/shared/src/schemas/{module}/*.schema.ts`
+- Responses: `packages/shared/src/dtos/{module}/*.dto.ts`
+- Errors: `packages/shared/src/errors/error-codes.ts`
+- Envelope: `{ data }` | `{ error: { code, message } }`
+
+## Breaking changes
+
+Require API version bump (`/api/v2`) or explicit team approval; update contract markdown changelog.

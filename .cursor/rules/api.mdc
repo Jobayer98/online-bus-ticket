@@ -1,0 +1,45 @@
+---
+description: Express API module rules
+globs: "apps/api/**/*.ts"
+alwaysApply: false
+---
+
+# API Module Rules
+
+## Structure per bounded context
+
+```
+modules/booking/
+  booking.routes.ts
+  booking.controller.ts
+  booking.service.ts
+  booking.repository.ts
+```
+
+## Contract-first
+
+1. Zod request + response DTO must exist in `packages/shared` before this route is implemented.
+2. Update `docs/contracts/{module}/*.md` for new HTTP endpoints.
+3. Return `{ data: dto }` — never raw Prisma models.
+
+## Handlers
+
+- Parse with Zod from `@repo/shared`.
+- Controllers: no Prisma, no business rules.
+- Services: orchestration + `$transaction`; may implement `*.ports.ts` interfaces.
+- Repositories: only Prisma for this context's tables.
+
+## Responses
+
+```typescript
+res.json({ data: result });
+// errors via AppError → { error: { code, message } }
+```
+
+## Version prefix
+
+All routes: `/api/v1/...`
+
+## Idempotency
+
+Payment confirm and ticket issue: accept `Idempotency-Key` header.
