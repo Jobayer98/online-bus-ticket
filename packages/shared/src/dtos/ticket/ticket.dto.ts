@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const ticketDtoSchema = z.object({
+  bookingId: z.string(),
   passengerNumber: z.string(),
   passengerName: z.string(),
   passengerPhone: z.string(),

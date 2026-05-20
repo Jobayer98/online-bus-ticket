@@ -1,0 +1,162 @@
+"use client";
+
+import { useCallback, useEffect, useState } from "react";
+import { apiGet } from "@/lib/api-client";
+import { formatMoneyBdt } from "@/lib/format";
+
+type CounterTxn = {
+  id: string;
+  type: "SELL" | "CHANGE" | "REFUND" | "CANCEL";
+  amount: number;
+  note: string | null;
+  createdAt: string;
+  bookingId: string;
+  booking: {
+    id: string;
+    passengerName: string;
+    passengerPhone: string;
+    status: string;
+    totalAmount: number;
+    ticket: { passengerNumber: string } | null;
+    payment: { method: "CASH" | "ONLINE"; status: string } | null;
+  };
+};
+
+function formatPaymentPaid(payment: CounterTxn["booking"]["payment"]) {
+  if (!payment) return "—";
+  const method = payment.method === "CASH" ? "Cash" : "Online";
+  const statusLabel =
+    payment.status === "COMPLETED"
+      ? "Paid"
+      : payment.status === "REFUNDED"
+        ? "Refunded"
+        : payment.status === "PENDING"
+          ? "Pending"
+          : payment.status === "FAILED"
+            ? "Failed"
+            : payment.status;
+  return `${statusLabel} (${method})`;
+}
+
+function badgeClass(type: CounterTxn["type"]) {
+  if (type === "SELL") return "cp-badge cp-badge--sell";
+  if (type === "REFUND") return "cp-badge cp-badge--refund";
+  if (type === "CHANGE") return "cp-badge cp-badge--change";
+  return "cp-badge cp-badge--cancel";
+}
+
+type Props = {
+  refreshKey?: number;
+};
+
+export function CounterHistoryPanel({ refreshKey = 0 }: Props) {
+  const [txns, setTxns] = useState<CounterTxn[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const load = useCallback(() => {
+    setLoading(true);
+    setError("");
+    apiGet<CounterTxn[]>("/counter/transactions/today")
+      .then((r) => setTxns(r.data))
+      .catch((e) => {
+        setTxns([]);
+        setError(e instanceof Error ? e.message : "Failed to load");
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load, refreshKey]);
+
+  const sellTotal = txns
+    .filter((t) => t.type === "SELL")
+    .reduce((s, t) => s + t.amount, 0);
+  const refundTotal = txns
+    .filter((t) => t.type === "REFUND")
+    .reduce((s, t) => s + Math.abs(t.amount), 0);
+
+  return (
+    <div className="cp-section">
+      <h2 className="cp-section-title">TODAY&apos;S COUNTER TRANSACTIONS</h2>
+
+      <div className="cp-history-bar">
+        <button
+          type="button"
+          className="sp-filter-search"
+          style={{ padding: "0.4rem 0.85rem" }}
+          onClick={load}
+        >
+          Refresh
+        </button>
+        <span>
+          Sales total: <strong>{formatMoneyBdt(sellTotal)}</strong>
+        </span>
+        {refundTotal > 0 && (
+          <span>
+            Refunds: <strong>{formatMoneyBdt(refundTotal)}</strong>
+          </span>
+        )}
+        <span>{txns.length} transaction(s)</span>
+      </div>
+
+      {error && <p className="sp-filter-error">{error}</p>}
+      {loading && <div className="sp-empty">Loading transactions…</div>}
+
+      {!loading && !error && (
+        <div className="cp-table-wrap">
+          <table className="cp-table">
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Type</th>
+                <th>Passenger #</th>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Payment</th>
+                <th>Amount</th>
+                <th>Note</th>
+              </tr>
+            </thead>
+            <tbody>
+              {txns.length === 0 ? (
+                <tr>
+                  <td colSpan={8} style={{ textAlign: "center", color: "#666" }}>
+                    No transactions yet today
+                  </td>
+                </tr>
+              ) : (
+                txns.map((t) => (
+                  <tr key={t.id}>
+                    <td>
+                      {new Date(t.createdAt).toLocaleTimeString("en-US", {
+                        hour: "numeric",
+                        minute: "2-digit",
+                        hour12: true,
+                        timeZone: "Asia/Dhaka",
+                      })}
+                    </td>
+                    <td>
+                      <span className={badgeClass(t.type)}>{t.type}</span>
+                    </td>
+                    <td>{t.booking.ticket?.passengerNumber ?? "—"}</td>
+                    <td>{t.booking.passengerName}</td>
+                    <td>{t.booking.passengerPhone}</td>
+                    <td>{formatPaymentPaid(t.booking.payment)}</td>
+                    <td>
+                      {t.amount >= 0
+                        ? formatMoneyBdt(t.amount)
+                        : `−${formatMoneyBdt(-t.amount)}`}
+                    </td>
+                    <td>{t.note ?? "—"}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}

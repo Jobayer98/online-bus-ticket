@@ -1,0 +1,302 @@
+/* Counter POS — extends search-page / home design system */
+
+.cp-toast {
+  position: fixed;
+  bottom: 1.25rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  max-width: min(420px, calc(100vw - 2rem));
+  padding: 0.75rem 1rem;
+  background: var(--sp-red, #c62828);
+  color: #fff;
+  border-radius: 4px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  font-size: 0.9rem;
+  font-weight: 600;
+  animation: cp-toast-in 0.25s ease;
+}
+
+.cp-toast__text {
+  flex: 1;
+}
+
+.cp-toast__close {
+  flex-shrink: 0;
+  border: none;
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  width: 28px;
+  height: 28px;
+  border-radius: 3px;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.cp-toast__close:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+@keyframes cp-toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.counter-page {
+  min-height: 100vh;
+}
+
+.counter-page .home-header-top {
+  justify-content: space-between;
+}
+
+.counter-page .home-header-top__right {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  font-size: 0.875rem;
+  color: #333;
+}
+
+.counter-page .home-header-top__right a,
+.counter-page .home-header-top__logout {
+  color: var(--sp-green, #2e7d32);
+  text-decoration: none;
+  background: none;
+  border: none;
+  font: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+
+.counter-page .home-header-top__logout:hover,
+.counter-page .home-header-top__right a:hover {
+  color: var(--sp-green-dark, #1b5e20);
+}
+
+.counter-page .cp-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem 1.1rem;
+  margin-left: auto;
+}
+
+.counter-page .cp-nav button {
+  font-size: 1rem;
+  color: #222;
+  text-decoration: none;
+  padding: 0 0 0.35rem;
+  border: none;
+  border-bottom: 3px solid transparent;
+  background: none;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.counter-page .cp-nav button:hover {
+  color: var(--sp-green, #2e7d32);
+}
+
+.counter-page .cp-nav button.is-active {
+  color: var(--sp-green, #2e7d32);
+  border-bottom-color: var(--sp-red, #c62828);
+}
+
+.counter-page .cp-hero {
+  height: 100px;
+  background: #333 center / cover no-repeat;
+}
+
+.counter-page .cp-section {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem 2rem;
+}
+
+.counter-page .cp-section-title {
+  margin: 0.75rem 0 0.5rem;
+  padding: 0.45rem 0.75rem;
+  background: #e8e8e8;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #222;
+  border: 1px solid var(--sp-border, #d5d5d5);
+}
+
+/* Success ticket */
+.cp-success {
+  max-width: 1200px;
+  margin: 1rem auto 2rem;
+  padding: 0 1rem;
+}
+
+.cp-success-card {
+  background: #fff;
+  border: 1px solid var(--sp-border, #d5d5d5);
+  text-align: center;
+  padding: 2rem 1.5rem;
+}
+
+.cp-success-card h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #333;
+  letter-spacing: 0.03em;
+}
+
+.cp-success-number {
+  margin: 0.5rem 0;
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: var(--sp-red, #c62828);
+  letter-spacing: 0.06em;
+}
+
+.cp-success-hint {
+  margin: 0 0 1.25rem;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.cp-success-actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+/* History table in brand style */
+.cp-history-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.25rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.85rem;
+  color: #444;
+}
+
+.cp-history-bar strong {
+  color: var(--sp-green-dark, #1b5e20);
+}
+
+.cp-table-wrap {
+  background: #fff;
+  border: 1px solid var(--sp-border, #d5d5d5);
+  overflow-x: auto;
+}
+
+.cp-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+}
+
+.cp-table th {
+  background: var(--sp-green-dark, #1b5e20);
+  color: #fff;
+  padding: 0.45rem 0.65rem;
+  text-align: left;
+  font-weight: 700;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.cp-table td {
+  padding: 0.45rem 0.65rem;
+  border-bottom: 1px solid #eee;
+  color: #333;
+}
+
+.cp-table tbody tr:hover {
+  background: #f5f9f5;
+}
+
+.cp-badge {
+  display: inline-block;
+  padding: 0.12rem 0.4rem;
+  border-radius: 2px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.cp-badge--sell {
+  background: #e8f5e9;
+  color: var(--sp-green-dark, #1b5e20);
+}
+
+.cp-badge--refund {
+  background: #ffebee;
+  color: var(--sp-red, #c62828);
+}
+
+.cp-badge--change {
+  background: #fff3e0;
+  color: #e65100;
+}
+
+.cp-badge--cancel {
+  background: #f0f0f0;
+  color: #666;
+}
+
+/* Manage — two-column checkout style */
+.cp-manage-grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 360px) 1fr;
+  gap: 0;
+  border: 1px solid var(--sp-border, #d5d5d5);
+  background: #fff;
+}
+
+.cp-manage-grid > section {
+  border-right: 1px solid var(--sp-border, #d5d5d5);
+  padding: 0;
+}
+
+.cp-manage-grid > section:last-child {
+  border-right: none;
+}
+
+.cp-manage-grid h3 {
+  margin: 0;
+  padding: 0.4rem 0.65rem;
+  background: var(--sp-green-dark, #1b5e20);
+  color: #fff;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.cp-manage-body {
+  padding: 0.75rem;
+}
+
+@media (max-width: 900px) {
+  .cp-manage-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cp-manage-grid > section {
+    border-right: none;
+    border-bottom: 1px solid var(--sp-border, #d5d5d5);
+  }
+
+  .counter-page .cp-nav {
+    display: none;
+  }
+}

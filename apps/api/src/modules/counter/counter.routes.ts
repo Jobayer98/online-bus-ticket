@@ -153,7 +153,7 @@ counterRouter.get("/transactions/today", async (req, res, next) => {
     const txns = await prisma.counterTransaction.findMany({
       where: { sellerId: req.userId!, createdAt: { gte: start } },
       orderBy: { createdAt: "desc" },
-      include: { booking: true },
+      include: { booking: { include: { ticket: true, payment: true } } },
     });
     res.json(successResponse(txns));
   } catch (e) {

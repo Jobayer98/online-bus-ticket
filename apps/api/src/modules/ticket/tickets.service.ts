@@ -48,6 +48,7 @@ export async function lookupTicket(input: TicketLookupInput) {
 
   const b = ticket.booking;
   return {
+    bookingId: b.id,
     passengerNumber: ticket.passengerNumber,
     passengerName: b.passengerName,
     passengerPhone: b.passengerPhone,
