@@ -8,3 +8,5 @@ dist
 coverage
 packages/database/generated
 .DS_Store
+*.tsbuildinfo
+.cursor/plans
