@@ -1,0 +1,236 @@
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: token
+      description: JWT httpOnly cookie (set on login/register). SameSite=Lax — use Bearer for cross-origin clients.
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT from login/register response `data.token`
+
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      schema:
+        type: string
+      description: Idempotent payment confirm (recommended)
+      example: pay-confirm-clxbook0000000000000000001
+
+  schemas:
+    ApiErrorEnvelope:
+      type: object
+      required: [error]
+      properties:
+        error:
+          $ref: '#/components/schemas/ApiErrorBody'
+
+    ApiErrorBody:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          description: Machine-readable error code
+          enum:
+            - VALIDATION_ERROR
+            - NOT_FOUND
+            - UNAUTHORIZED
+            - FORBIDDEN
+            - CONFLICT
+            - INTERNAL_ERROR
+            - ROUTE_NOT_FOUND
+            - INVALID_DATE
+            - SEAT_NOT_AVAILABLE
+            - HOLD_EXPIRED
+            - BOOKING_NOT_FOUND
+            - PAYMENT_FAILED
+            - TICKET_NOT_FOUND
+        message:
+          type: string
+          description: Human-readable message
+        details:
+          description: Optional validation or debug details
+          nullable: true
+
+    SuccessEnvelope:
+      type: object
+      required: [data]
+      properties:
+        data:
+          description: Response payload
+
+    PaginationMeta:
+      type: object
+      required: [page, pageSize, total]
+      properties:
+        page:
+          type: integer
+          minimum: 1
+          example: 1
+        pageSize:
+          type: integer
+          minimum: 1
+          example: 10
+        total:
+          type: integer
+          minimum: 0
+          example: 42
+
+  responses:
+    Error400Validation:
+      description: Bad request — validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorEnvelope'
+          examples:
+            validationFailed:
+              summary: Invalid body or query
+              value:
+                error:
+                  code: VALIDATION_ERROR
+                  message: Validation failed
+                  details:
+                    formErrors: []
+                    fieldErrors:
+                      phone:
+                        - String must contain at least 10 character(s)
+                      password:
+                        - String must contain at least 6 character(s)
+            invalidTripDate:
+              summary: Past trip date
+              value:
+                error:
+                  code: VALIDATION_ERROR
+                  message: Validation failed
+                  details:
+                    fieldErrors:
+                      date:
+                        - Date must be today or later
+
+    Error401Unauthorized:
+      description: Unauthorized — missing or invalid token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorEnvelope'
+          examples:
+            missingToken:
+              summary: No credentials
+              value:
+                error:
+                  code: UNAUTHORIZED
+                  message: Authentication required
+            invalidToken:
+              summary: Expired or malformed JWT
+              value:
+                error:
+                  code: UNAUTHORIZED
+                  message: Invalid token
+
+    Error403Forbidden:
+      description: Forbidden — insufficient role
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorEnvelope'
+          examples:
+            wrongRole:
+              summary: Admin-only endpoint
+              value:
+                error:
+                  code: FORBIDDEN
+                  message: Forbidden
+
+    Error404NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorEnvelope'
+          examples:
+            generic:
+              summary: Resource missing
+              value:
+                error:
+                  code: NOT_FOUND
+                  message: Resource not found
+            routeNotFound:
+              summary: No route for stop pair
+              value:
+                error:
+                  code: ROUTE_NOT_FOUND
+                  message: Route not found
+            bookingNotFound:
+              summary: Booking lookup
+              value:
+                error:
+                  code: BOOKING_NOT_FOUND
+                  message: Booking not found
+            ticketNotFound:
+              summary: Ticket lookup (no enumeration)
+              value:
+                error:
+                  code: TICKET_NOT_FOUND
+                  message: Ticket not found
+
+    Error409Conflict:
+      description: Conflict — business rule violation
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorEnvelope'
+          examples:
+            phoneRegistered:
+              summary: Duplicate phone on register
+              value:
+                error:
+                  code: CONFLICT
+                  message: Phone already registered
+            seatNotAvailable:
+              summary: Seat hold failed
+              value:
+                error:
+                  code: SEAT_NOT_AVAILABLE
+                  message: Seat already sold
+            holdExpired:
+              summary: Hold TTL elapsed
+              value:
+                error:
+                  code: HOLD_EXPIRED
+                  message: Hold has expired
+            routeExists:
+              summary: Duplicate route
+              value:
+                error:
+                  code: CONFLICT
+                  message: Route already exists
+
+    Error500Internal:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorEnvelope'
+          examples:
+            internal:
+              summary: Unexpected failure
+              value:
+                error:
+                  code: INTERNAL_ERROR
+                  message: Internal server error
+
+    # Legacy aliases (kept for existing $refs)
+    ValidationError:
+      $ref: '#/components/responses/Error400Validation'
+    Unauthorized:
+      $ref: '#/components/responses/Error401Unauthorized'
+    Forbidden:
+      $ref: '#/components/responses/Error403Forbidden'
+    NotFound:
+      $ref: '#/components/responses/Error404NotFound'

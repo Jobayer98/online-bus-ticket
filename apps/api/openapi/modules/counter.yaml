@@ -1,0 +1,263 @@
+/api/v1/counter/sell:
+  post:
+    tags: [Counter]
+    summary: Counter direct sell (hold + book + pay)
+    operationId: counterSell
+    security:
+      - bearerAuth: []
+      - cookieAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CounterSellRequest'
+          examples:
+            cashSale:
+              value:
+                scheduleId: clxsched000000000000000001
+                seatLabels: ["2A"]
+                boardingPointId: clxboard00000000000000001
+                passenger:
+                  name: Counter Customer
+                  phone: "01788887777"
+                method: CASH
+    responses:
+      '201':
+        description: Ticket sold at counter
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [data]
+              properties:
+                data:
+                  $ref: '#/components/schemas/PaymentConfirmResult'
+            examples:
+              sold:
+                $ref: '../components/examples.yaml#/PaymentConfirmed'
+      '400':
+        $ref: '../components/common.yaml#/components/responses/Error400Validation'
+      '401':
+        $ref: '../components/common.yaml#/components/responses/Error401Unauthorized'
+      '403':
+        $ref: '../components/common.yaml#/components/responses/Error403Forbidden'
+      '409':
+        $ref: '../components/common.yaml#/components/responses/Error409Conflict'
+      '500':
+        $ref: '../components/common.yaml#/components/responses/Error500Internal'
+
+/api/v1/counter/change:
+  post:
+    tags: [Counter]
+    summary: Record change request
+    operationId: counterChange
+    security:
+      - bearerAuth: []
+      - cookieAuth: []
+    requestBody:
+      $ref: '#/components/requestBodies/CounterBookingAction'
+    responses:
+      '200':
+        description: Action recorded
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [data]
+              properties:
+                data:
+                  type: object
+                  properties:
+                    recorded:
+                      type: boolean
+                    bookingId:
+                      type: string
+            examples:
+              recorded:
+                value:
+                  data:
+                    recorded: true
+                    bookingId: clxbook0000000000000000001
+      '400':
+        $ref: '../components/common.yaml#/components/responses/Error400Validation'
+      '401':
+        $ref: '../components/common.yaml#/components/responses/Error401Unauthorized'
+      '403':
+        $ref: '../components/common.yaml#/components/responses/Error403Forbidden'
+      '404':
+        $ref: '../components/common.yaml#/components/responses/Error404NotFound'
+      '500':
+        $ref: '../components/common.yaml#/components/responses/Error500Internal'
+
+/api/v1/counter/refund:
+  post:
+    tags: [Counter]
+    summary: Refund a paid booking
+    operationId: counterRefund
+    security:
+      - bearerAuth: []
+      - cookieAuth: []
+    requestBody:
+      $ref: '#/components/requestBodies/CounterBookingAction'
+    responses:
+      '200':
+        description: Booking refunded
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [data]
+              properties:
+                data:
+                  type: object
+                  properties:
+                    refunded:
+                      type: boolean
+            examples:
+              refunded:
+                value:
+                  data:
+                    refunded: true
+      '401':
+        $ref: '../components/common.yaml#/components/responses/Error401Unauthorized'
+      '403':
+        $ref: '../components/common.yaml#/components/responses/Error403Forbidden'
+      '404':
+        $ref: '../components/common.yaml#/components/responses/Error404NotFound'
+      '500':
+        $ref: '../components/common.yaml#/components/responses/Error500Internal'
+
+/api/v1/counter/cancel:
+  post:
+    tags: [Counter]
+    summary: Cancel booking at counter
+    operationId: counterCancel
+    security:
+      - bearerAuth: []
+      - cookieAuth: []
+    requestBody:
+      $ref: '#/components/requestBodies/CounterBookingAction'
+    responses:
+      '200':
+        description: Booking cancelled
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [data]
+              properties:
+                data:
+                  type: object
+                  properties:
+                    cancelled:
+                      type: boolean
+            examples:
+              cancelled:
+                value:
+                  data:
+                    cancelled: true
+      '401':
+        $ref: '../components/common.yaml#/components/responses/Error401Unauthorized'
+      '403':
+        $ref: '../components/common.yaml#/components/responses/Error403Forbidden'
+      '404':
+        $ref: '../components/common.yaml#/components/responses/Error404NotFound'
+      '500':
+        $ref: '../components/common.yaml#/components/responses/Error500Internal'
+
+/api/v1/counter/transactions/today:
+  get:
+    tags: [Counter]
+    summary: Today's counter transactions for seller
+    operationId: listTodayCounterTransactions
+    security:
+      - bearerAuth: []
+      - cookieAuth: []
+    responses:
+      '200':
+        description: Transactions since midnight (seller timezone UTC in API)
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [data]
+              properties:
+                data:
+                  type: array
+                  items:
+                    type: object
+            examples:
+              today:
+                value:
+                  data:
+                    - type: SELL
+                      bookingId: clxbook0000000000000000001
+                      amount: 136000
+                      createdAt: "2026-05-20T08:30:00.000Z"
+      '401':
+        $ref: '../components/common.yaml#/components/responses/Error401Unauthorized'
+      '403':
+        $ref: '../components/common.yaml#/components/responses/Error403Forbidden'
+      '500':
+        $ref: '../components/common.yaml#/components/responses/Error500Internal'
+
+components:
+  requestBodies:
+    CounterBookingAction:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [bookingId]
+            properties:
+              bookingId:
+                type: string
+                example: clxbook0000000000000000001
+              note:
+                type: string
+                example: Customer requested seat change
+          examples:
+            change:
+              value:
+                bookingId: clxbook0000000000000000001
+                note: Change to 2A
+  schemas:
+    CounterSellRequest:
+      type: object
+      required: [scheduleId, seatLabels, boardingPointId, passenger, method]
+      properties:
+        scheduleId:
+          type: string
+        seatLabels:
+          type: array
+          items:
+            type: string
+        boardingPointId:
+          type: string
+        passenger:
+          type: object
+          required: [name, phone]
+          properties:
+            name:
+              type: string
+            phone:
+              type: string
+            email:
+              type: string
+        method:
+          type: string
+          enum: [CASH, ONLINE]
+    PaymentConfirmResult:
+      type: object
+      properties:
+        bookingId:
+          type: string
+        ticket:
+          type: object
+          properties:
+            id:
+              type: string
+            passengerNumber:
+              type: string

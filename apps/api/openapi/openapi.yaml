@@ -1,0 +1,157 @@
+openapi: 3.0.3
+info:
+  title: Online Bus Ticket API
+  description: |
+    SaaS bus ticketing platform API.
+
+    ## Envelopes
+    - **Success:** `{ "data": T }` or `{ "data": T[], "meta": { page, pageSize, total } }`
+    - **Error:** `{ "error": { "code", "message", "details?" } }`
+
+    ## Authentication
+    Use **Bearer** `Authorization: Bearer <token>` (from login/register `data.token`) or the `token` httpOnly cookie.
+
+    **Seed users:** Admin `01700000001` · Counter `01700000002` · password `password123`
+
+    Modular spec files live under `openapi/modules/`.
+  version: 1.0.0
+  contact:
+    name: API Team
+
+servers:
+  - url: http://localhost:4000
+    description: Local development
+
+tags:
+  - name: Health
+    description: Liveness and version
+  - name: Identity
+    description: Auth and user profile
+  - name: Schedule
+    description: Public schedule search
+  - name: Booking
+    description: Seat holds and bookings
+  - name: Payment
+    description: Payment initiate and confirm
+  - name: Ticket
+    description: Ticket lookup and download
+  - name: Counter
+    description: Counter POS operations
+  - name: Admin - Stops
+  - name: Admin - Routes
+  - name: Admin - Coaches
+  - name: Admin - Layouts
+  - name: Admin - Schedules
+  - name: Admin - Reports
+
+paths:
+  /api/v1/health:
+    $ref: './modules/health.yaml#/~1api~1v1~1health'
+  /api/v1/auth/register:
+    $ref: './modules/identity.yaml#/~1api~1v1~1auth~1register'
+  /api/v1/auth/login:
+    $ref: './modules/identity.yaml#/~1api~1v1~1auth~1login'
+  /api/v1/auth/logout:
+    $ref: './modules/identity.yaml#/~1api~1v1~1auth~1logout'
+  /api/v1/users/me:
+    $ref: './modules/identity.yaml#/~1api~1v1~1users~1me'
+  /api/v1/users/me/bookings:
+    $ref: './modules/identity.yaml#/~1api~1v1~1users~1me~1bookings'
+  /api/v1/schedules/stops:
+    $ref: './modules/schedule.yaml#/~1api~1v1~1schedules~1stops'
+  /api/v1/schedules/search:
+    $ref: './modules/schedule.yaml#/~1api~1v1~1schedules~1search'
+  /api/v1/schedules/by-route/{slug}:
+    $ref: './modules/schedule.yaml#/~1api~1v1~1schedules~1by-route~1{slug}'
+  /api/v1/schedules/{id}/seat-map:
+    $ref: './modules/schedule.yaml#/~1api~1v1~1schedules~1{id}~1seat-map'
+  /api/v1/bookings/hold:
+    $ref: './modules/booking.yaml#/~1api~1v1~1bookings~1hold'
+  /api/v1/bookings/hold/{id}:
+    $ref: './modules/booking.yaml#/~1api~1v1~1bookings~1hold~1{id}'
+  /api/v1/bookings:
+    $ref: './modules/booking.yaml#/~1api~1v1~1bookings'
+  /api/v1/bookings/{id}:
+    $ref: './modules/booking.yaml#/~1api~1v1~1bookings~1{id}'
+  /api/v1/payments/initiate:
+    $ref: './modules/payment.yaml#/~1api~1v1~1payments~1initiate'
+  /api/v1/payments/confirm:
+    $ref: './modules/payment.yaml#/~1api~1v1~1payments~1confirm'
+  /api/v1/payments/webhook:
+    $ref: './modules/payment.yaml#/~1api~1v1~1payments~1webhook'
+  /api/v1/tickets/lookup:
+    $ref: './modules/ticket.yaml#/~1api~1v1~1tickets~1lookup'
+  /api/v1/tickets/download:
+    $ref: './modules/ticket.yaml#/~1api~1v1~1tickets~1download'
+  /api/v1/counter/sell:
+    $ref: './modules/counter.yaml#/~1api~1v1~1counter~1sell'
+  /api/v1/counter/change:
+    $ref: './modules/counter.yaml#/~1api~1v1~1counter~1change'
+  /api/v1/counter/refund:
+    $ref: './modules/counter.yaml#/~1api~1v1~1counter~1refund'
+  /api/v1/counter/cancel:
+    $ref: './modules/counter.yaml#/~1api~1v1~1counter~1cancel'
+  /api/v1/counter/transactions/today:
+    $ref: './modules/counter.yaml#/~1api~1v1~1counter~1transactions~1today'
+  /api/v1/admin/stops:
+    $ref: './modules/admin.yaml#/~1api~1v1~1admin~1stops'
+  /api/v1/admin/stops/{id}:
+    $ref: './modules/admin.yaml#/~1api~1v1~1admin~1stops~1{id}'
+  /api/v1/admin/routes:
+    $ref: './modules/admin.yaml#/~1api~1v1~1admin~1routes'
+  /api/v1/admin/coaches:
+    $ref: './modules/admin.yaml#/~1api~1v1~1admin~1coaches'
+  /api/v1/admin/layouts:
+    $ref: './modules/admin.yaml#/~1api~1v1~1admin~1layouts'
+  /api/v1/admin/schedules:
+    $ref: './modules/admin.yaml#/~1api~1v1~1admin~1schedules'
+  /api/v1/admin/schedules/{id}/reschedule:
+    $ref: './modules/admin.yaml#/~1api~1v1~1admin~1schedules~1{id}~1reschedule'
+  /api/v1/admin/schedules/{id}/cancel:
+    $ref: './modules/admin.yaml#/~1api~1v1~1admin~1schedules~1{id}~1cancel'
+  /api/v1/admin/reports/sales:
+    $ref: './modules/admin.yaml#/~1api~1v1~1admin~1reports~1sales'
+  /api/v1/admin/reports/analytics/overview:
+    $ref: './modules/admin.yaml#/~1api~1v1~1admin~1reports~1analytics~1overview'
+  /api/v1/admin/reports/export/csv:
+    $ref: './modules/admin.yaml#/~1api~1v1~1admin~1reports~1export~1csv'
+
+components:
+  securitySchemes:
+    cookieAuth:
+      $ref: './components/common.yaml#/components/securitySchemes/cookieAuth'
+    bearerAuth:
+      $ref: './components/common.yaml#/components/securitySchemes/bearerAuth'
+  parameters:
+    IdempotencyKey:
+      $ref: './components/common.yaml#/components/parameters/IdempotencyKey'
+  schemas:
+    ApiErrorEnvelope:
+      $ref: './components/common.yaml#/components/schemas/ApiErrorEnvelope'
+    ApiErrorBody:
+      $ref: './components/common.yaml#/components/schemas/ApiErrorBody'
+    SuccessEnvelope:
+      $ref: './components/common.yaml#/components/schemas/SuccessEnvelope'
+    PaginationMeta:
+      $ref: './components/common.yaml#/components/schemas/PaginationMeta'
+  responses:
+    Error400Validation:
+      $ref: './components/common.yaml#/components/responses/Error400Validation'
+    Error401Unauthorized:
+      $ref: './components/common.yaml#/components/responses/Error401Unauthorized'
+    Error403Forbidden:
+      $ref: './components/common.yaml#/components/responses/Error403Forbidden'
+    Error404NotFound:
+      $ref: './components/common.yaml#/components/responses/Error404NotFound'
+    Error409Conflict:
+      $ref: './components/common.yaml#/components/responses/Error409Conflict'
+    Error500Internal:
+      $ref: './components/common.yaml#/components/responses/Error500Internal'
+    ValidationError:
+      $ref: './components/common.yaml#/components/responses/ValidationError'
+    Unauthorized:
+      $ref: './components/common.yaml#/components/responses/Unauthorized'
+    Forbidden:
+      $ref: './components/common.yaml#/components/responses/Forbidden'
+    NotFound:
+      $ref: './components/common.yaml#/components/responses/NotFound'

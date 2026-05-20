@@ -1,0 +1,692 @@
+/api/v1/admin/stops:
+  get:
+    tags: [Admin - Stops]
+    summary: List stops (admin)
+    operationId: adminListStops
+    security:
+      - bearerAuth: []
+      - cookieAuth: []
+    responses:
+      '200':
+        description: Stops list
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [data]
+              properties:
+                data:
+                  type: array
+                  items:
+                    type: object
+            examples:
+              list:
+                $ref: '../components/examples.yaml#/StopList'
+      '401':
+        $ref: '../components/common.yaml#/components/responses/Error401Unauthorized'
+      '403':
+        $ref: '../components/common.yaml#/components/responses/Error403Forbidden'
+      '500':
+        $ref: '../components/common.yaml#/components/responses/Error500Internal'
+  post:
+    tags: [Admin - Stops]
+    summary: Create stop
+    operationId: adminCreateStop
+    security:
+      - bearerAuth: []
+      - cookieAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [name, city, code]
+            properties:
+              name:
+                type: string
+              city:
+                type: string
+              code:
+                type: string
+                minLength: 2
+                maxLength: 10
+          examples:
+            newStop:
+              $ref: '../components/examples.yaml#/CreateStopRequest'
+    responses:
+      '201':
+        description: Stop created
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [data]
+              properties:
+                data:
+                  type: object
+            examples:
+              created:
+                value:
+                  data:
+                    id: clxstop00000000000000000099
+                    name: Aricha
+                    city: Manikganj
+                    code: ARC
+      '400':
+        $ref: '../components/common.yaml#/components/responses/Error400Validation'
+      '401':
+        $ref: '../components/common.yaml#/components/responses/Error401Unauthorized'
+      '403':
+        $ref: '../components/common.yaml#/components/responses/Error403Forbidden'
+      '409':
+        $ref: '../components/common.yaml#/components/responses/Error409Conflict'
+      '500':
+        $ref: '../components/common.yaml#/components/responses/Error500Internal'
+
+/api/v1/admin/stops/{id}:
+  patch:
+    tags: [Admin - Stops]
+    summary: Update stop
+    operationId: adminUpdateStop
+    security:
+      - bearerAuth: []
+      - cookieAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+        example: clxstop00000000000000000001
+    requestBody:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+              city:
+                type: string
+              code:
+                type: string
+          examples:
+            rename:
+              value:
+                name: Gabtoli Terminal
+    responses:
+      '200':
+        description: Stop updated
+        content:
+          application/json:
+            examples:
+              updated:
+                value:
+                  data:
+                    id: clxstop00000000000000000001
+                    name: Gabtoli Terminal
+      '400':
+        $ref: '../components/common.yaml#/components/responses/Error400Validation'
+      '401':
+        $ref: '../components/common.yaml#/components/responses/Error401Unauthorized'
+      '403':
+        $ref: '../components/common.yaml#/components/responses/Error403Forbidden'
+      '404':
+        $ref: '../components/common.yaml#/components/responses/Error404NotFound'
+      '500':
+        $ref: '../components/common.yaml#/components/responses/Error500Internal'
+  delete:
+    tags: [Admin - Stops]
+    summary: Delete stop
+    operationId: adminDeleteStop
+    security:
+      - bearerAuth: []
+      - cookieAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    responses:
+      '200':
+        description: Stop deleted
+        content:
+          application/json:
+            examples:
+              deleted:
+                value:
+                  data:
+                    deleted: true
+      '401':
+        $ref: '../components/common.yaml#/components/responses/Error401Unauthorized'
+      '403':
+        $ref: '../components/common.yaml#/components/responses/Error403Forbidden'
+      '404':
+        $ref: '../components/common.yaml#/components/responses/Error404NotFound'
+      '500':
+        $ref: '../components/common.yaml#/components/responses/Error500Internal'
+
+/api/v1/admin/routes:
+  get:
+    tags: [Admin - Routes]
+    summary: List routes
+    operationId: adminListRoutes
+    security:
+      - bearerAuth: []
+      - cookieAuth: []
+    responses:
+      '200':
+        description: Routes with stops
+        content:
+          application/json:
+            examples:
+              list:
+                value:
+                  data:
+                    - id: clxroute000000000000000001
+                      slug: dhaka-pabna
+                      fromStop:
+                        name: Gabtoli
+                      toStop:
+                        name: Pabna Central
+      '401':
+        $ref: '../components/common.yaml#/components/responses/Error401Unauthorized'
+      '403':
+        $ref: '../components/common.yaml#/components/responses/Error403Forbidden'
+      '500':
+        $ref: '../components/common.yaml#/components/responses/Error500Internal'
+  post:
+    tags: [Admin - Routes]
+    summary: Create route
+    operationId: adminCreateRoute
+    security:
+      - bearerAuth: []
+      - cookieAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [fromStopId, toStopId]
+            properties:
+              fromStopId:
+                type: string
+              toStopId:
+                type: string
+          examples:
+            newRoute:
+              value:
+                fromStopId: clxstop00000000000000000001
+                toStopId: clxstop00000000000000000002
+    responses:
+      '201':
+        description: Route created
+        content:
+          application/json:
+            examples:
+              created:
+                value:
+                  data:
+                    id: clxroute000000000000000002
+                    slug: dhaka-pabna
+      '400':
+        $ref: '../components/common.yaml#/components/responses/Error400Validation'
+      '401':
+        $ref: '../components/common.yaml#/components/responses/Error401Unauthorized'
+      '403':
+        $ref: '../components/common.yaml#/components/responses/Error403Forbidden'
+      '404':
+        $ref: '../components/common.yaml#/components/responses/Error404NotFound'
+      '409':
+        $ref: '../components/common.yaml#/components/responses/Error409Conflict'
+      '500':
+        $ref: '../components/common.yaml#/components/responses/Error500Internal'
+
+/api/v1/admin/coaches:
+  get:
+    tags: [Admin - Coaches]
+    summary: List coaches
+    operationId: adminListCoaches
+    security:
+      - bearerAuth: []
+      - cookieAuth: []
+    responses:
+      '200':
+        description: Coaches with layouts
+        content:
+          application/json:
+            examples:
+              list:
+                value:
+                  data:
+                    - id: clxcoach000000000000000001
+                      coachNumber: DH-1001
+                      busType: AC
+      '401':
+        $ref: '../components/common.yaml#/components/responses/Error401Unauthorized'
+      '403':
+        $ref: '../components/common.yaml#/components/responses/Error403Forbidden'
+      '500':
+        $ref: '../components/common.yaml#/components/responses/Error500Internal'
+  post:
+    tags: [Admin - Coaches]
+    summary: Create coach
+    operationId: adminCreateCoach
+    security:
+      - bearerAuth: []
+      - cookieAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [coachNumber, busType]
+            properties:
+              coachNumber:
+                type: string
+              busType:
+                type: string
+                enum: [AC, NON_AC]
+              seatLayoutId:
+                type: string
+          examples:
+            newCoach:
+              value:
+                coachNumber: DH-2001
+                busType: AC
+                seatLayoutId: clxlayout00000000000000001
+    responses:
+      '201':
+        description: Coach created
+        content:
+          application/json:
+            examples:
+              created:
+                value:
+                  data:
+                    coachNumber: DH-2001
+                    busType: AC
+      '400':
+        $ref: '../components/common.yaml#/components/responses/Error400Validation'
+      '401':
+        $ref: '../components/common.yaml#/components/responses/Error401Unauthorized'
+      '403':
+        $ref: '../components/common.yaml#/components/responses/Error403Forbidden'
+      '500':
+        $ref: '../components/common.yaml#/components/responses/Error500Internal'
+
+/api/v1/admin/layouts:
+  get:
+    tags: [Admin - Layouts]
+    summary: List seat layouts
+    operationId: adminListLayouts
+    security:
+      - bearerAuth: []
+      - cookieAuth: []
+    responses:
+      '200':
+        description: Layouts with templates
+        content:
+          application/json:
+            examples:
+              list:
+                value:
+                  data:
+                    - id: clxlayout00000000000000001
+                      name: 40 Seat Standard
+                      rows: 10
+                      cols: 4
+      '401':
+        $ref: '../components/common.yaml#/components/responses/Error401Unauthorized'
+      '403':
+        $ref: '../components/common.yaml#/components/responses/Error403Forbidden'
+      '500':
+        $ref: '../components/common.yaml#/components/responses/Error500Internal'
+  post:
+    tags: [Admin - Layouts]
+    summary: Create seat layout
+    operationId: adminCreateLayout
+    security:
+      - bearerAuth: []
+      - cookieAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [name, rows, cols, templates]
+            properties:
+              name:
+                type: string
+              rows:
+                type: integer
+              cols:
+                type: integer
+              templates:
+                type: array
+                items:
+                  type: object
+          examples:
+            fourSeater:
+              value:
+                name: Mock 4-seat
+                rows: 2
+                cols: 2
+                templates:
+                  - { label: M1A, row: 1, col: 1, seatClass: STANDARD }
+                  - { label: M1B, row: 1, col: 2, seatClass: STANDARD }
+    responses:
+      '201':
+        description: Layout created
+        content:
+          application/json:
+            examples:
+              created:
+                value:
+                  data:
+                    id: clxlayout00000000000000002
+                    name: Mock 4-seat
+      '400':
+        $ref: '../components/common.yaml#/components/responses/Error400Validation'
+      '401':
+        $ref: '../components/common.yaml#/components/responses/Error401Unauthorized'
+      '403':
+        $ref: '../components/common.yaml#/components/responses/Error403Forbidden'
+      '500':
+        $ref: '../components/common.yaml#/components/responses/Error500Internal'
+
+/api/v1/admin/schedules:
+  get:
+    tags: [Admin - Schedules]
+    summary: List schedules
+    operationId: adminListSchedules
+    security:
+      - bearerAuth: []
+      - cookieAuth: []
+    responses:
+      '200':
+        description: Schedules
+        content:
+          application/json:
+            examples:
+              list:
+                value:
+                  data:
+                    - id: clxsched000000000000000001
+                      status: SCHEDULED
+                      departureAt: "2026-05-21T00:00:00.000Z"
+      '401':
+        $ref: '../components/common.yaml#/components/responses/Error401Unauthorized'
+      '403':
+        $ref: '../components/common.yaml#/components/responses/Error403Forbidden'
+      '500':
+        $ref: '../components/common.yaml#/components/responses/Error500Internal'
+  post:
+    tags: [Admin - Schedules]
+    summary: Create schedule and seat inventory
+    operationId: adminCreateSchedule
+    security:
+      - bearerAuth: []
+      - cookieAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [routeId, coachId, departureAt, estimatedArrivalAt, baseFare]
+            properties:
+              routeId:
+                type: string
+              coachId:
+                type: string
+              departureAt:
+                type: string
+                format: date-time
+              estimatedArrivalAt:
+                type: string
+                format: date-time
+              baseFare:
+                type: integer
+                description: Minor units
+          examples:
+            morningBus:
+              value:
+                routeId: clxroute000000000000000001
+                coachId: clxcoach000000000000000001
+                departureAt: "2026-05-22T00:00:00.000Z"
+                estimatedArrivalAt: "2026-05-22T05:30:00.000Z"
+                baseFare: 85000
+    responses:
+      '201':
+        description: Schedule created with seat rows
+        content:
+          application/json:
+            examples:
+              created:
+                value:
+                  data:
+                    id: clxsched000000000000000099
+                    status: SCHEDULED
+      '400':
+        $ref: '../components/common.yaml#/components/responses/Error400Validation'
+      '401':
+        $ref: '../components/common.yaml#/components/responses/Error401Unauthorized'
+      '403':
+        $ref: '../components/common.yaml#/components/responses/Error403Forbidden'
+      '404':
+        $ref: '../components/common.yaml#/components/responses/Error404NotFound'
+      '500':
+        $ref: '../components/common.yaml#/components/responses/Error500Internal'
+
+/api/v1/admin/schedules/{id}/reschedule:
+  patch:
+    tags: [Admin - Schedules]
+    summary: Reschedule departure
+    operationId: adminReschedule
+    security:
+      - bearerAuth: []
+      - cookieAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [departureAt, estimatedArrivalAt]
+            properties:
+              departureAt:
+                type: string
+                format: date-time
+              estimatedArrivalAt:
+                type: string
+                format: date-time
+              reason:
+                type: string
+          examples:
+            delay:
+              value:
+                departureAt: "2026-05-21T02:00:00.000Z"
+                estimatedArrivalAt: "2026-05-21T07:30:00.000Z"
+                reason: Traffic on highway
+    responses:
+      '200':
+        description: Rescheduled
+        content:
+          application/json:
+            examples:
+              ok:
+                value:
+                  data:
+                    id: clxsched000000000000000001
+                    status: SCHEDULED
+      '400':
+        $ref: '../components/common.yaml#/components/responses/Error400Validation'
+      '401':
+        $ref: '../components/common.yaml#/components/responses/Error401Unauthorized'
+      '403':
+        $ref: '../components/common.yaml#/components/responses/Error403Forbidden'
+      '404':
+        $ref: '../components/common.yaml#/components/responses/Error404NotFound'
+      '500':
+        $ref: '../components/common.yaml#/components/responses/Error500Internal'
+
+/api/v1/admin/schedules/{id}/cancel:
+  patch:
+    tags: [Admin - Schedules]
+    summary: Cancel schedule
+    operationId: adminCancelSchedule
+    security:
+      - bearerAuth: []
+      - cookieAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    responses:
+      '200':
+        description: Schedule cancelled
+        content:
+          application/json:
+            examples:
+              cancelled:
+                value:
+                  data:
+                    id: clxsched000000000000000001
+                    status: CANCELLED
+      '401':
+        $ref: '../components/common.yaml#/components/responses/Error401Unauthorized'
+      '403':
+        $ref: '../components/common.yaml#/components/responses/Error403Forbidden'
+      '404':
+        $ref: '../components/common.yaml#/components/responses/Error404NotFound'
+      '500':
+        $ref: '../components/common.yaml#/components/responses/Error500Internal'
+
+/api/v1/admin/reports/sales:
+  get:
+    tags: [Admin - Reports]
+    summary: Sales report
+    operationId: adminSalesReport
+    security:
+      - bearerAuth: []
+      - cookieAuth: []
+    parameters:
+      - name: from
+        in: query
+        schema:
+          type: string
+          format: date-time
+        example: "2026-05-01T00:00:00.000Z"
+      - name: to
+        in: query
+        schema:
+          type: string
+          format: date-time
+        example: "2026-05-20T23:59:59.999Z"
+    responses:
+      '200':
+        description: Sales breakdown by channel and route
+        content:
+          application/json:
+            examples:
+              report:
+                value:
+                  data:
+                    from: "2026-05-01T00:00:00.000Z"
+                    to: "2026-05-20T23:59:59.999Z"
+                    totalRevenue: 850000
+                    ticketCount: 12
+                    online:
+                      count: 8
+                      revenue: 600000
+                    counter:
+                      count: 4
+                      revenue: 250000
+      '401':
+        $ref: '../components/common.yaml#/components/responses/Error401Unauthorized'
+      '403':
+        $ref: '../components/common.yaml#/components/responses/Error403Forbidden'
+      '500':
+        $ref: '../components/common.yaml#/components/responses/Error500Internal'
+
+/api/v1/admin/reports/analytics/overview:
+  get:
+    tags: [Admin - Reports]
+    summary: Analytics overview (30 days)
+    operationId: adminAnalyticsOverview
+    security:
+      - bearerAuth: []
+      - cookieAuth: []
+    responses:
+      '200':
+        description: KPI summary
+        content:
+          application/json:
+            examples:
+              overview:
+                value:
+                  data:
+                    revenue30d: 1250000
+                    tickets30d: 48
+                    activeSchedules: 6
+                    soldSeats: 120
+                    avgTicketValue: 26041
+      '401':
+        $ref: '../components/common.yaml#/components/responses/Error401Unauthorized'
+      '403':
+        $ref: '../components/common.yaml#/components/responses/Error403Forbidden'
+      '500':
+        $ref: '../components/common.yaml#/components/responses/Error500Internal'
+
+/api/v1/admin/reports/export/csv:
+  get:
+    tags: [Admin - Reports]
+    summary: Export sales CSV
+    operationId: adminExportSalesCsv
+    security:
+      - bearerAuth: []
+      - cookieAuth: []
+    parameters:
+      - name: from
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: to
+        in: query
+        schema:
+          type: string
+          format: date-time
+    responses:
+      '200':
+        description: CSV file download
+        content:
+          text/csv:
+            schema:
+              type: string
+            examples:
+              csv:
+                summary: Sales export sample
+                value: |
+                  id,route,amount,channel,createdAt
+                  clxbook001,dhaka-pabna,136000,ONLINE,2026-05-20T05:00:00.000Z
+      '401':
+        $ref: '../components/common.yaml#/components/responses/Error401Unauthorized'
+      '403':
+        $ref: '../components/common.yaml#/components/responses/Error403Forbidden'
+      '500':
+        $ref: '../components/common.yaml#/components/responses/Error500Internal'

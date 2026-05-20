@@ -1,0 +1,34 @@
+/api/v1/health:
+  get:
+    tags: [Health]
+    summary: API health check
+    description: Public liveness probe. No authentication required.
+    operationId: getHealth
+    responses:
+      '200':
+        description: Service is healthy
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [data]
+              properties:
+                data:
+                  type: object
+                  required: [status, version, timestamp]
+                  properties:
+                    status:
+                      type: string
+                      example: ok
+                    version:
+                      type: string
+                      example: "0.0.0"
+                    timestamp:
+                      type: string
+                      format: date-time
+                      example: "2026-05-20T06:00:00.000Z"
+            examples:
+              healthy:
+                $ref: '../components/examples.yaml#/HealthOk'
+      '500':
+        $ref: '../components/common.yaml#/components/responses/Error500Internal'

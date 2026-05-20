@@ -1,0 +1,133 @@
+# Reusable example payloads (referenced from module specs)
+
+HealthOk:
+  value:
+    data:
+      status: ok
+      version: "0.0.0"
+      timestamp: "2026-05-20T06:00:00.000Z"
+
+LoginRequest:
+  value:
+    phone: "01700000001"
+    password: "password123"
+
+RegisterRequest:
+  value:
+    phone: "01712345678"
+    password: "password123"
+    name: "Rahim Khan"
+    email: "rahim@example.com"
+
+AuthSuccess:
+  value:
+    data:
+      token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.example
+      user:
+        id: clxuser00000000000000000001
+        phone: "01700000001"
+        name: Admin User
+        email: admin@bus.local
+        role: ADMIN
+
+UserProfile:
+  value:
+    data:
+      id: clxuser00000000000000000001
+      phone: "01700000001"
+      email: admin@bus.local
+      name: Admin User
+      role: ADMIN
+
+StopList:
+  value:
+    data:
+      - id: clxstop00000000000000000001
+        name: Gabtoli
+        city: Dhaka
+        code: DHK
+      - id: clxstop00000000000000000002
+        name: Pabna Central
+        city: Pabna
+        code: PAB
+
+SearchSchedulesQuery:
+  value:
+    fromStopId: clxstop00000000000000000001
+    toStopId: clxstop00000000000000000002
+    date: "2026-05-21"
+    busType: AC
+    timePeriod: MORNING
+
+ScheduleCardList:
+  value:
+    data:
+      - scheduleId: clxsched000000000000000001
+        coachNumber: DH-1001
+        startPoint: Gabtoli
+        departureAt: "2026-05-21T00:00:00.000Z"
+        endPoint: Pabna Central
+        estimatedArrivalAt: "2026-05-21T05:30:00.000Z"
+        busType: AC
+        fareFrom: 85000
+        availableSeats: 38
+        routeSlug: dhaka-pabna
+
+CreateHoldRequest:
+  value:
+    scheduleId: clxsched000000000000000001
+    seatLabels: ["A1"]
+    sessionId: web-session-abc123
+
+HoldCreated:
+  value:
+    data:
+      holdId: clxhold0000000000000000001
+      expiresAt: "2026-05-20T06:15:00.000Z"
+      seatLabels: ["A1"]
+      totalAmount: 136000
+      lineItems:
+        - label: "A1"
+          seatClass: BUSINESS
+          price: 136000
+
+CreateBookingRequest:
+  value:
+    holdId: clxhold0000000000000000001
+    boardingPointId: clxboard00000000000000001
+    passenger:
+      name: Karim Ahmed
+      phone: "01799998888"
+      email: karim@example.com
+
+BookingCreated:
+  value:
+    data:
+      id: clxbook0000000000000000001
+      status: HELD
+      totalAmount: 136000
+      passengerNumber: null
+
+PaymentConfirmRequest:
+  value:
+    bookingId: clxbook0000000000000000001
+    providerRef: mock_ref_001
+
+PaymentConfirmed:
+  value:
+    data:
+      bookingId: clxbook0000000000000000001
+      ticket:
+        id: clxticket00000000000000001
+        passengerNumber: "PN-8F2K9Q"
+
+TicketLookupQuery:
+  value:
+    passengerNumber: "PN-8F2K9Q"
+    phone: "01799998888"
+
+CreateStopRequest:
+  value:
+    name: Aricha
+    city: Manikganj
+    code: ARC

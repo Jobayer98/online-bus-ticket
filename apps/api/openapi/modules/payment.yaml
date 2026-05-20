@@ -1,0 +1,155 @@
+/api/v1/payments/initiate:
+  post:
+    tags: [Payment]
+    summary: Start payment for a booking
+    operationId: initiatePayment
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/InitiatePaymentRequest'
+          examples:
+            online:
+              value:
+                bookingId: clxbook0000000000000000001
+                method: ONLINE
+    responses:
+      '200':
+        description: Payment session started
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [data]
+              properties:
+                data:
+                  type: object
+                  properties:
+                    bookingId:
+                      type: string
+                    status:
+                      type: string
+                      example: PENDING
+            examples:
+              pending:
+                value:
+                  data:
+                    bookingId: clxbook0000000000000000001
+                    status: PENDING
+      '400':
+        $ref: '../components/common.yaml#/components/responses/Error400Validation'
+      '404':
+        $ref: '../components/common.yaml#/components/responses/Error404NotFound'
+      '500':
+        $ref: '../components/common.yaml#/components/responses/Error500Internal'
+
+/api/v1/payments/confirm:
+  post:
+    tags: [Payment]
+    summary: Confirm payment (idempotent)
+    operationId: confirmPayment
+    parameters:
+      - $ref: '../components/common.yaml#/components/parameters/IdempotencyKey'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ConfirmPaymentRequest'
+          examples:
+            mock:
+              $ref: '../components/examples.yaml#/PaymentConfirmRequest'
+    responses:
+      '200':
+        description: Payment confirmed; ticket issued
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [data]
+              properties:
+                data:
+                  $ref: '#/components/schemas/PaymentConfirmResult'
+            examples:
+              confirmed:
+                $ref: '../components/examples.yaml#/PaymentConfirmed'
+      '400':
+        $ref: '../components/common.yaml#/components/responses/Error400Validation'
+      '404':
+        $ref: '../components/common.yaml#/components/responses/Error404NotFound'
+      '409':
+        $ref: '../components/common.yaml#/components/responses/Error409Conflict'
+      '500':
+        $ref: '../components/common.yaml#/components/responses/Error500Internal'
+
+/api/v1/payments/webhook:
+  post:
+    tags: [Payment]
+    summary: Payment provider webhook (stub)
+    operationId: paymentWebhook
+    requestBody:
+      content:
+        application/json:
+          schema:
+            type: object
+            additionalProperties: true
+          examples:
+            providerPayload:
+              value:
+                event: payment.completed
+                providerRef: bkash_abc123
+    responses:
+      '200':
+        description: Webhook acknowledged
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [data]
+              properties:
+                data:
+                  type: object
+                  properties:
+                    received:
+                      type: boolean
+                      example: true
+            examples:
+              ack:
+                value:
+                  data:
+                    received: true
+      '500':
+        $ref: '../components/common.yaml#/components/responses/Error500Internal'
+
+components:
+  schemas:
+    InitiatePaymentRequest:
+      type: object
+      required: [bookingId, method]
+      properties:
+        bookingId:
+          type: string
+        method:
+          type: string
+          enum: [CASH, ONLINE]
+    ConfirmPaymentRequest:
+      type: object
+      required: [bookingId]
+      properties:
+        bookingId:
+          type: string
+        providerRef:
+          type: string
+    PaymentConfirmResult:
+      type: object
+      properties:
+        bookingId:
+          type: string
+        ticket:
+          type: object
+          properties:
+            id:
+              type: string
+            passengerNumber:
+              type: string

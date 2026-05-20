@@ -1,0 +1,107 @@
+/api/v1/tickets/lookup:
+  get:
+    tags: [Ticket]
+    summary: Lookup ticket by passenger number and phone
+    operationId: lookupTicket
+    parameters:
+      - name: passengerNumber
+        in: query
+        required: true
+        schema:
+          type: string
+        example: "PN-8F2K9Q"
+      - name: phone
+        in: query
+        required: true
+        schema:
+          type: string
+        example: "01799998888"
+    responses:
+      '200':
+        description: Ticket found
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [data]
+              properties:
+                data:
+                  $ref: '#/components/schemas/TicketDto'
+            examples:
+              found:
+                value:
+                  data:
+                    passengerNumber: "PN-8F2K9Q"
+                    routeSlug: dhaka-pabna
+                    departureAt: "2026-05-21T00:00:00.000Z"
+                    seatLabels: ["A1"]
+                    passengerName: Karim Ahmed
+                    status: PAID
+      '400':
+        $ref: '../components/common.yaml#/components/responses/Error400Validation'
+      '404':
+        $ref: '../components/common.yaml#/components/responses/Error404NotFound'
+      '500':
+        $ref: '../components/common.yaml#/components/responses/Error500Internal'
+
+/api/v1/tickets/download:
+  get:
+    tags: [Ticket]
+    summary: Download ticket HTML
+    operationId: downloadTicket
+    parameters:
+      - name: passengerNumber
+        in: query
+        required: true
+        schema:
+          type: string
+        example: "PN-8F2K9Q"
+      - name: phone
+        in: query
+        required: true
+        schema:
+          type: string
+        example: "01799998888"
+    responses:
+      '200':
+        description: HTML ticket document
+        content:
+          text/html:
+            schema:
+              type: string
+            examples:
+              html:
+                summary: Printable ticket page
+                value: |
+                  <!DOCTYPE html>
+                  <html><body>
+                  <h1>Bus Ticket — PN-8F2K9Q</h1>
+                  <p>Route: dhaka-pabna · Seat: A1</p>
+                  </body></html>
+      '400':
+        $ref: '../components/common.yaml#/components/responses/Error400Validation'
+      '404':
+        $ref: '../components/common.yaml#/components/responses/Error404NotFound'
+      '500':
+        $ref: '../components/common.yaml#/components/responses/Error500Internal'
+
+components:
+  schemas:
+    TicketDto:
+      type: object
+      properties:
+        passengerNumber:
+          type: string
+        routeSlug:
+          type: string
+        departureAt:
+          type: string
+          format: date-time
+        seatLabels:
+          type: array
+          items:
+            type: string
+        passengerName:
+          type: string
+        status:
+          type: string

@@ -1,0 +1,279 @@
+/api/v1/schedules/stops:
+  get:
+    tags: [Schedule]
+    summary: List all stops (public)
+    operationId: listStops
+    responses:
+      '200':
+        description: All stops sorted by name
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [data]
+              properties:
+                data:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Stop'
+            examples:
+              seedStops:
+                $ref: '../components/examples.yaml#/StopList'
+      '500':
+        $ref: '../components/common.yaml#/components/responses/Error500Internal'
+
+/api/v1/schedules/search:
+  get:
+    tags: [Schedule]
+    summary: Search schedules by route and date
+    operationId: searchSchedules
+    parameters:
+      - name: fromStopId
+        in: query
+        required: true
+        schema:
+          type: string
+        example: clxstop00000000000000000001
+      - name: toStopId
+        in: query
+        required: true
+        schema:
+          type: string
+        example: clxstop00000000000000000002
+      - name: date
+        in: query
+        required: true
+        description: YYYY-MM-DD, must be today or later (Asia/Dhaka)
+        schema:
+          type: string
+          pattern: '^\d{4}-\d{2}-\d{2}$'
+        example: "2026-05-21"
+      - name: busType
+        in: query
+        schema:
+          type: string
+          enum: [AC, NON_AC]
+        example: AC
+      - name: timePeriod
+        in: query
+        schema:
+          type: string
+          enum: [MORNING, NOON, AFTERNOON, NIGHT]
+        example: MORNING
+      - name: seatClass
+        in: query
+        schema:
+          type: string
+          enum: [STANDARD, PREMIUM, BUSINESS]
+        example: BUSINESS
+    responses:
+      '200':
+        description: Matching schedule cards (may be empty array)
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [data]
+              properties:
+                data:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/ScheduleCard'
+            examples:
+              results:
+                $ref: '../components/examples.yaml#/ScheduleCardList'
+              empty:
+                summary: No buses on that date
+                value:
+                  data: []
+      '400':
+        $ref: '../components/common.yaml#/components/responses/Error400Validation'
+      '404':
+        $ref: '../components/common.yaml#/components/responses/Error404NotFound'
+      '500':
+        $ref: '../components/common.yaml#/components/responses/Error500Internal'
+
+/api/v1/schedules/by-route/{slug}:
+  get:
+    tags: [Schedule]
+    summary: Route details by slug
+    operationId: getRouteBySlug
+    parameters:
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+        example: dhaka-pabna
+    responses:
+      '200':
+        description: Route with from/to stops
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [data]
+              properties:
+                data:
+                  $ref: '#/components/schemas/RouteDetail'
+            examples:
+              dhakaPabna:
+                value:
+                  data:
+                    id: clxroute000000000000000001
+                    slug: dhaka-pabna
+                    fromStopId: clxstop00000000000000000001
+                    toStopId: clxstop00000000000000000002
+                    distanceKm: 180
+                    fromStop:
+                      name: Gabtoli
+                      city: Dhaka
+                    toStop:
+                      name: Pabna Central
+                      city: Pabna
+      '404':
+        $ref: '../components/common.yaml#/components/responses/Error404NotFound'
+      '500':
+        $ref: '../components/common.yaml#/components/responses/Error500Internal'
+
+/api/v1/schedules/{id}/seat-map:
+  get:
+    tags: [Schedule]
+    summary: Seat map for a schedule
+    operationId: getSeatMap
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+        example: clxsched000000000000000001
+    responses:
+      '200':
+        description: Seat map with availability and boarding points
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [data]
+              properties:
+                data:
+                  $ref: '#/components/schemas/SeatMap'
+            examples:
+              seatMap:
+                value:
+                  data:
+                    scheduleId: clxsched000000000000000001
+                    rows: 10
+                    cols: 4
+                    seats:
+                      - label: "A1"
+                        seatClass: BUSINESS
+                        status: AVAILABLE
+                        price: 136000
+                      - label: "A2"
+                        seatClass: STANDARD
+                        status: SOLD
+                        price: 85000
+                    boardingPoints:
+                      - id: clxboard00000000000000001
+                        name: Gabtoli
+                        sortOrder: 1
+      '404':
+        $ref: '../components/common.yaml#/components/responses/Error404NotFound'
+      '409':
+        $ref: '../components/common.yaml#/components/responses/Error409Conflict'
+      '500':
+        $ref: '../components/common.yaml#/components/responses/Error500Internal'
+
+components:
+  schemas:
+    Stop:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        city:
+          type: string
+        code:
+          type: string
+    ScheduleCard:
+      type: object
+      properties:
+        scheduleId:
+          type: string
+        coachNumber:
+          type: string
+        startPoint:
+          type: string
+        departureAt:
+          type: string
+          format: date-time
+        endPoint:
+          type: string
+        estimatedArrivalAt:
+          type: string
+          format: date-time
+        busType:
+          type: string
+          enum: [AC, NON_AC]
+        fareFrom:
+          type: integer
+          description: Minor units (poisa)
+        availableSeats:
+          type: integer
+        routeSlug:
+          type: string
+    RouteDetail:
+      type: object
+      properties:
+        id:
+          type: string
+        slug:
+          type: string
+        fromStopId:
+          type: string
+        toStopId:
+          type: string
+        distanceKm:
+          type: number
+        fromStop:
+          type: object
+        toStop:
+          type: object
+    SeatMap:
+      type: object
+      properties:
+        scheduleId:
+          type: string
+        rows:
+          type: integer
+        cols:
+          type: integer
+        seats:
+          type: array
+          items:
+            type: object
+            properties:
+              label:
+                type: string
+              seatClass:
+                type: string
+              status:
+                type: string
+                enum: [AVAILABLE, HELD, SOLD]
+              price:
+                type: integer
+        boardingPoints:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+              sortOrder:
+                type: integer
