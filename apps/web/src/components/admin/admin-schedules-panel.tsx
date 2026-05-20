@@ -4,6 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 import { apiGet, apiPatch, apiPost } from "@/lib/api-client";
 import { formatMoneyBdt, formatTime12h } from "@/lib/format";
 import { CounterToast } from "@/components/counter/counter-toast";
+import { HomeDateTimePicker } from "@/components/home-datetime-picker";
+import { getTodayIso } from "@/lib/trip-date";
 
 type Route = { id: string; slug: string; fromStop: { city: string }; toStop: { city: string } };
 type Coach = { id: string; coachNumber: string };
@@ -68,6 +70,10 @@ export function AdminSchedulesPanel() {
     e.preventDefault();
     setError("");
     const fare = Math.round(Number(baseFareTaka) * 100);
+    if (!departureAt || !arrivalAt) {
+      setToast("Select departure and arrival date & time");
+      return;
+    }
     if (!fare || fare < 0) {
       setToast("Enter a valid base fare");
       return;
@@ -128,7 +134,7 @@ export function AdminSchedulesPanel() {
       <form className="adm-form-card" onSubmit={createSchedule}>
         <h3>Create schedule</h3>
         <div className="adm-form-row">
-          <div className="sp-checkout-field">
+          <div className="adm-form-field adm-form-field--wide">
             <label htmlFor="sch-route">Route</label>
             <select
               id="sch-route"
@@ -144,7 +150,7 @@ export function AdminSchedulesPanel() {
               ))}
             </select>
           </div>
-          <div className="sp-checkout-field">
+          <div className="adm-form-field">
             <label htmlFor="sch-coach">Coach</label>
             <select
               id="sch-coach"
@@ -160,27 +166,23 @@ export function AdminSchedulesPanel() {
               ))}
             </select>
           </div>
-          <div className="sp-checkout-field">
-            <label htmlFor="sch-dep">Departure</label>
-            <input
-              id="sch-dep"
-              type="datetime-local"
+          <div className="adm-form-field adm-form-field--datetime">
+            <label>Departure</label>
+            <HomeDateTimePicker
               value={departureAt}
-              onChange={(e) => setDepartureAt(e.target.value)}
-              required
+              onChange={setDepartureAt}
+              minDate={getTodayIso()}
             />
           </div>
-          <div className="sp-checkout-field">
-            <label htmlFor="sch-arr">Arrival</label>
-            <input
-              id="sch-arr"
-              type="datetime-local"
+          <div className="adm-form-field adm-form-field--datetime">
+            <label>Arrival</label>
+            <HomeDateTimePicker
               value={arrivalAt}
-              onChange={(e) => setArrivalAt(e.target.value)}
-              required
+              onChange={setArrivalAt}
+              minDate={getTodayIso()}
             />
           </div>
-          <div className="sp-checkout-field">
+          <div className="adm-form-field">
             <label htmlFor="sch-fare">Base fare (৳)</label>
             <input
               id="sch-fare"
@@ -209,27 +211,26 @@ export function AdminSchedulesPanel() {
         <form className="adm-form-card" onSubmit={submitReschedule}>
           <h3>Reschedule</h3>
           <div className="adm-form-row">
-            <div className="sp-checkout-field">
+            <div className="adm-form-field adm-form-field--datetime">
               <label>New departure</label>
-              <input
-                type="datetime-local"
+              <HomeDateTimePicker
                 value={rescheduleDep}
-                onChange={(e) => setRescheduleDep(e.target.value)}
-                required
+                onChange={setRescheduleDep}
+                minDate={getTodayIso()}
               />
             </div>
-            <div className="sp-checkout-field">
+            <div className="adm-form-field adm-form-field--datetime">
               <label>New arrival</label>
-              <input
-                type="datetime-local"
+              <HomeDateTimePicker
                 value={rescheduleArr}
-                onChange={(e) => setRescheduleArr(e.target.value)}
-                required
+                onChange={setRescheduleArr}
+                minDate={getTodayIso()}
               />
             </div>
-            <div className="sp-checkout-field">
-              <label>Reason</label>
+            <div className="adm-form-field adm-form-field--wide">
+              <label htmlFor="sch-reason">Reason</label>
               <input
+                id="sch-reason"
                 value={rescheduleReason}
                 onChange={(e) => setRescheduleReason(e.target.value)}
               />

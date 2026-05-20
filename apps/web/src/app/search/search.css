@@ -84,40 +84,44 @@
   background: #fff;
   border: 1px solid var(--sp-border);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-  padding: 0.5rem 0.65rem;
+  padding: 0.55rem 0.75rem;
 }
 
 .sp-filter-row {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: 0.4rem;
+  align-items: stretch;
+  gap: 0.5rem;
 }
 
 .sp-filter-select {
-  flex: 0 1 100px;
-  min-width: 88px;
-  height: 34px;
+  flex: 1 1 7.25rem;
+  min-width: 7.25rem;
+  max-width: 100%;
+  height: 42px;
+  box-sizing: border-box;
   border: 1px solid var(--sp-border);
   border-radius: 3px;
-  padding: 0 1.5rem 0 0.5rem;
-  font-size: 0.9rem;
+  padding: 0 1.75rem 0 0.55rem;
+  font-size: 0.875rem;
   font-weight: 700;
   text-transform: uppercase;
   appearance: none;
-  background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10'%3E%3Cpath fill='%23666' d='M2 3l3 3 3-3'/%3E%3C/svg%3E") no-repeat right 0.4rem center;
+  background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10'%3E%3Cpath fill='%23666' d='M2 3l3 3 3-3'/%3E%3C/svg%3E") no-repeat right 0.45rem center;
   font-family: inherit;
 }
 
 .sp-filter-input-wrap {
   display: flex;
   align-items: center;
-  height: 34px;
+  height: 42px;
+  box-sizing: border-box;
   border: 1px solid var(--sp-border);
   border-radius: 3px;
   background: #fff;
-  flex: 0 1 130px;
-  min-width: 115px;
+  flex: 1 1 8.75rem;
+  min-width: 8.75rem;
+  max-width: 100%;
 }
 
 .sp-filter-input-icon {
@@ -128,62 +132,50 @@
   align-items: center;
 }
 
-.sp-filter-date-wrap {
-  padding: 0;
-  overflow: visible;
-}
-
-.sp-filter-date-wrap .home-date-picker {
-  flex: 1;
-  min-width: 0;
-}
-
-.sp-filter-date-wrap .home-date-picker--compact .home-date-trigger {
-  border: none;
-  height: 32px;
-  padding: 0 0.5rem 0 0;
-  box-shadow: none;
-  font-size: 0.9rem;
-  font-weight: 500;
-}
-
-.sp-filter-date-wrap .home-date-picker--compact .home-date-trigger.is-open {
-  border: none;
-  box-shadow: none;
+.sp-filter-date-field {
+  flex: 1 1 12rem;
+  min-width: 12rem;
+  z-index: 3;
 }
 
 .sp-filter-time-btn {
   cursor: pointer;
   font-family: inherit;
   padding: 0;
-  width: 100%;
+  min-width: 0;
   text-align: left;
 }
 
 .sp-filter-time-label {
   flex: 1;
-  font-size: 0.9rem;
+  min-width: 0;
+  font-size: 0.875rem;
   color: #333;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .sp-filter-ac-group {
   display: flex;
   flex: 0 0 auto;
+  align-self: stretch;
 }
 
 .sp-filter-ac {
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.25rem;
-  height: 34px;
-  padding: 0 0.55rem;
+  height: 42px;
+  padding: 0 0.65rem;
   border: none;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 700;
   color: #fff;
   cursor: pointer;
   font-family: inherit;
+  white-space: nowrap;
 }
 
 .sp-filter-ac:first-child {
@@ -203,9 +195,10 @@
 .sp-filter-search {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.35rem;
-  height: 34px;
-  padding: 0 1rem;
+  height: 42px;
+  padding: 0 1.1rem;
   background: var(--sp-green-dark);
   color: #fff;
   border: none;
@@ -216,6 +209,8 @@
   cursor: pointer;
   font-family: inherit;
   flex: 0 0 auto;
+  white-space: nowrap;
+  align-self: stretch;
 }
 
 .sp-filter-search:hover {
@@ -224,8 +219,9 @@
 
 .sp-filter-more,
 .sp-filter-close {
-  width: 34px;
-  height: 34px;
+  width: 42px;
+  height: 42px;
+  align-self: stretch;
   border: none;
   border-radius: 3px;
   display: flex;
@@ -1170,15 +1166,39 @@
   }
 }
 
+@media (min-width: 992px) {
+  .sp-filter-row {
+    flex-wrap: nowrap;
+  }
+
+  .sp-filter-select {
+    flex: 1 1 9rem;
+    min-width: 9rem;
+  }
+
+  .sp-filter-date-field {
+    flex: 1 1 12.5rem;
+    min-width: 12.5rem;
+  }
+
+  .sp-filter-time-btn {
+    flex: 0 1 7.5rem;
+    min-width: 7.5rem;
+  }
+}
+
 @media (max-width: 560px) {
   .sp-filter-select,
-  .sp-filter-input-wrap {
-    flex: 1 1 calc(50% - 0.4rem);
+  .sp-filter-input-wrap,
+  .sp-filter-date-field {
+    flex: 1 1 calc(50% - 0.25rem);
+    min-width: calc(50% - 0.25rem);
   }
 
   .sp-filter-ac-group,
   .sp-filter-search {
     flex: 1 1 auto;
+    min-width: 0;
   }
 
   .sp-card-row {

@@ -207,6 +207,67 @@
   align-items: flex-end;
 }
 
+/* Unified admin form fields — labels + 42px controls aligned */
+.adm-form-field {
+  flex: 1 1 140px;
+  min-width: 120px;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+}
+
+.adm-form-field--wide {
+  flex: 1 1 180px;
+  min-width: 160px;
+}
+
+.adm-form-field--datetime {
+  flex: 1 1 13rem;
+  min-width: 12rem;
+  z-index: 3;
+}
+
+.adm-form-field label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  color: #444;
+  min-height: 1.125rem;
+  line-height: 1.2;
+}
+
+.adm-form-field input,
+.adm-form-field select {
+  width: 100%;
+  height: 42px;
+  margin: 0;
+  padding: 0 0.5rem;
+  border: 1px solid var(--sp-border, #d5d5d5);
+  border-radius: 3px;
+  font-size: 0.875rem;
+  font-family: inherit;
+  box-sizing: border-box;
+  background: #fff;
+}
+
+.adm-form-field select {
+  padding-right: 1.75rem;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10'%3E%3Cpath fill='%23666' d='M2 3l3 3 3-3'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.45rem center;
+}
+
+.adm-form-field .home-date-picker {
+  width: 100%;
+}
+
+.adm-form-field .home-date-trigger {
+  height: 42px;
+}
+
 .adm-form-row .sp-checkout-field {
   flex: 1 1 140px;
   min-width: 120px;
@@ -224,9 +285,31 @@
 
 .adm-form-row .sp-checkout-field input,
 .adm-form-row .sp-checkout-field select {
-  height: 34px;
+  height: 42px;
   margin-bottom: 0;
   box-sizing: border-box;
+}
+
+.adm-form-row .adm-report-date-field {
+  flex: 1 1 13rem;
+  min-width: 12rem;
+  display: flex;
+  flex-direction: column;
+  z-index: 3;
+}
+
+.adm-form-row .adm-report-date-field label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  color: #444;
+  min-height: 1.125rem;
+  line-height: 1.2;
+}
+
+.adm-form-row .adm-report-date-field .home-date-trigger {
+  height: 42px;
 }
 
 /* Buttons sit on same baseline as inputs (not floating under labels) */
@@ -277,7 +360,14 @@
   flex-wrap: wrap;
   gap: 0.5rem;
   align-items: center;
-  min-height: 34px;
+  min-height: 42px;
+}
+
+.adm-form-actions--with-label .adm-form-actions__buttons .sp-filter-search,
+.adm-form-actions--with-label .adm-form-actions__buttons .sp-btn-back,
+.adm-form-actions--with-label .adm-form-actions__buttons .sp-btn-select {
+  height: 42px;
+  box-sizing: border-box;
 }
 
 .adm-split {
@@ -366,25 +456,8 @@
   align-items: flex-end;
 }
 
-.admin-page .sp-filter-card .sp-checkout-field {
-  display: flex;
-  flex-direction: column;
-  padding: 0;
-}
-
-.admin-page .sp-filter-card .sp-checkout-field label {
-  min-height: 1.125rem;
-  margin-bottom: 0.25rem;
-}
-
-.admin-page .sp-filter-card .sp-checkout-field input {
-  height: 34px;
-  margin-bottom: 0;
-  box-sizing: border-box;
-}
-
 .admin-page .sp-filter-card .sp-filter-row > button {
-  height: 34px;
+  height: 42px;
   margin: 0;
   align-self: flex-end;
   box-sizing: border-box;

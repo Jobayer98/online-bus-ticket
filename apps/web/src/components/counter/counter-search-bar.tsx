@@ -36,15 +36,6 @@ function CheckIcon() {
   );
 }
 
-function CalendarIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>
-      <rect x="2" y="3" width="12" height="11" rx="1" stroke="currentColor" strokeWidth="1.2" />
-      <path d="M2 6.5h12M5 2v2M11 2v2" stroke="currentColor" strokeWidth="1.2" />
-    </svg>
-  );
-}
-
 function SearchIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>
@@ -103,11 +94,8 @@ export function CounterSearchBar({
             ))}
           </select>
 
-          <div className="sp-filter-input-wrap sp-filter-date-wrap">
-            <span className="sp-filter-input-icon">
-              <CalendarIcon />
-            </span>
-            <HomeDatePicker value={date} onChange={onDateChange} minDate={minDate} compact />
+          <div className="home-date-field sp-filter-date-field">
+            <HomeDatePicker value={date} onChange={onDateChange} minDate={minDate} />
           </div>
 
           <div className="sp-filter-ac-group">

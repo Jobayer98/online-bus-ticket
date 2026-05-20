@@ -3,7 +3,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { apiDownload, apiGet } from "@/lib/api-client";
 import { formatMoneyBdt } from "@/lib/format";
+import { HomeDatePicker } from "@/components/home-date-picker";
 import { getTodayIso } from "@/lib/trip-date";
+
+const REPORT_MIN_DATE = "2020-01-01";
 
 type Sales = {
   from: string;
@@ -50,23 +53,17 @@ export function AdminReportsPanel() {
       <div className="sp-filter-section" style={{ padding: "0 0 0.75rem" }}>
         <div className="sp-filter-card">
           <div className="sp-filter-row">
-            <div className="sp-checkout-field" style={{ flex: "0 1 150px" }}>
-              <label htmlFor="rep-from">From</label>
-              <input
-                id="rep-from"
-                type="date"
+            <div className="home-date-field adm-report-date-field">
+              <label>From</label>
+              <HomeDatePicker
                 value={from}
-                onChange={(e) => setFrom(e.target.value)}
+                onChange={setFrom}
+                minDate={REPORT_MIN_DATE}
               />
             </div>
-            <div className="sp-checkout-field" style={{ flex: "0 1 150px" }}>
-              <label htmlFor="rep-to">To</label>
-              <input
-                id="rep-to"
-                type="date"
-                value={to}
-                onChange={(e) => setTo(e.target.value)}
-              />
+            <div className="home-date-field adm-report-date-field">
+              <label>To</label>
+              <HomeDatePicker value={to} onChange={setTo} minDate={from} />
             </div>
             <div className="adm-form-actions adm-form-actions--with-label">
               <span className="adm-form-actions__spacer" aria-hidden="true">
