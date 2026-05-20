@@ -15,6 +15,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
   }, [pathname]);
   const isSearch = pathname.startsWith("/search");
   const isCounter = pathname.startsWith("/counter");
+  const isAdmin = pathname.startsWith("/admin");
   const isHome = pathname === "/";
   const isMarketing =
     isHome ||
@@ -26,7 +27,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      {!isSearch && !isMarketing && !isCounter && (
+      {!isSearch && !isMarketing && !isCounter && !isAdmin && (
         <nav className="nav">
           <div className="nav-inner">
             <Link href="/" className="brand">
@@ -43,7 +44,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
       )}
       <main
         className={
-          isSearch || isMarketing || isCounter
+          isSearch || isMarketing || isCounter || isAdmin
             ? "site-main site-main--flush"
             : "site-main"
         }
