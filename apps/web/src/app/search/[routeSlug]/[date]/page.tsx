@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { SearchResultsContent } from "@/components/search/search-results-content";
 import "../../search.css";
 import "../../../home.css";
+import "../../../booking/payment.css";
 
 export default function SearchResultsPage() {
   return (

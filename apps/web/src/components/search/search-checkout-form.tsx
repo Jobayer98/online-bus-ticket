@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import { useCallback, useState } from "react";
+import { SslCommerzPaymentStrip } from "@/components/payment/sslcommerz-payment-strip";
 import { useRouter } from "next/navigation";
 import { apiGet, apiPost } from "@/lib/api-client";
 import {
@@ -287,18 +287,11 @@ export function SearchCheckoutForm({
       </div>
 
       <h2 className="sp-checkout-title sp-checkout-title--payment">
-        CHOOSE PAYMENT METHOD
+        SECURE ONLINE PAYMENT
       </h2>
 
       <div className="sp-checkout-payment-box">
-        <Image
-          src="/images/search/payment.png"
-          alt="Pay with Visa, Mastercard, bKash, Nagad, and other supported payment methods"
-          width={380}
-          height={120}
-          className="sp-checkout-payment-img"
-          priority
-        />
+        <SslCommerzPaymentStrip />
       </div>
 
       {error && <p className="sp-panel-error sp-checkout-error">{error}</p>}

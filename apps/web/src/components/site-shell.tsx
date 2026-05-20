@@ -24,7 +24,9 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
     }
   }, [pathname]);
 
-  const isSearch = pathname.startsWith("/search");
+  const isSearch =
+    pathname.startsWith("/search") ||
+    /^\/booking\/[^/]+\/(payment|confirmation)$/.test(pathname);
   const isCounter = pathname.startsWith("/counter");
   const isAdmin = pathname.startsWith("/admin");
   const isHome = pathname === "/";
