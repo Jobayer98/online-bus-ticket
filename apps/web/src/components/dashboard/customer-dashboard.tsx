@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import { useGlobalLoading } from "@/components/global-loading-provider";
 import { apiGet } from "@/lib/api-client";
 import {
   clearAuthSession,
@@ -53,6 +54,7 @@ export function CustomerDashboard() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [bookings, setBookings] = useState<BookingRow[]>([]);
   const [loading, setLoading] = useState(true);
+  useGlobalLoading(loading);
   const [error, setError] = useState("");
 
   const load = useCallback(() => {
@@ -133,7 +135,6 @@ export function CustomerDashboard() {
       </header>
 
       <div className="dash-content">
-        {loading && <p className="dash-loading">Loading your bookings…</p>}
         {error && !loading && (
           <div className="dash-alert dash-alert--error">
             <p>{error}</p>

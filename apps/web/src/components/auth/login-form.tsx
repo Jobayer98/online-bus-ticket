@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useGlobalLoading } from "@/components/global-loading-provider";
 import { apiPost } from "@/lib/api-client";
 import { setAuthSession, type AuthUser } from "@/lib/auth-session";
 
@@ -24,6 +25,7 @@ export function LoginForm() {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
+  useGlobalLoading(loading);
   const [error, setError] = useState("");
 
   async function submit(e: React.FormEvent) {
@@ -134,9 +136,14 @@ export function LoginForm() {
 
         {error && <p className="auth-form__error">{error}</p>}
 
-        <button type="submit" className="auth-form__submit" disabled={loading}>
+        <button
+          type="submit"
+          className={`auth-form__submit${loading ? " btn-is-busy" : ""}`}
+          disabled={loading}
+          aria-busy={loading}
+        >
           {loading
-            ? "Please wait…"
+            ? "Processing…"
             : mode === "login"
               ? "SIGN IN"
               : "CREATE ACCOUNT"}

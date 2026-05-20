@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import "./responsive.css";
+import { GlobalLoadingProvider } from "@/components/global-loading-provider";
 import { SiteShell } from "@/components/site-shell";
 
 const inter = Inter({
@@ -23,7 +24,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.variable}>
       <body className={inter.className}>
-        <SiteShell>{children}</SiteShell>
+        <GlobalLoadingProvider>
+          <SiteShell>{children}</SiteShell>
+        </GlobalLoadingProvider>
       </body>
     </html>
   );

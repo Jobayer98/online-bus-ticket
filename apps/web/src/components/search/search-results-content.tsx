@@ -12,6 +12,7 @@ import {
 } from "@/lib/trip-date";
 import { slugToRouteTitle } from "@/lib/format";
 import { buildSearchUrl, cityPairToRouteSlug } from "@/lib/search-url";
+import { useGlobalLoading } from "@/components/global-loading-provider";
 import { HomeHeader } from "@/components/home-header";
 import { SearchFooter } from "./search-footer";
 import { SearchFilterBar } from "./search-filter-bar";
@@ -51,6 +52,7 @@ export function SearchResultsContent() {
   const [schedules, setSchedules] = useState<ScheduleCardDto[]>([]);
   const [allForCounts, setAllForCounts] = useState<ScheduleCardDto[]>([]);
   const [loading, setLoading] = useState(true);
+  useGlobalLoading(loading);
   const [error, setError] = useState("");
   const [filterError, setFilterError] = useState("");
   const [filtersExpanded, setFiltersExpanded] = useState(false);

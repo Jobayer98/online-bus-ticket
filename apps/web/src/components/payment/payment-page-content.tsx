@@ -7,11 +7,14 @@ import { apiGet, apiPost } from "@/lib/api-client";
 import {
   clearActiveHoldId,
   clearHoldPaymentNavigation,
+  clearPaymentPageEnterLoading,
+  isPaymentPageEnterLoading,
   releaseActiveHold,
   setActiveHoldId,
 } from "@/lib/active-hold";
 import { formatMoneyBdt } from "@/lib/format";
 import { storeTicketLookup } from "@/lib/ticket-lookup-session";
+import { useGlobalLoading } from "@/components/global-loading-provider";
 import { HomeHeader } from "@/components/home-header";
 import { SearchFooter } from "@/components/search/search-footer";
 import { SeatHoldTimer } from "@/components/search/seat-hold-timer";
@@ -28,6 +31,9 @@ export function PaymentPageContent() {
   const [booking, setBooking] = useState<BookingDto | null>(null);
   const [error, setError] = useState("");
   const [holdExpired, setHoldExpired] = useState(false);
+  const [enterLoading, setEnterLoading] = useState(() =>
+    isPaymentPageEnterLoading(),
+  );
 
   useEffect(() => {
     clearHoldPaymentNavigation();
@@ -47,6 +53,10 @@ export function PaymentPageContent() {
       })
       .catch(() => {
         setError("Could not load booking");
+      })
+      .finally(() => {
+        clearPaymentPageEnterLoading();
+        setEnterLoading(false);
       });
   }, [bookingId]);
 
@@ -104,6 +114,10 @@ export function PaymentPageContent() {
         ? `Seats ${booking.seatLabels.join(", ")}`
         : "";
 
+  const pageLoading =
+    enterLoading || (Boolean(bookingId) && !booking && !error);
+  useGlobalLoading(pageLoading);
+
   return (
     <div className="search-page payment-page">
       <HomeHeader />
@@ -153,13 +167,7 @@ export function PaymentPageContent() {
             onPay={handlePay}
             onCancel={() => void cancelPayment()}
           />
-        ) : (
-          !error && (
-            <p className="payment-page__loading" aria-live="polite">
-              Loading secure checkout…
-            </p>
-          )
-        )}
+        ) : null}
 
         {error && booking && (
           <p className="sp-panel-error payment-page__error" role="alert">

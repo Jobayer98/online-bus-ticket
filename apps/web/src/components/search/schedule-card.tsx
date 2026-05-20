@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useGlobalLoading } from "@/components/global-loading-provider";
 import { apiGet } from "@/lib/api-client";
 import {
   formatBusTypeLabel,
@@ -34,6 +35,7 @@ export function ScheduleCard({
 }: Props) {
   const [seatMap, setSeatMap] = useState<SeatMapDto | null>(null);
   const [loadingMap, setLoadingMap] = useState(false);
+  useGlobalLoading(loadingMap);
   const [mapError, setMapError] = useState("");
 
   async function handleToggle() {
@@ -102,9 +104,6 @@ export function ScheduleCard({
         aria-hidden={!expanded}
       >
         <div className="sp-seat-expand-inner">
-          {loadingMap && (
-            <div className="sp-seat-loading">Loading seat map…</div>
-          )}
           {mapError && (
             <div className="sp-seat-panel-v2 sp-panel-error">{mapError}</div>
           )}

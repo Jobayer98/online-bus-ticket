@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useGlobalLoading } from "@/components/global-loading-provider";
 import { apiPost } from "@/lib/api-client";
 import { formatDateDdMmYyyy, formatMoneyBdt, formatTime12h } from "@/lib/format";
 import { SeatMapGrid } from "./seat-map-grid";
@@ -27,6 +28,7 @@ export function ScheduleSeatPanel({
   const [boardingPointId, setBoardingPointId] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  useGlobalLoading(loading);
 
   const cols = seatMap.cols || 4;
 
@@ -190,11 +192,12 @@ export function ScheduleSeatPanel({
 
         <button
           type="button"
-          className="sp-btn-continue-v2"
+          className={`sp-btn-continue-v2${loading ? " btn-is-busy" : ""}`}
           disabled={loading}
-          onClick={handleContinue}
+          aria-busy={loading}
+          onClick={() => void handleContinue()}
         >
-          {loading ? "Please wait…" : "Continue »"}
+          {loading ? "Reserving…" : "Continue »"}
         </button>
       </aside>
     </div>

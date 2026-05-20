@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { useGlobalLoading } from "@/components/global-loading-provider";
 import { SslCommerzPaymentStrip } from "@/components/payment/sslcommerz-payment-strip";
 import { useRouter } from "next/navigation";
 import { apiGet, apiPost } from "@/lib/api-client";
@@ -8,6 +9,7 @@ import {
   clearHoldBookingInProgress,
   markHoldBookingInProgress,
   markHoldPaymentNavigation,
+  markPaymentPageEnterLoading,
   setActiveHoldId,
 } from "@/lib/active-hold";
 import {
@@ -54,6 +56,7 @@ export function SearchCheckoutForm({
   const [agreed, setAgreed] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  useGlobalLoading(loading);
   const [holdExpired, setHoldExpired] = useState(false);
 
   const processingFee = 0;
@@ -87,6 +90,7 @@ export function SearchCheckoutForm({
     }
     setLoading(true);
     markHoldBookingInProgress();
+    let navigating = false;
     try {
       const seatMap = await apiGet<SeatMapDto>(
         `/schedules/${schedule.scheduleId}/seat-map`,
@@ -125,6 +129,8 @@ export function SearchCheckoutForm({
         setActiveHoldId(r.data.holdId);
       }
       markHoldPaymentNavigation();
+      markPaymentPageEnterLoading();
+      navigating = true;
       router.push(
         `/booking/${schedule.scheduleId}/payment?bookingId=${r.data.id}`,
       );
@@ -132,7 +138,9 @@ export function SearchCheckoutForm({
       setError(e instanceof Error ? e.message : "Could not create booking");
     } finally {
       clearHoldBookingInProgress();
-      setLoading(false);
+      if (!navigating) {
+        setLoading(false);
+      }
     }
   }
 
@@ -307,11 +315,12 @@ export function SearchCheckoutForm({
         </button>
         <button
           type="button"
-          className="sp-btn-proceed"
+          className={`sp-btn-proceed${loading ? " btn-is-busy" : ""}`}
           disabled={loading || holdExpired}
-          onClick={handleProceed}
+          aria-busy={loading}
+          onClick={() => void handleProceed()}
         >
-          {loading ? "Please wait…" : "✓ Proceed to Pay"}
+          {loading ? "Processing…" : "✓ Proceed to Pay"}
         </button>
       </div>
     </div>

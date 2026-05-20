@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useGlobalLoading } from "@/components/global-loading-provider";
 import { apiGet, apiPost } from "@/lib/api-client";
 import { formatMoneyBdt, formatTime12h } from "@/lib/format";
 import type { TicketDto } from "@repo/shared";
@@ -15,6 +16,7 @@ export function CounterManagePanel() {
   const [actionMessage, setActionMessage] = useState("");
   const [note, setNote] = useState("");
   const [acting, setActing] = useState(false);
+  useGlobalLoading(loading || acting);
 
   async function lookup(e: React.FormEvent) {
     e.preventDefault();

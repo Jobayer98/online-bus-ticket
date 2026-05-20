@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { useGlobalLoading } from "@/components/global-loading-provider";
 import {
   PAYMENT_METHODS,
   type PaymentMethodId,
@@ -35,20 +36,16 @@ export function SslCommerzMockGateway({
   const [selected, setSelected] = useState<PaymentMethodId | null>(null);
   const [phase, setPhase] = useState<GatewayPhase>("select");
   const [error, setError] = useState("");
-  const [processingLabel, setProcessingLabel] = useState("");
 
   const selectedMeta = PAYMENT_METHODS.find((m) => m.id === selected);
+  useGlobalLoading(phase === "processing");
 
   const handlePay = useCallback(async () => {
     if (!selected || disabled || phase === "processing") return;
     setError("");
     setPhase("processing");
-    setProcessingLabel(
-      `Connecting to ${selectedMeta?.label ?? "payment gateway"}…`,
-    );
     try {
       await new Promise((r) => setTimeout(r, 900));
-      setProcessingLabel("Verifying payment with SSLCommerz…");
       await new Promise((r) => setTimeout(r, 700));
       await onPay(selected);
     } catch (e) {
@@ -87,15 +84,7 @@ export function SslCommerzMockGateway({
         <p className="ssl-gateway__order">{orderLabel}</p>
       </div>
 
-      {phase === "processing" ? (
-        <div className="ssl-gateway__processing" aria-live="polite">
-          <div className="ssl-gateway__spinner" aria-hidden />
-          <p className="ssl-gateway__processing-text">{processingLabel}</p>
-          <p className="ssl-gateway__processing-hint">
-            Do not close this window
-          </p>
-        </div>
-      ) : (
+      {phase !== "processing" && (
         <>
           <p className="ssl-gateway__choose">Select a payment option</p>
           <ul className="ssl-gateway__methods" role="listbox" aria-label="Payment methods">

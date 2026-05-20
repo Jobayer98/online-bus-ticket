@@ -10,6 +10,7 @@ import {
 } from "@/lib/active-hold";
 import { formatMoneyBdt } from "@/lib/format";
 import { groupSeatsByRow, seatRow } from "@/lib/seat-layout";
+import { useGlobalLoading } from "@/components/global-loading-provider";
 import { SeatHoldTimer } from "@/components/search/seat-hold-timer";
 import type { BookingDto, SeatMapDto, HoldDto } from "@repo/shared";
 
@@ -26,6 +27,8 @@ export function BookingPageContent() {
   const [passenger, setPassenger] = useState({ name: "", phone: "", email: "" });
   const [error, setError] = useState("");
   const [step, setStep] = useState<"seats" | "passenger">("seats");
+  const [submitting, setSubmitting] = useState(false);
+  useGlobalLoading(!seatMap || submitting);
 
   useEffect(() => {
     if (fromSearch) {
@@ -64,6 +67,7 @@ export function BookingPageContent() {
       setError("Select at least one seat");
       return;
     }
+    setSubmitting(true);
     try {
       const sessionId =
         localStorage.getItem("sessionId") ??
@@ -82,6 +86,8 @@ export function BookingPageContent() {
       setStep("passenger");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Hold failed");
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -94,6 +100,7 @@ export function BookingPageContent() {
       setError("Name and phone are required");
       return;
     }
+    setSubmitting(true);
     try {
       const r = await apiPost<BookingDto>("/bookings", {
         holdId: hold.holdId,
@@ -107,15 +114,12 @@ export function BookingPageContent() {
       router.push(`/booking/${scheduleId}/payment?bookingId=${r.data.id}`);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Booking failed");
+      setSubmitting(false);
     }
   }
 
   if (!seatMap) {
-    return (
-      <div className="booking-page">
-        <p>Loading…</p>
-      </div>
-    );
+    return <div className="booking-page" aria-busy="true" />;
   }
 
   const cols = seatMap.cols || 4;
@@ -173,8 +177,14 @@ export function BookingPageContent() {
                   .reduce((a, s) => a + s.price, 0),
               )}
             </p>
-            <button type="button" className="booking-btn" onClick={createHold}>
-              Continue
+            <button
+              type="button"
+              className={`booking-btn${submitting ? " btn-is-busy" : ""}`}
+              disabled={submitting}
+              aria-busy={submitting}
+              onClick={() => void createHold()}
+            >
+              {submitting ? "Reserving…" : "Continue"}
             </button>
           </>
         )}
@@ -234,8 +244,14 @@ export function BookingPageContent() {
                 setPassenger({ ...passenger, email: e.target.value })
               }
             />
-            <button type="button" className="booking-btn" onClick={submitBooking}>
-              Go to payment
+            <button
+              type="button"
+              className={`booking-btn${submitting ? " btn-is-busy" : ""}`}
+              disabled={submitting}
+              aria-busy={submitting}
+              onClick={() => void submitBooking()}
+            >
+              {submitting ? "Processing…" : "Go to payment"}
             </button>
           </div>
         )}

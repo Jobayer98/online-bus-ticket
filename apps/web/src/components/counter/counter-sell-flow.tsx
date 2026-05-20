@@ -11,6 +11,7 @@ import {
   formatMoneyBdt,
   formatTime12h,
 } from "@/lib/format";
+import { useGlobalLoading } from "@/components/global-loading-provider";
 import { CounterToast } from "./counter-toast";
 import type { CounterSellInput, ScheduleCardDto, SeatMapDto } from "@repo/shared";
 
@@ -63,6 +64,7 @@ export function CounterSellFlow({ onSold }: Props) {
   const [sellError, setSellError] = useState("");
   const [toast, setToast] = useState<string | null>(null);
   const [selling, setSelling] = useState(false);
+  useGlobalLoading(loadingSearch || selling);
   const [sellResult, setSellResult] = useState<SellResult | null>(null);
 
   function showToast(message: string) {

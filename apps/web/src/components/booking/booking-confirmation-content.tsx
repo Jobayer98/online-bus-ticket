@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { apiGet } from "@/lib/api-client";
 import { downloadElementAsPng } from "@/lib/download-ticket-png";
 import { readTicketLookup, storeTicketLookup } from "@/lib/ticket-lookup-session";
+import { useGlobalLoading } from "@/components/global-loading-provider";
 import { HomeHeader } from "@/components/home-header";
 import { SearchFooter } from "@/components/search/search-footer";
 import { BusTicketCard } from "@/components/ticket/bus-ticket-card";
@@ -97,6 +98,8 @@ export function BookingConfirmationContent() {
     void loadTicket(phone);
   }
 
+  useGlobalLoading(loading || downloading);
+
   return (
     <div className="search-page confirmation-page">
       <HomeHeader />
@@ -110,12 +113,6 @@ export function BookingConfirmationContent() {
             Your payment was successful. Save or download your e-ticket below.
           </p>
         </div>
-
-        {loading && (
-          <p className="confirmation-page__subtitle" aria-live="polite">
-            Loading your ticket…
-          </p>
-        )}
 
         {needsPhone && !ticket && !loading && (
           <form
@@ -136,9 +133,11 @@ export function BookingConfirmationContent() {
             />
             <button
               type="submit"
-              className="confirmation-page__btn confirmation-page__btn--primary"
+              className={`confirmation-page__btn confirmation-page__btn--primary${loading ? " btn-is-busy" : ""}`}
+              disabled={loading}
+              aria-busy={loading}
             >
-              Show ticket
+              {loading ? "Loading…" : "Show ticket"}
             </button>
           </form>
         )}
@@ -149,11 +148,12 @@ export function BookingConfirmationContent() {
             <div className="confirmation-page__actions">
               <button
                 type="button"
-                className="confirmation-page__btn confirmation-page__btn--primary"
+                className={`confirmation-page__btn confirmation-page__btn--primary${downloading ? " btn-is-busy" : ""}`}
                 disabled={downloading}
+                aria-busy={downloading}
                 onClick={() => void handleDownload()}
               >
-                {downloading ? "Preparing download…" : "↓ Download ticket (PNG)"}
+                {downloading ? "Downloading…" : "↓ Download ticket (PNG)"}
               </button>
               <Link
                 href="/"
