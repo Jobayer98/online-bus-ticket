@@ -1,0 +1,64 @@
+import { vi } from "vitest";
+
+export const prismaMock = {
+  user: {
+    findUnique: vi.fn(),
+    create: vi.fn(),
+  },
+  stop: {
+    findMany: vi.fn(),
+  },
+  booking: {
+    findMany: vi.fn(),
+    count: vi.fn(),
+    findUnique: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+  },
+  seatHold: {
+    findMany: vi.fn(),
+    create: vi.fn(),
+    delete: vi.fn(),
+  },
+  schedule: {
+    findMany: vi.fn(),
+    findUnique: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+  },
+  scheduleSeat: {
+    updateMany: vi.fn(),
+    createMany: vi.fn(),
+  },
+  route: {
+    findMany: vi.fn(),
+    findUnique: vi.fn(),
+    create: vi.fn(),
+  },
+  coach: {
+    findMany: vi.fn(),
+    findUnique: vi.fn(),
+    create: vi.fn(),
+  },
+  seatLayout: {
+    findMany: vi.fn(),
+    create: vi.fn(),
+  },
+  payment: {
+    update: vi.fn(),
+  },
+  counterTransaction: {
+    findMany: vi.fn(),
+    create: vi.fn(),
+  },
+  rescheduleLog: {
+    create: vi.fn(),
+  },
+  $transaction: vi.fn((fn: (tx: typeof prismaMock) => unknown) =>
+    fn(prismaMock),
+  ),
+};
+
+vi.mock("@repo/database", () => ({
+  prisma: prismaMock,
+}));
