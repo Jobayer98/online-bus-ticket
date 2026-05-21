@@ -85,7 +85,7 @@ For diagrams, module boundaries, and scaling notes, see [docs/ARCHITECTURE.md](d
 
 - **Node.js** 20+
 - **pnpm** 9.15+ (`corepack enable` recommended)
-- **Docker** (for local PostgreSQL)
+- **Docker** (for local PostgreSQL and Redis)
 
 ---
 
@@ -140,6 +140,20 @@ Copy `.env.example` to `.env` at the repository root:
 | `API_URL` | Base URL for server-side API calls |
 | `NEXT_PUBLIC_API_URL` | Base URL exposed to the Next.js client |
 | `NODE_ENV` | `development` or `production` |
+| `REDIS_URL` | Redis for BullMQ notification jobs (default `redis://localhost:6379`) |
+| `TWILIO_*` | Twilio SMS credentials |
+| `SMTP_*` | Nodemailer SMTP settings |
+
+After payment, ticket SMS (Twilio) and email with PNG (Nodemailer) are sent via a **BullMQ** worker. See `.env.example` for all notification variables.
+
+**Notifications not arriving?**
+
+1. Run `pnpm db:migrate` — requires `notification_logs` table (BullMQ jobs fail without it).
+2. Ensure Redis is up: `pnpm db:up` (includes Redis).
+3. Check API logs for `Notification job failed` or query `notification_logs` in the DB.
+4. **Twilio:** `TWILIO_FROM_NUMBER` must belong to your Twilio account (error 21660 = mismatch). Trial accounts must verify destination numbers.
+5. **Email:** check spam; Gmail needs an [App Password](https://support.google.com/accounts/answer/185833) in `SMTP_PASS`.
+6. Retry a booking: `pnpm notifications:retry <bookingId>`
 
 ---
 
@@ -156,7 +170,7 @@ online-bus-ticket/
 │   └── config/              # Shared TypeScript config
 ├── docs/                    # Architecture, contracts, feature backlog
 ├── scripts/                 # Manual API test helpers
-├── docker-compose.yml       # Local PostgreSQL
+├── docker-compose.yml       # Local PostgreSQL + Redis
 ├── AGENTS.md                # Guidelines for AI-assisted development
 └── turbo.json
 ```
@@ -175,7 +189,7 @@ Run from the repository root:
 | `pnpm typecheck` | TypeScript check |
 | `pnpm test` | Run tests (Turbo) |
 | `pnpm test:api` | API unit/integration tests (Vitest) |
-| `pnpm db:up` / `pnpm db:down` | Start/stop PostgreSQL container |
+| `pnpm db:up` / `pnpm db:down` | Start/stop PostgreSQL + Redis containers |
 | `pnpm db:migrate` | Apply Prisma migrations |
 | `pnpm db:seed` | Load demo users, route, schedules |
 | `pnpm db:studio` | Open Prisma Studio |

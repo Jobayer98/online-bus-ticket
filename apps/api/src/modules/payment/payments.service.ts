@@ -1,5 +1,6 @@
 import { prisma } from "@repo/database";
 import { AppError, ErrorCode, type InitiatePaymentInput } from "@repo/shared";
+import { enqueueBookingNotifications } from "../../jobs/dispatch-notifications.js";
 import { issueTicket } from "../ticket/tickets.service.js";
 
 export async function initiatePayment(input: InitiatePaymentInput) {
@@ -40,6 +41,7 @@ export async function confirmPayment(
       include: { booking: { include: { ticket: true } } },
     });
     if (existing?.status === "COMPLETED" && existing.booking.ticket) {
+      enqueueBookingNotifications(existing.bookingId);
       return {
         bookingId: existing.bookingId,
         ticket: existing.booking.ticket,
@@ -77,6 +79,7 @@ export async function confirmPayment(
   });
 
   const ticket = await issueTicket(bookingId);
+  enqueueBookingNotifications(bookingId);
   return {
     bookingId,
     ticket: {

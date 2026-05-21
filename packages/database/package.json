@@ -13,7 +13,8 @@
   "scripts": {
     "build": "tsc",
     "generate": "prisma generate",
-    "migrate": "dotenv -e ../../.env -- prisma migrate dev --name migration",
+    "migrate": "dotenv -e ../../.env -- prisma migrate deploy",
+    "migrate:dev": "dotenv -e ../../.env -- prisma migrate dev",
     "migrate:init": "dotenv -e ../../.env -- prisma migrate dev --name init",
     "seed": "dotenv -e ../../.env -- tsx prisma/seed.ts",
     "migrate:deploy": "prisma migrate deploy",

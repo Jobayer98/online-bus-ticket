@@ -213,6 +213,22 @@ Each **Epic** is independently deliverable. Each **micro-task** should be one PR
 
 ---
 
+## Epic E13 — Notifications (SMS & Email)
+
+**Goal:** After payment, send SMS confirmation; if email provided, send ticket PNG by email. Non-blocking background delivery.  
+**Depends on:** E08, E09.
+
+| ID | Task | Layer | Acceptance |
+|----|------|-------|------------|
+| [x] E13-01 | Prisma: `NotificationLog` (channel, status, bookingId) | db | Unique per booking+channel |
+| [x] E13-02 | Zod: `BookingTicketNotificationDto` | shared | Matches ticket + optional email |
+| [x] E13-03 | Twilio SMS + Nodemailer email adapters | api | Env-configured |
+| [x] E13-04 | Server ticket PNG generator (SVG → PNG) | api | Attached to email |
+| [x] E13-05 | BullMQ queue + worker on payment confirm | api | Redis + HTTP not blocked |
+| [x] E13-06 | Contract doc `docs/contracts/notification/booking-confirmed.md` | docs | — |
+
+---
+
 ## Epic E12 — Hardening & Operations (Post-MVP)
 
 **Goal:** Production readiness.  

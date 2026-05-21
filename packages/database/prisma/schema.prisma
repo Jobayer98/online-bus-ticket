@@ -69,6 +69,18 @@ enum CounterTransactionType {
   CANCEL
 }
 
+enum NotificationChannel {
+  SMS
+  EMAIL
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+  SKIPPED
+}
+
 model User {
   id           String   @id @default(cuid())
   email        String?  @unique
@@ -271,9 +283,10 @@ model Booking {
   hold          SeatHold?            @relation(fields: [holdId], references: [id])
   boardingPoint BoardingPoint        @relation(fields: [boardingPointId], references: [id])
   seats         BookingSeat[]
-  payment       Payment?
-  ticket        Ticket?
-  counterTxns   CounterTransaction[]
+  payment        Payment?
+  ticket         Ticket?
+  counterTxns    CounterTransaction[]
+  notifications  NotificationLog[]
 
   @@index([passengerPhone])
   @@index([userId])
@@ -335,4 +348,22 @@ model CounterTransaction {
 
   @@index([sellerId, createdAt])
   @@map("counter_transactions")
+}
+
+model NotificationLog {
+  id        String              @id @default(cuid())
+  bookingId String              @map("booking_id")
+  channel   NotificationChannel
+  status    NotificationStatus  @default(PENDING)
+  recipient String
+  error     String?
+  sentAt    DateTime?           @map("sent_at")
+  createdAt DateTime            @default(now()) @map("created_at")
+  updatedAt DateTime            @updatedAt @map("updated_at")
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@unique([bookingId, channel])
+  @@index([status, createdAt])
+  @@map("notification_logs")
 }

@@ -51,6 +51,10 @@ export const prismaMock = {
     findMany: vi.fn(),
     create: vi.fn(),
   },
+  notificationLog: {
+    findUnique: vi.fn(),
+    upsert: vi.fn(),
+  },
   rescheduleLog: {
     create: vi.fn(),
   },
