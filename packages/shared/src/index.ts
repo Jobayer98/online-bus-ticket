@@ -15,6 +15,7 @@ export * from "./dtos/notification/booking-ticket-notification.dto.js";
 export * from "./utils/date.js";
 export * from "./utils/format.js";
 export * from "./utils/seat-label.js";
+export * from "./utils/unique-city-stops.js";
 export * from "./schemas/identity/auth.schema.js";
 export * from "./schemas/admin/stop.schema.js";
 export * from "./schemas/admin/route.schema.js";

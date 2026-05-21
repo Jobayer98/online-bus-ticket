@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { getTimePeriod } from "@repo/shared";
+import { getTimePeriod, resolveStopIdForCity } from "@repo/shared";
 import { apiGet } from "@/lib/api-client";
 import {
   addDaysIso,
@@ -91,10 +91,12 @@ export function SearchResultsContent() {
   }, [params.routeSlug, params.date, searchParams]);
 
   useEffect(() => {
-    if (!route) return;
-    setFromDraft(route.fromStopId);
-    setToDraft(route.toStopId);
-  }, [route]);
+    if (!route || stops.length === 0) return;
+    setFromDraft(
+      resolveStopIdForCity(stops, route.fromStop.city) ?? route.fromStopId,
+    );
+    setToDraft(resolveStopIdForCity(stops, route.toStop.city) ?? route.toStopId);
+  }, [route, stops]);
 
   useEffect(() => {
     apiGet<Stop[]>("/schedules/stops")

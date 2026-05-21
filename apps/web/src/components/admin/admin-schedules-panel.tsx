@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { apiGet, apiPatch, apiPost } from "@/lib/api-client";
 import { useGlobalLoading } from "@/components/global-loading-provider";
-import { formatMoneyBdt, formatTime12h } from "@/lib/format";
+import { formatDateDdMmYyyy, formatMoneyBdt, formatTime12h } from "@/lib/format";
 import { CounterToast } from "@/components/counter/counter-toast";
 import { HomeDateTimePicker } from "@/components/home-datetime-picker";
 import { getTodayIso } from "@/lib/trip-date";
@@ -265,6 +265,7 @@ export function AdminSchedulesPanel() {
               <tr>
                 <th>Route</th>
                 <th>Coach</th>
+                <th>Date</th>
                 <th>Departure</th>
                 <th>Fare from</th>
                 <th>Status</th>
@@ -276,6 +277,7 @@ export function AdminSchedulesPanel() {
                 <tr key={s.id}>
                   <td>{s.route.slug}</td>
                   <td>{s.coach.coachNumber}</td>
+                  <td>{formatDateDdMmYyyy(s.departureAt.slice(0, 10))}</td>
                   <td>{formatTime12h(s.departureAt)}</td>
                   <td>{formatMoneyBdt(s.baseFare)}</td>
                   <td>

@@ -10,8 +10,19 @@ import {
 export async function searchSchedules(
   query: SearchSchedulesQuery,
 ): Promise<ScheduleCardDto[]> {
+  const [fromStop, toStop] = await Promise.all([
+    prisma.stop.findUnique({ where: { id: query.fromStopId } }),
+    prisma.stop.findUnique({ where: { id: query.toStopId } }),
+  ]);
+  if (!fromStop || !toStop) {
+    throw new AppError(ErrorCode.NOT_FOUND, "Stop not found", 404);
+  }
+
   const route = await prisma.route.findFirst({
-    where: { fromStopId: query.fromStopId, toStopId: query.toStopId },
+    where: {
+      fromStop: { city: { equals: fromStop.city, mode: "insensitive" } },
+      toStop: { city: { equals: toStop.city, mode: "insensitive" } },
+    },
     include: { fromStop: true, toStop: true },
   });
   if (!route) {

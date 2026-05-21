@@ -1,14 +1,20 @@
 import { Router } from "express";
 import { prisma } from "@repo/database";
-import { searchSchedulesQuerySchema, successResponse } from "@repo/shared";
+import {
+  searchSchedulesQuerySchema,
+  successResponse,
+  uniqueStopsByCity,
+} from "@repo/shared";
 import * as scheduleService from "./schedules.service.js";
 
 export const schedulesRouter = Router();
 
 schedulesRouter.get("/stops", async (_req, res, next) => {
   try {
-    const stops = await prisma.stop.findMany({ orderBy: { name: "asc" } });
-    res.json(successResponse(stops));
+    const stops = await prisma.stop.findMany({
+      orderBy: [{ city: "asc" }, { name: "asc" }],
+    });
+    res.json(successResponse(uniqueStopsByCity(stops)));
   } catch (e) {
     next(e);
   }
