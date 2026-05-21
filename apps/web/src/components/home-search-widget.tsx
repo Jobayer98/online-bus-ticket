@@ -49,13 +49,7 @@ export function HomeSearchWidget() {
   useEffect(() => {
     setDate(getTodayIso());
     apiGet<Stop[]>("/schedules/stops")
-      .then((r) => {
-        setStops(r.data);
-        const dhaka = r.data.find((s) => s.city.toLowerCase() === "dhaka");
-        const other = r.data.find((s) => s.city.toLowerCase() !== "dhaka");
-        if (dhaka) setFromStopId(dhaka.id);
-        if (other) setToStopId(other.id);
-      })
+      .then((r) => setStops(r.data))
       .catch(() => setStops([]));
   }, []);
 

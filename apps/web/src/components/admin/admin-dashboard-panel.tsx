@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { apiGet } from "@/lib/api-client";
+import { useGlobalLoading } from "@/components/global-loading-provider";
 import { formatMoneyBdt } from "@/lib/format";
 
 type Overview = {
@@ -24,8 +25,11 @@ export function AdminDashboardPanel() {
   const [overview, setOverview] = useState<Overview | null>(null);
   const [sales, setSales] = useState<Sales | null>(null);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
+  useGlobalLoading(loading);
 
   useEffect(() => {
+    setLoading(true);
     Promise.all([
       apiGet<Overview>("/admin/reports/analytics/overview"),
       apiGet<Sales>("/admin/reports/sales"),
@@ -34,7 +38,8 @@ export function AdminDashboardPanel() {
         setOverview(o.data);
         setSales(s.data);
       })
-      .catch((e) => setError(e instanceof Error ? e.message : "Failed to load"));
+      .catch((e) => setError(e instanceof Error ? e.message : "Failed to load"))
+      .finally(() => setLoading(false));
   }, []);
 
   return (

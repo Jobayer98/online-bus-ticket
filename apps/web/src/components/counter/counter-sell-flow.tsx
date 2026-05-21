@@ -5,7 +5,6 @@ import { apiGet, apiPost } from "@/lib/api-client";
 import { getTodayIso } from "@/lib/trip-date";
 import { CounterSearchBar } from "./counter-search-bar";
 import { CounterScheduleCard } from "./counter-schedule-card";
-import { ScheduleCardSkeleton } from "@/components/search/schedule-card-skeleton";
 import {
   formatDateDdMmYyyy,
   formatMoneyBdt,
@@ -84,13 +83,7 @@ export function CounterSellFlow({ onSold }: Props) {
   useEffect(() => {
     setDate(getTodayIso());
     apiGet<Stop[]>("/schedules/stops")
-      .then((r) => {
-        setStops(r.data);
-        const dhaka = r.data.find((s) => s.city.toLowerCase() === "dhaka");
-        const other = r.data.find((s) => s.city.toLowerCase() !== "dhaka");
-        if (dhaka) setFromStopId(dhaka.id);
-        if (other) setToStopId(other.id);
-      })
+      .then((r) => setStops(r.data))
       .catch(() => setStops([]));
   }, []);
 
@@ -135,10 +128,6 @@ export function CounterSellFlow({ onSold }: Props) {
       })
       .finally(() => setLoadingSearch(false));
   }, [fromStopId, toStopId, date, acOn, nonAcOn]);
-
-  useEffect(() => {
-    if (fromStopId && toStopId && date) runSearch();
-  }, [fromStopId, toStopId, date, acOn, nonAcOn, runSearch]);
 
   async function handleSeatContinue() {
     setSellError("");
@@ -418,9 +407,6 @@ export function CounterSellFlow({ onSold }: Props) {
       )}
 
       <div className="sp-results-list">
-        {loadingSearch &&
-          schedules.length === 0 &&
-          Array.from({ length: 3 }).map((_, i) => <ScheduleCardSkeleton key={i} />)}
         {!loadingSearch && schedules.length === 0 && !searchError && (
           <div className="sp-empty">No buses found for this date.</div>
         )}

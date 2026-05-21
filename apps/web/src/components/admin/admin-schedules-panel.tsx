@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { apiGet, apiPatch, apiPost } from "@/lib/api-client";
+import { useGlobalLoading } from "@/components/global-loading-provider";
 import { formatMoneyBdt, formatTime12h } from "@/lib/format";
 import { CounterToast } from "@/components/counter/counter-toast";
 import { HomeDateTimePicker } from "@/components/home-datetime-picker";
@@ -45,6 +46,7 @@ export function AdminSchedulesPanel() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [toast, setToast] = useState<string | null>(null);
+  useGlobalLoading(loading);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -256,9 +258,7 @@ export function AdminSchedulesPanel() {
         </form>
       )}
 
-      {loading ? (
-        <div className="sp-empty">Loading…</div>
-      ) : (
+      {!loading && (
         <div className="cp-table-wrap">
           <table className="cp-table">
             <thead>

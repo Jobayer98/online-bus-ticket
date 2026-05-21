@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { apiDelete, apiGet, apiPatch, apiPost } from "@/lib/api-client";
+import { useGlobalLoading } from "@/components/global-loading-provider";
 import { CounterToast } from "@/components/counter/counter-toast";
 
 type Stop = { id: string; name: string; city: string; code: string };
@@ -36,6 +37,7 @@ export function AdminRoutesPanel() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [toast, setToast] = useState<string | null>(null);
+  useGlobalLoading(loading || bpLoading);
 
   const selectedRoute = routes.find((r) => r.id === selectedRouteId);
 
@@ -222,9 +224,7 @@ export function AdminRoutesPanel() {
         {error && <p className="sp-panel-error">{error}</p>}
       </form>
 
-      {loading ? (
-        <div className="sp-empty">Loading…</div>
-      ) : (
+      {!loading && (
         <div className="cp-table-wrap">
           <table className="cp-table">
             <thead>
@@ -332,93 +332,92 @@ export function AdminRoutesPanel() {
               </div>
             </form>
 
-            {bpLoading ? (
-              <div className="sp-empty">Loading boarding points…</div>
-            ) : boardingPoints.length === 0 ? (
-              <div className="sp-empty">No boarding points yet for this route.</div>
-            ) : (
-              <div className="cp-table-wrap">
-                <table className="cp-table">
-                  <thead>
-                    <tr>
-                      <th>Order</th>
-                      <th>Name</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {boardingPoints.map((bp) => (
-                      <tr key={bp.id}>
-                        <td>
-                          {editBpId === bp.id ? (
-                            <input
-                              type="number"
-                              min={0}
-                              className="adm-inline-input"
-                              value={editBpSort}
-                              onChange={(e) => setEditBpSort(e.target.value)}
-                            />
-                          ) : (
-                            bp.sortOrder
-                          )}
-                        </td>
-                        <td>
-                          {editBpId === bp.id ? (
-                            <input
-                              type="text"
-                              className="adm-inline-input"
-                              value={editBpName}
-                              onChange={(e) => setEditBpName(e.target.value)}
-                            />
-                          ) : (
-                            bp.name
-                          )}
-                        </td>
-                        <td>
-                          <div className="adm-row-actions">
-                            {editBpId === bp.id ? (
-                              <>
-                                <button
-                                  type="button"
-                                  className="adm-btn-edit"
-                                  onClick={saveBoardingPointEdit}
-                                >
-                                  Save
-                                </button>
-                                <button
-                                  type="button"
-                                  className="sp-btn-back"
-                                  onClick={() => setEditBpId(null)}
-                                >
-                                  Cancel
-                                </button>
-                              </>
-                            ) : (
-                              <>
-                                <button
-                                  type="button"
-                                  className="adm-btn-edit"
-                                  onClick={() => startEdit(bp)}
-                                >
-                                  Edit
-                                </button>
-                                <button
-                                  type="button"
-                                  className="adm-btn-delete"
-                                  onClick={() => deleteBoardingPoint(bp.id)}
-                                >
-                                  Delete
-                                </button>
-                              </>
-                            )}
-                          </div>
-                        </td>
+            {!bpLoading &&
+              (boardingPoints.length === 0 ? (
+                <div className="sp-empty">No boarding points yet for this route.</div>
+              ) : (
+                <div className="cp-table-wrap">
+                  <table className="cp-table">
+                    <thead>
+                      <tr>
+                        <th>Order</th>
+                        <th>Name</th>
+                        <th>Actions</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+                    </thead>
+                    <tbody>
+                      {boardingPoints.map((bp) => (
+                        <tr key={bp.id}>
+                          <td>
+                            {editBpId === bp.id ? (
+                              <input
+                                type="number"
+                                min={0}
+                                className="adm-inline-input"
+                                value={editBpSort}
+                                onChange={(e) => setEditBpSort(e.target.value)}
+                              />
+                            ) : (
+                              bp.sortOrder
+                            )}
+                          </td>
+                          <td>
+                            {editBpId === bp.id ? (
+                              <input
+                                type="text"
+                                className="adm-inline-input"
+                                value={editBpName}
+                                onChange={(e) => setEditBpName(e.target.value)}
+                              />
+                            ) : (
+                              bp.name
+                            )}
+                          </td>
+                          <td>
+                            <div className="adm-row-actions">
+                              {editBpId === bp.id ? (
+                                <>
+                                  <button
+                                    type="button"
+                                    className="adm-btn-edit"
+                                    onClick={saveBoardingPointEdit}
+                                  >
+                                    Save
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="sp-btn-back"
+                                    onClick={() => setEditBpId(null)}
+                                  >
+                                    Cancel
+                                  </button>
+                                </>
+                              ) : (
+                                <>
+                                  <button
+                                    type="button"
+                                    className="adm-btn-edit"
+                                    onClick={() => startEdit(bp)}
+                                  >
+                                    Edit
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="adm-btn-delete"
+                                    onClick={() => deleteBoardingPoint(bp.id)}
+                                  >
+                                    Delete
+                                  </button>
+                                </>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ))}
           </>
         )}
       </section>

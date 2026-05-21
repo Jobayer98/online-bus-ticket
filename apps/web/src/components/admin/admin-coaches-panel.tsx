@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { apiGet, apiPost } from "@/lib/api-client";
+import { useGlobalLoading } from "@/components/global-loading-provider";
 import { formatBusTypeLabel } from "@/lib/format";
 import { CounterToast } from "@/components/counter/counter-toast";
 
@@ -22,6 +23,7 @@ export function AdminCoachesPanel() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [toast, setToast] = useState<string | null>(null);
+  useGlobalLoading(loading);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -116,9 +118,7 @@ export function AdminCoachesPanel() {
         {error && <p className="sp-panel-error">{error}</p>}
       </form>
 
-      {loading ? (
-        <div className="sp-empty">Loading…</div>
-      ) : (
+      {!loading && (
         <div className="cp-table-wrap">
           <table className="cp-table">
             <thead>

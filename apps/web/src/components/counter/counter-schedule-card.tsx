@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { apiGet } from "@/lib/api-client";
+import { useGlobalLoading } from "@/components/global-loading-provider";
 import {
   formatBusTypeLabel,
   formatMoneyBdt,
@@ -38,6 +39,7 @@ export function CounterScheduleCard({
   const [seatMap, setSeatMap] = useState<SeatMapDto | null>(null);
   const [loadingMap, setLoadingMap] = useState(false);
   const [mapError, setMapError] = useState("");
+  useGlobalLoading(loadingMap);
 
   async function handleToggle() {
     if (expanded) {
@@ -102,7 +104,6 @@ export function CounterScheduleCard({
 
       <div className={`sp-seat-expand-wrap${expanded ? " is-open" : ""}`}>
         <div className="sp-seat-expand-inner">
-          {loadingMap && <div className="sp-seat-loading">Loading seat map…</div>}
           {mapError && (
             <div className="sp-seat-loading sp-panel-error">{mapError}</div>
           )}

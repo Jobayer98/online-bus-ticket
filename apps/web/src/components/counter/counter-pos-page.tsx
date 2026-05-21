@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { BrandLogo } from "@/components/brand-logo";
 import { MobileNavMenu } from "@/components/mobile-nav-menu";
 import { clearAuthSession, getAuthRole, getAuthToken } from "@/lib/auth-session";
+import { useGlobalLoading } from "@/components/global-loading-provider";
 import { CounterSellFlow } from "./counter-sell-flow";
 import { CounterHistoryPanel } from "./counter-history-panel";
 import { CounterManagePanel } from "./counter-manage-panel";
@@ -23,6 +24,7 @@ export function CounterPosPage() {
   const [ready, setReady] = useState(false);
   const [historyKey, setHistoryKey] = useState(0);
   const [clock, setClock] = useState("");
+  useGlobalLoading(!ready);
 
   useEffect(() => {
     const token = getAuthToken();
@@ -56,11 +58,7 @@ export function CounterPosPage() {
   }
 
   if (!ready) {
-    return (
-      <div className="search-page counter-page">
-        <div className="sp-empty">Loading counter POS…</div>
-      </div>
-    );
+    return <div className="search-page counter-page" aria-busy="true" />;
   }
 
   return (

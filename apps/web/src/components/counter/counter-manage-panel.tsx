@@ -109,7 +109,7 @@ export function CounterManagePanel() {
                 style={{ width: "100%", marginTop: "0.25rem" }}
                 disabled={loading}
               >
-                {loading ? "Looking up…" : "Lookup ticket"}
+                Lookup ticket
               </button>
             </form>
           </div>

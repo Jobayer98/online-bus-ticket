@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { BrandLogo } from "@/components/brand-logo";
+import { useGlobalLoading } from "@/components/global-loading-provider";
 import { MobileNavMenu } from "@/components/mobile-nav-menu";
 import { clearAuthSession, getAuthRole, getAuthToken } from "@/lib/auth-session";
 import { AdminDashboardPanel } from "./admin-dashboard-panel";
@@ -42,6 +43,7 @@ export function AdminPage() {
   const [tab, setTab] = useState<Tab>("dashboard");
   const [ready, setReady] = useState(false);
   const [clock, setClock] = useState("");
+  useGlobalLoading(!ready);
 
   useEffect(() => {
     const token = getAuthToken();
@@ -75,11 +77,7 @@ export function AdminPage() {
   }
 
   if (!ready) {
-    return (
-      <div className="search-page admin-page">
-        <div className="sp-empty">Loading admin…</div>
-      </div>
-    );
+    return <div className="search-page admin-page" aria-busy="true" />;
   }
 
   return (

@@ -122,7 +122,7 @@ export function CounterSearchBar({
             disabled={loading}
           >
             <SearchIcon />
-            {loading ? "SEARCHING…" : "SEARCH"}
+            SEARCH
           </button>
         </div>
         {filterError && <p className="sp-filter-error">{filterError}</p>}

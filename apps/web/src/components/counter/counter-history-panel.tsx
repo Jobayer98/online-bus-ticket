@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { apiGet } from "@/lib/api-client";
+import { useGlobalLoading } from "@/components/global-loading-provider";
 import { formatMoneyBdt } from "@/lib/format";
 
 type CounterTxn = {
@@ -53,6 +54,7 @@ export function CounterHistoryPanel({ refreshKey = 0 }: Props) {
   const [txns, setTxns] = useState<CounterTxn[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  useGlobalLoading(loading);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -102,7 +104,6 @@ export function CounterHistoryPanel({ refreshKey = 0 }: Props) {
       </div>
 
       {error && <p className="sp-filter-error">{error}</p>}
-      {loading && <div className="sp-empty">Loading transactions…</div>}
 
       {!loading && !error && (
         <div className="cp-table-wrap">

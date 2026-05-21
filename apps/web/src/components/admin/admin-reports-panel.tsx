@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { apiDownload, apiGet } from "@/lib/api-client";
+import { useGlobalLoading } from "@/components/global-loading-provider";
 import { formatMoneyBdt } from "@/lib/format";
 import { HomeDatePicker } from "@/components/home-date-picker";
 import { getTodayIso } from "@/lib/trip-date";
@@ -31,6 +32,7 @@ export function AdminReportsPanel() {
   const [loading, setLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [error, setError] = useState("");
+  useGlobalLoading(loading || exporting);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -71,7 +73,7 @@ export function AdminReportsPanel() {
               </span>
               <div className="adm-form-actions__buttons">
                 <button type="button" className="sp-filter-search" onClick={load} disabled={loading}>
-                  {loading ? "Loading…" : "Apply"}
+                  Apply
                 </button>
                 <button
                   type="button"

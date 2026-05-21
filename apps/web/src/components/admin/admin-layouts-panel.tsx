@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { apiGet, apiPost } from "@/lib/api-client";
+import { useGlobalLoading } from "@/components/global-loading-provider";
 import { formatSeatClassLabel } from "@/lib/format";
 import { CounterToast } from "@/components/counter/counter-toast";
 import {
@@ -38,6 +39,7 @@ export function AdminLayoutsPanel() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [toast, setToast] = useState<string | null>(null);
+  useGlobalLoading(loading || saving);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -193,9 +195,7 @@ export function AdminLayoutsPanel() {
       </form>
 
       <h3 className="adm-subheading">Saved layouts</h3>
-      {loading ? (
-        <div className="sp-empty">Loading…</div>
-      ) : (
+      {!loading && (
         <div className="cp-table-wrap">
           <table className="cp-table">
             <thead>
