@@ -101,6 +101,8 @@ paths:
     $ref: './modules/admin.yaml#/~1api~1v1~1admin~1routes'
   /api/v1/admin/coaches:
     $ref: './modules/admin.yaml#/~1api~1v1~1admin~1coaches'
+  /api/v1/admin/coaches/{id}:
+    $ref: './modules/admin.yaml#/~1api~1v1~1admin~1coaches~1{id}'
   /api/v1/admin/layouts:
     $ref: './modules/admin.yaml#/~1api~1v1~1admin~1layouts'
   /api/v1/admin/schedules:

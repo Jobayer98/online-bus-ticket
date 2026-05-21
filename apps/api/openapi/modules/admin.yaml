@@ -319,6 +319,76 @@
       '500':
         $ref: '../components/common.yaml#/components/responses/Error500Internal'
 
+/api/v1/admin/coaches/{id}:
+  patch:
+    tags: [Admin - Coaches]
+    summary: Update coach
+    operationId: adminUpdateCoach
+    security:
+      - bearerAuth: []
+      - cookieAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    requestBody:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              coachNumber:
+                type: string
+              busType:
+                type: string
+                enum: [AC, NON_AC]
+              seatLayoutId:
+                type: string
+                nullable: true
+    responses:
+      '200':
+        description: Coach updated
+      '400':
+        $ref: '../components/common.yaml#/components/responses/Error400Validation'
+      '401':
+        $ref: '../components/common.yaml#/components/responses/Error401Unauthorized'
+      '403':
+        $ref: '../components/common.yaml#/components/responses/Error403Forbidden'
+      '404':
+        $ref: '../components/common.yaml#/components/responses/Error404NotFound'
+      '409':
+        $ref: '../components/common.yaml#/components/responses/Error409Conflict'
+      '500':
+        $ref: '../components/common.yaml#/components/responses/Error500Internal'
+  delete:
+    tags: [Admin - Coaches]
+    summary: Delete coach
+    operationId: adminDeleteCoach
+    security:
+      - bearerAuth: []
+      - cookieAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    responses:
+      '200':
+        description: Coach deleted
+      '401':
+        $ref: '../components/common.yaml#/components/responses/Error401Unauthorized'
+      '403':
+        $ref: '../components/common.yaml#/components/responses/Error403Forbidden'
+      '404':
+        $ref: '../components/common.yaml#/components/responses/Error404NotFound'
+      '409':
+        $ref: '../components/common.yaml#/components/responses/Error409Conflict'
+      '500':
+        $ref: '../components/common.yaml#/components/responses/Error500Internal'
+
 /api/v1/admin/layouts:
   get:
     tags: [Admin - Layouts]

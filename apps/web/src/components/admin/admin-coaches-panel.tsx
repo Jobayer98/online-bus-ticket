@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { apiGet, apiPost } from "@/lib/api-client";
+import { apiDelete, apiGet, apiPatch, apiPost } from "@/lib/api-client";
 import { useGlobalLoading } from "@/components/global-loading-provider";
 import { formatBusTypeLabel } from "@/lib/format";
 import { CounterToast } from "@/components/counter/counter-toast";
@@ -10,16 +10,22 @@ type Layout = { id: string; name: string };
 type Coach = {
   id: string;
   coachNumber: string;
-  busType: string;
+  busType: "AC" | "NON_AC";
+  seatLayoutId: string | null;
   seatLayout: { name: string } | null;
+};
+
+const emptyForm = {
+  coachNumber: "",
+  busType: "AC" as "AC" | "NON_AC",
+  seatLayoutId: "",
 };
 
 export function AdminCoachesPanel() {
   const [coaches, setCoaches] = useState<Coach[]>([]);
   const [layouts, setLayouts] = useState<Layout[]>([]);
-  const [coachNumber, setCoachNumber] = useState("");
-  const [busType, setBusType] = useState<"AC" | "NON_AC">("AC");
-  const [seatLayoutId, setSeatLayoutId] = useState("");
+  const [form, setForm] = useState(emptyForm);
+  const [editId, setEditId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [toast, setToast] = useState<string | null>(null);
@@ -43,21 +49,43 @@ export function AdminCoachesPanel() {
     load();
   }, [load]);
 
+  function resetForm() {
+    setForm(emptyForm);
+    setEditId(null);
+  }
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    const payload = {
+      coachNumber: form.coachNumber.trim(),
+      busType: form.busType,
+      seatLayoutId: form.seatLayoutId || null,
+    };
     try {
-      await apiPost("/admin/coaches", {
-        coachNumber: coachNumber.trim(),
-        busType,
-        seatLayoutId: seatLayoutId || undefined,
-      });
-      setToast("Coach created");
-      setCoachNumber("");
-      setSeatLayoutId("");
+      if (editId) {
+        await apiPatch(`/admin/coaches/${editId}`, payload);
+        setToast("Coach updated");
+      } else {
+        await apiPost("/admin/coaches", payload);
+        setToast("Coach created");
+      }
+      resetForm();
       load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Create failed");
+      setError(err instanceof Error ? err.message : "Save failed");
+    }
+  }
+
+  async function remove(id: string, coachNumber: string) {
+    if (!window.confirm(`Delete coach "${coachNumber}"?`)) return;
+    try {
+      await apiDelete(`/admin/coaches/${id}`);
+      setToast("Coach deleted");
+      if (editId === id) resetForm();
+      load();
+    } catch (err) {
+      setToast(err instanceof Error ? err.message : "Delete failed");
     }
   }
 
@@ -67,14 +95,16 @@ export function AdminCoachesPanel() {
       <h2 className="cp-section-title">COACHES</h2>
 
       <form className="adm-form-card" onSubmit={submit}>
-        <h3>Add coach</h3>
+        <h3>{editId ? "Edit coach" : "Add coach"}</h3>
         <div className="adm-form-row">
           <div className="sp-checkout-field">
             <label htmlFor="coach-num">Coach number</label>
             <input
               id="coach-num"
-              value={coachNumber}
-              onChange={(e) => setCoachNumber(e.target.value)}
+              value={form.coachNumber}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, coachNumber: e.target.value }))
+              }
               required
             />
           </div>
@@ -82,8 +112,13 @@ export function AdminCoachesPanel() {
             <label htmlFor="coach-type">Bus type</label>
             <select
               id="coach-type"
-              value={busType}
-              onChange={(e) => setBusType(e.target.value as "AC" | "NON_AC")}
+              value={form.busType}
+              onChange={(e) =>
+                setForm((f) => ({
+                  ...f,
+                  busType: e.target.value as "AC" | "NON_AC",
+                }))
+              }
             >
               <option value="AC">AC</option>
               <option value="NON_AC">Non AC</option>
@@ -93,8 +128,10 @@ export function AdminCoachesPanel() {
             <label htmlFor="coach-layout">Seat layout</label>
             <select
               id="coach-layout"
-              value={seatLayoutId}
-              onChange={(e) => setSeatLayoutId(e.target.value)}
+              value={form.seatLayoutId}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, seatLayoutId: e.target.value }))
+              }
             >
               <option value="">None</option>
               {layouts.map((l) => (
@@ -110,8 +147,13 @@ export function AdminCoachesPanel() {
             </span>
             <div className="adm-form-actions__buttons">
               <button type="submit" className="sp-filter-search">
-                Add coach
+                {editId ? "Update" : "Add"}
               </button>
+              {editId && (
+                <button type="button" className="sp-btn-back" onClick={resetForm}>
+                  Cancel
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -126,6 +168,7 @@ export function AdminCoachesPanel() {
                 <th>Coach #</th>
                 <th>Type</th>
                 <th>Layout</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -134,6 +177,31 @@ export function AdminCoachesPanel() {
                   <td>{c.coachNumber}</td>
                   <td>{formatBusTypeLabel(c.busType)}</td>
                   <td>{c.seatLayout?.name ?? "—"}</td>
+                  <td>
+                    <div className="adm-row-actions">
+                      <button
+                        type="button"
+                        className="adm-btn-edit"
+                        onClick={() => {
+                          setEditId(c.id);
+                          setForm({
+                            coachNumber: c.coachNumber,
+                            busType: c.busType,
+                            seatLayoutId: c.seatLayoutId ?? "",
+                          });
+                        }}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        className="adm-btn-delete"
+                        onClick={() => remove(c.id, c.coachNumber)}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
