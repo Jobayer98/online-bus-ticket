@@ -9,18 +9,26 @@ import {
 } from "@repo/shared";
 import { authenticateRequired, requireRole } from "../../middleware/auth.js";
 
-async function initScheduleSeats(scheduleId: string, coachId: string, baseFare: number) {
+async function initScheduleSeats(
+  scheduleId: string,
+  coachId: string,
+  baseFare: number,
+) {
   const coach = await prisma.coach.findUnique({
     where: { id: coachId },
     include: { seatLayout: { include: { templates: true } } },
   });
   if (!coach?.seatLayout) {
-    throw new AppError(ErrorCode.VALIDATION_ERROR, "Coach has no seat layout", 400);
+    throw new AppError(
+      ErrorCode.VALIDATION_ERROR,
+      "Coach has no seat layout",
+      400,
+    );
   }
   const classMultiplier: Record<string, number> = {
     STANDARD: 1,
-    PREMIUM: 1.3,
-    BUSINESS: 1.6,
+    PREMIUM: 1,
+    BUSINESS: 1,
   };
   await prisma.scheduleSeat.createMany({
     data: coach.seatLayout.templates.map((t) => ({
@@ -34,7 +42,10 @@ async function initScheduleSeats(scheduleId: string, coachId: string, baseFare: 
 }
 
 export const adminSchedulesRouter = Router();
-adminSchedulesRouter.use(authenticateRequired, requireRole("ADMIN", "COUNTER_SELLER"));
+adminSchedulesRouter.use(
+  authenticateRequired,
+  requireRole("ADMIN", "COUNTER_SELLER"),
+);
 
 adminSchedulesRouter.get("/", async (_req, res, next) => {
   try {
@@ -70,8 +81,11 @@ adminSchedulesRouter.post("/", async (req, res, next) => {
 adminSchedulesRouter.patch("/:id/reschedule", async (req, res, next) => {
   try {
     const input = rescheduleSchema.parse(req.body);
-    const existing = await prisma.schedule.findUnique({ where: { id: req.params.id } });
-    if (!existing) throw new AppError(ErrorCode.NOT_FOUND, "Schedule not found", 404);
+    const existing = await prisma.schedule.findUnique({
+      where: { id: req.params.id },
+    });
+    if (!existing)
+      throw new AppError(ErrorCode.NOT_FOUND, "Schedule not found", 404);
     const [schedule] = await prisma.$transaction([
       prisma.schedule.update({
         where: { id: req.params.id },
