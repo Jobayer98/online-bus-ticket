@@ -378,15 +378,15 @@ P4 (E14-24 … E14-28)  →  ops polish
 
 | ID | Task | Layer | Acceptance |
 |----|------|-------|------------|
-| [ ] E15-06 | Asset upload `POST /api/v1/admin/cms/assets` (multipart, image types, size limit) + `GET /api/v1/cms/assets/:key` | api | ADMIN RBAC; files on disk |
-| [ ] E15-07 | Admin `GET/PATCH /api/v1/admin/cms/profile` (company name, logo, tagline, trade license) | api | Saves draft; returns DTO |
-| [ ] E15-08 | Admin `GET/PATCH /api/v1/admin/cms/theme` — recomputes `paletteJson` on PATCH | api | Palette in response |
-| [ ] E15-09 | Admin CRUD `/api/v1/admin/cms/pages/:slug` (about, contact, terms, privacy, return-policy) | api | Markdown body validated |
-| [ ] E15-10 | Admin CRUD `/api/v1/admin/cms/media` (hero, featured, footer payment banner; reorder) | api | sortOrder unique per kind |
-| [ ] E15-11 | Admin CRUD `/api/v1/admin/cms/featured-routes` (pick `routeId`, order, visibility) | api | FK to Route; 409 if duplicate |
-| [ ] E15-12 | Admin `GET/PATCH /api/v1/admin/cms/footer` | api | JSON contact lines + bar links |
-| [ ] E15-13 | Public `GET /api/v1/cms/site` (published bundle) + `GET /api/v1/cms/pages/:slug` | api | No auth; drafts hidden |
-| [ ] E15-14 | Admin `GET /api/v1/admin/cms/preview` (all drafts) + `POST /api/v1/admin/cms/publish` (transactional) | api | Publish atomically flips status |
+| [x] E15-06 | Asset upload `POST /api/v1/admin/cms/assets` (multipart, image types, size limit) + `GET /api/v1/cms/assets/:key` | api | ADMIN RBAC; files on disk |
+| [x] E15-07 | Admin `GET/PATCH /api/v1/admin/cms/profile` (company name, logo, tagline, trade license) | api | Saves draft; returns DTO |
+| [x] E15-08 | Admin `GET/PATCH /api/v1/admin/cms/theme` — recomputes `paletteJson` on PATCH | api | Palette in response |
+| [x] E15-09 | Admin CRUD `/api/v1/admin/cms/pages/:slug` (about, contact, terms, privacy, return-policy) | api | Markdown body validated |
+| [x] E15-10 | Admin CRUD `/api/v1/admin/cms/media` (hero, featured, footer payment banner; reorder) | api | sortOrder unique per kind |
+| [x] E15-11 | Admin CRUD `/api/v1/admin/cms/featured-routes` (pick `routeId`, order, visibility) | api | FK to Route; 409 if duplicate |
+| [x] E15-12 | Admin `GET/PATCH /api/v1/admin/cms/footer` | api | JSON contact lines + bar links |
+| [x] E15-13 | Public `GET /api/v1/cms/site` (published bundle) + `GET /api/v1/cms/pages/:slug` | api | No auth; drafts hidden |
+| [x] E15-14 | Admin `GET /api/v1/admin/cms/preview` (all drafts) + `POST /api/v1/admin/cms/publish` (transactional) | api | Publish atomically flips status |
 
 ### Phase 3 — Web (consume published content)
 

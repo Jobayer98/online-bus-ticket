@@ -32,6 +32,8 @@ import { adminSchedulesRouter } from "./modules/admin/schedules.routes.js";
 
 import { adminReportsRouter } from "./modules/admin/reports.routes.js";
 
+import { adminCmsRouter, publicCmsRouter } from "./modules/admin/cms/cms.routes.js";
+
 import { schedulesRouter } from "./modules/schedule/schedules.routes.js";
 
 import { bookingsRouter } from "./modules/booking/bookings.routes.js";
@@ -121,6 +123,10 @@ export async function createApp() {
   v1.use("/admin/schedules", adminSchedulesRouter);
 
   v1.use("/admin/reports", adminReportsRouter);
+
+  v1.use("/admin/cms", adminCmsRouter);
+
+  v1.use("/cms", publicCmsRouter);
 
 
 
