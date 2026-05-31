@@ -12,6 +12,8 @@
 
 Completes payment for a **HELD** booking. Rejects cancelled, refunded, or already-paid bookings. Requires the signed `clientSecret` returned by `POST /payments/initiate` (guest-safe; no login).
 
+Ticket issuance runs **inside the same database transaction** as payment confirmation (E14-10). A PAID booking always has a ticket; idempotent retries and legacy PAID-without-ticket rows are repaired via compensating `issueTicket`.
+
 ## Request body
 
 | Name | Type | Required | Notes |

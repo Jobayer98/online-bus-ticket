@@ -14,7 +14,12 @@ import {
 } from "../../lib/payment-client-secret.js";
 import type { DbClient } from "../../lib/db-client.js";
 import { enqueueBookingNotifications } from "../../jobs/dispatch-notifications.js";
-import { issueTicket } from "../ticket/tickets.service.js";
+import {
+  issueTicket,
+  issueTicketWithClient,
+  toIssuedTicket,
+  type IssuedTicket,
+} from "../ticket/tickets.service.js";
 
 type BookingForPayment = {
   id: string;
@@ -104,7 +109,7 @@ export async function confirmPaymentWithClient(
   clientSecret: string,
   idempotencyKey?: string,
   providerRef?: string,
-): Promise<void> {
+): Promise<IssuedTicket> {
   const tokenPayload = verifyPaymentClientSecret(
     paymentSigningSecret(),
     clientSecret,
@@ -117,10 +122,24 @@ export async function confirmPaymentWithClient(
       hold: true,
       seats: true,
       payment: true,
+      ticket: true,
     },
   });
   if (!booking) {
     throw new AppError(ErrorCode.BOOKING_NOT_FOUND, "Booking not found", 404);
+  }
+
+  if (booking.status === "PAID") {
+    if (!booking.payment || booking.payment.status !== "COMPLETED") {
+      throw new AppError(ErrorCode.CONFLICT, "Already paid", 409);
+    }
+    if (booking.payment.id !== tokenPayload.paymentId) {
+      throw new AppError(ErrorCode.UNAUTHORIZED, "Invalid payment token", 401);
+    }
+    if (booking.ticket) {
+      return toIssuedTicket(booking.ticket);
+    }
+    return toIssuedTicket(await issueTicketWithClient(db, bookingId));
   }
 
   assertBookingPayable(booking);
@@ -160,6 +179,8 @@ export async function confirmPaymentWithClient(
     where: { id: { in: seatIds } },
     data: { status: "SOLD" },
   });
+
+  return toIssuedTicket(await issueTicketWithClient(db, bookingId));
 }
 
 export async function confirmPayment(
@@ -173,16 +194,19 @@ export async function confirmPayment(
       where: { idempotencyKey },
       include: { booking: { include: { ticket: true } } },
     });
-    if (existing?.status === "COMPLETED" && existing.booking.ticket) {
+    if (existing?.status === "COMPLETED") {
+      const ticket = existing.booking.ticket
+        ? toIssuedTicket(existing.booking.ticket)
+        : toIssuedTicket(await issueTicket(existing.bookingId));
       enqueueBookingNotifications(existing.bookingId);
       return {
         bookingId: existing.bookingId,
-        ticket: existing.booking.ticket,
+        ticket,
       };
     }
   }
 
-  await prisma.$transaction(async (tx) =>
+  const ticket = await prisma.$transaction(async (tx) =>
     confirmPaymentWithClient(
       tx,
       bookingId,
@@ -192,13 +216,6 @@ export async function confirmPayment(
     ),
   );
 
-  const ticket = await issueTicket(bookingId);
   enqueueBookingNotifications(bookingId);
-  return {
-    bookingId,
-    ticket: {
-      passengerNumber: ticket.passengerNumber,
-      id: ticket.id,
-    },
-  };
+  return { bookingId, ticket };
 }

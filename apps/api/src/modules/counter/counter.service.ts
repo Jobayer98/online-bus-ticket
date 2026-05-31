@@ -13,7 +13,6 @@ import {
   initiatePaymentWithClient,
   confirmPaymentWithClient,
 } from "../payment/payments.service.js";
-import { issueTicket } from "../ticket/tickets.service.js";
 
 /** Sole API entry point that mutates booking/payment to REFUNDED. Counter staff only. */
 export async function executeCounterRefund(
@@ -77,7 +76,7 @@ export async function executeCounterSell(
 ): Promise<ConfirmPaymentResponseDto> {
   const sessionId = `counter_${sellerId}_${Date.now()}`;
 
-  const bookingId = await prisma.$transaction(async (tx) => {
+  const { bookingId, ticket } = await prisma.$transaction(async (tx) => {
     const hold = await createHoldWithClient(tx, {
       scheduleId: input.scheduleId,
       seatLabels: input.seatLabels,
@@ -92,7 +91,7 @@ export async function executeCounterSell(
       bookingId: booking.id,
       method: input.method,
     });
-    await confirmPaymentWithClient(
+    const ticket = await confirmPaymentWithClient(
       tx,
       booking.id,
       initiated.clientSecret,
@@ -110,16 +109,9 @@ export async function executeCounterSell(
       where: { id: booking.id },
       data: { soldById: sellerId, channel: "COUNTER" },
     });
-    return booking.id;
+    return { bookingId: booking.id, ticket };
   });
 
-  const ticket = await issueTicket(bookingId);
   enqueueBookingNotifications(bookingId);
-  return {
-    bookingId,
-    ticket: {
-      passengerNumber: ticket.passengerNumber,
-      id: ticket.id,
-    },
-  };
+  return { bookingId, ticket };
 }

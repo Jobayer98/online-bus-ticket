@@ -13,10 +13,6 @@ vi.mock("../payment/payments.service.js", () => ({
   confirmPaymentWithClient: vi.fn(),
 }));
 
-vi.mock("../ticket/tickets.service.js", () => ({
-  issueTicket: vi.fn(),
-}));
-
 vi.mock("../../jobs/dispatch-notifications.js", () => ({
   enqueueBookingNotifications: vi.fn(),
 }));
@@ -26,7 +22,6 @@ import {
   initiatePaymentWithClient,
   confirmPaymentWithClient,
 } from "../payment/payments.service.js";
-import { issueTicket } from "../ticket/tickets.service.js";
 import { executeCounterSell } from "./counter.service.js";
 
 describe("executeCounterSell", () => {
@@ -37,6 +32,8 @@ describe("executeCounterSell", () => {
     passenger: { name: "Walk-in", phone: "01700000000" },
     method: "CASH" as const,
   };
+
+  const issuedTicket = { id: "ticket-1", passengerNumber: "P123456" };
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -59,19 +56,12 @@ describe("executeCounterSell", () => {
       method: "CASH",
       clientSecret: "secret",
     });
-    vi.mocked(confirmPaymentWithClient).mockResolvedValue(undefined);
-    vi.mocked(issueTicket).mockResolvedValue({
-      id: "ticket-1",
-      passengerNumber: "P123456",
-      bookingId: "book-1",
-      qrPayload: "{}",
-      createdAt: new Date(),
-    });
+    vi.mocked(confirmPaymentWithClient).mockResolvedValue(issuedTicket);
     prismaMock.counterTransaction.create.mockResolvedValue({ id: "ct-1" });
     prismaMock.booking.update.mockResolvedValue({ id: "book-1" });
   });
 
-  it("runs hold through channel updates in a single transaction", async () => {
+  it("runs hold through ticket and channel updates in a single transaction", async () => {
     const txSteps: string[] = [];
     prismaMock.$transaction.mockImplementation(async (fn) => {
       const tx = {
@@ -91,12 +81,9 @@ describe("executeCounterSell", () => {
       return fn(tx as never);
     });
 
-    await executeCounterSell("seller-1", input);
+    const result = await executeCounterSell("seller-1", input);
 
     expect(prismaMock.$transaction).toHaveBeenCalledTimes(1);
-    expect(createHoldWithClient).toHaveBeenCalled();
-    expect(createBookingWithClient).toHaveBeenCalled();
-    expect(initiatePaymentWithClient).toHaveBeenCalled();
     expect(confirmPaymentWithClient).toHaveBeenCalledWith(
       expect.anything(),
       "book-1",
@@ -104,10 +91,10 @@ describe("executeCounterSell", () => {
       "counter_book-1",
     );
     expect(txSteps).toEqual(["audit", "channel"]);
-    expect(issueTicket).toHaveBeenCalledWith("book-1");
+    expect(result.ticket).toEqual(issuedTicket);
   });
 
-  it("does not issue ticket when transaction fails", async () => {
+  it("does not return ticket when transaction fails", async () => {
     prismaMock.$transaction.mockImplementation(async (fn) => {
       vi.mocked(confirmPaymentWithClient).mockRejectedValueOnce(
         new AppError("PAYMENT_FAILED", "Payment failed", 409),
@@ -118,6 +105,5 @@ describe("executeCounterSell", () => {
     await expect(executeCounterSell("seller-1", input)).rejects.toMatchObject({
       code: "PAYMENT_FAILED",
     });
-    expect(issueTicket).not.toHaveBeenCalled();
   });
 });

@@ -10,7 +10,7 @@
 
 ## Description
 
-Walk-in sale: hold seats, create booking, initiate + confirm payment, audit `CounterTransaction` (SELL), and set `channel: COUNTER` — **all in one database transaction**. Ticket issuance and notifications run after commit (see E14-10).
+Walk-in sale: hold seats, create booking, initiate + confirm payment, issue ticket, audit `CounterTransaction` (SELL), and set `channel: COUNTER` — **all in one database transaction**. Notifications run after commit.
 
 If any step fails, the entire sell rolls back (no orphaned holds, bookings, or payments).
 
