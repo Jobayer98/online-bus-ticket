@@ -12,9 +12,13 @@ import {
   createBookingAccessToken,
   isBookingAccessGranted,
 } from "../../lib/booking-access-token.js";
+import type { DbClient } from "../../lib/db-client.js";
 
-export async function createHold(input: CreateHoldInput) {
-  const schedule = await prisma.schedule.findUnique({
+export async function createHoldWithClient(
+  db: DbClient,
+  input: CreateHoldInput,
+) {
+  const schedule = await db.schedule.findUnique({
     where: { id: input.scheduleId },
     select: { id: true, status: true },
   });
@@ -23,43 +27,48 @@ export async function createHold(input: CreateHoldInput) {
   }
 
   const expiresAt = new Date(Date.now() + SEAT_HOLD_SELECTION_TTL_MS);
-
-  const hold = await prisma.$transaction(async (tx) => {
-    const seats = await tx.scheduleSeat.findMany({
-      where: {
-        scheduleId: input.scheduleId,
-        label: { in: input.seatLabels },
-      },
-    });
-    if (seats.length !== input.seatLabels.length) {
-      throw new AppError(ErrorCode.VALIDATION_ERROR, "Invalid seat labels", 400);
-    }
-
-    const seatIds = seats.map((s) => s.id);
-    const locked = await tx.scheduleSeat.updateMany({
-      where: {
-        id: { in: seatIds },
-        scheduleId: input.scheduleId,
-        status: "AVAILABLE",
-      },
-      data: { status: "HELD" },
-    });
-    if (locked.count !== seatIds.length) {
-      throw new AppError(ErrorCode.SEAT_NOT_AVAILABLE, "Seat not available", 409);
-    }
-
-    return tx.seatHold.create({
-      data: {
-        scheduleId: input.scheduleId,
-        sessionId: input.sessionId,
-        expiresAt,
-        items: {
-          create: seats.map((s) => ({ scheduleSeatId: s.id })),
-        },
-      },
-      include: { items: { include: { scheduleSeat: true } } },
-    });
+  const seats = await db.scheduleSeat.findMany({
+    where: {
+      scheduleId: input.scheduleId,
+      label: { in: input.seatLabels },
+    },
   });
+  if (seats.length !== input.seatLabels.length) {
+    throw new AppError(ErrorCode.VALIDATION_ERROR, "Invalid seat labels", 400);
+  }
+
+  const seatIds = seats.map((s) => s.id);
+  const locked = await db.scheduleSeat.updateMany({
+    where: {
+      id: { in: seatIds },
+      scheduleId: input.scheduleId,
+      status: "AVAILABLE",
+    },
+    data: { status: "HELD" },
+  });
+  if (locked.count !== seatIds.length) {
+    throw new AppError(ErrorCode.SEAT_NOT_AVAILABLE, "Seat not available", 409);
+  }
+
+  const hold = await db.seatHold.create({
+    data: {
+      scheduleId: input.scheduleId,
+      sessionId: input.sessionId,
+      expiresAt,
+      items: {
+        create: seats.map((s) => ({ scheduleSeatId: s.id })),
+      },
+    },
+    include: { items: { include: { scheduleSeat: true } } },
+  });
+
+  return hold;
+}
+
+export async function createHold(input: CreateHoldInput) {
+  const hold = await prisma.$transaction(async (tx) =>
+    createHoldWithClient(tx, input),
+  );
 
   const seats = hold.items.map((i) => i.scheduleSeat);
   const totalAmount = seats.reduce((sum, s) => sum + s.price, 0);
@@ -110,6 +119,122 @@ export async function releaseHold(holdId: string) {
   });
 }
 
+export async function createBookingWithClient(
+  db: DbClient,
+  input: CreateBookingInput,
+  resolvedUserId?: string,
+) {
+  const paymentExpiresAt = new Date(Date.now() + SEAT_HOLD_PAYMENT_TTL_MS);
+
+  const hold = await db.seatHold.findUnique({
+    where: { id: input.holdId },
+    include: {
+      items: { include: { scheduleSeat: true } },
+      booking: true,
+    },
+  });
+  if (!hold) {
+    throw new AppError(ErrorCode.NOT_FOUND, "Hold not found", 404);
+  }
+  if (hold.expiresAt < new Date()) {
+    throw new AppError(ErrorCode.HOLD_EXPIRED, "Hold expired", 409);
+  }
+  if (hold.booking && hold.booking.status !== "CANCELLED") {
+    throw new AppError(ErrorCode.CONFLICT, "Hold already used", 409);
+  }
+
+  const boardingPoint = await db.boardingPoint.findFirst({
+    where: {
+      id: input.boardingPointId,
+      route: { schedules: { some: { id: hold.scheduleId } } },
+    },
+    select: { id: true },
+  });
+  if (!boardingPoint) {
+    throw new AppError(
+      ErrorCode.VALIDATION_ERROR,
+      "Boarding point is not valid for this schedule. Go back and select boarding again.",
+      400,
+    );
+  }
+
+  const seatIds = hold.items.map((i) => i.scheduleSeatId);
+  const seatsOnSchedule = await db.scheduleSeat.findMany({
+    where: { id: { in: seatIds }, scheduleId: hold.scheduleId },
+    select: { id: true, status: true },
+  });
+  if (seatsOnSchedule.length !== seatIds.length) {
+    throw new AppError(
+      ErrorCode.HOLD_EXPIRED,
+      "Seat hold is no longer valid. Go back and select seats again.",
+      409,
+    );
+  }
+
+  const notHeld = seatsOnSchedule.filter((s) => s.status !== "HELD");
+  if (notHeld.length > 0) {
+    const reclaimed = await db.scheduleSeat.updateMany({
+      where: {
+        id: { in: notHeld.map((s) => s.id) },
+        scheduleId: hold.scheduleId,
+        status: "AVAILABLE",
+      },
+      data: { status: "HELD" },
+    });
+    if (reclaimed.count !== notHeld.length) {
+      throw new AppError(
+        ErrorCode.SEAT_NOT_AVAILABLE,
+        "One or more seats are no longer available. Go back and select seats again.",
+        409,
+      );
+    }
+  }
+
+  if (hold.booking?.status === "CANCELLED") {
+    const cancelledId = hold.booking.id;
+    await db.payment.deleteMany({ where: { bookingId: cancelledId } });
+    await db.bookingSeat.deleteMany({ where: { bookingId: cancelledId } });
+    await db.ticket.deleteMany({ where: { bookingId: cancelledId } });
+    await db.counterTransaction.deleteMany({
+      where: { bookingId: cancelledId },
+    });
+    await db.booking.delete({ where: { id: cancelledId } });
+  }
+
+  await db.seatHold.update({
+    where: { id: hold.id },
+    data: { expiresAt: paymentExpiresAt },
+  });
+
+  const booking = await db.booking.create({
+    data: {
+      scheduleId: hold.scheduleId,
+      holdId: hold.id,
+      ...(resolvedUserId ? { userId: resolvedUserId } : {}),
+      boardingPointId: boardingPoint.id,
+      passengerName: input.passenger.name,
+      passengerPhone: input.passenger.phone,
+      passengerEmail: input.passenger.email || null,
+      status: "HELD",
+      totalAmount: hold.items.reduce(
+        (sum, i) => sum + i.scheduleSeat.price,
+        0,
+      ),
+      seats: {
+        create: hold.items.map((i) => ({
+          scheduleSeatId: i.scheduleSeatId,
+          price: i.scheduleSeat.price,
+        })),
+      },
+    },
+    include: {
+      seats: { include: { scheduleSeat: true } },
+    },
+  });
+
+  return { booking, paymentExpiresAt };
+}
+
 export async function createBooking(
   input: CreateBookingInput,
   userId?: string,
@@ -123,115 +248,9 @@ export async function createBooking(
     resolvedUserId = user?.id;
   }
 
-  const paymentExpiresAt = new Date(Date.now() + SEAT_HOLD_PAYMENT_TTL_MS);
-
-  const booking = await prisma.$transaction(async (tx) => {
-    const hold = await tx.seatHold.findUnique({
-      where: { id: input.holdId },
-      include: {
-        items: { include: { scheduleSeat: true } },
-        booking: true,
-      },
-    });
-    if (!hold) {
-      throw new AppError(ErrorCode.NOT_FOUND, "Hold not found", 404);
-    }
-    if (hold.expiresAt < new Date()) {
-      throw new AppError(ErrorCode.HOLD_EXPIRED, "Hold expired", 409);
-    }
-    if (hold.booking && hold.booking.status !== "CANCELLED") {
-      throw new AppError(ErrorCode.CONFLICT, "Hold already used", 409);
-    }
-
-    const boardingPoint = await tx.boardingPoint.findFirst({
-      where: {
-        id: input.boardingPointId,
-        route: { schedules: { some: { id: hold.scheduleId } } },
-      },
-      select: { id: true },
-    });
-    if (!boardingPoint) {
-      throw new AppError(
-        ErrorCode.VALIDATION_ERROR,
-        "Boarding point is not valid for this schedule. Go back and select boarding again.",
-        400,
-      );
-    }
-
-    const seatIds = hold.items.map((i) => i.scheduleSeatId);
-    const seatsOnSchedule = await tx.scheduleSeat.findMany({
-      where: { id: { in: seatIds }, scheduleId: hold.scheduleId },
-      select: { id: true, status: true },
-    });
-    if (seatsOnSchedule.length !== seatIds.length) {
-      throw new AppError(
-        ErrorCode.HOLD_EXPIRED,
-        "Seat hold is no longer valid. Go back and select seats again.",
-        409,
-      );
-    }
-
-    const notHeld = seatsOnSchedule.filter((s) => s.status !== "HELD");
-    if (notHeld.length > 0) {
-      const reclaimed = await tx.scheduleSeat.updateMany({
-        where: {
-          id: { in: notHeld.map((s) => s.id) },
-          scheduleId: hold.scheduleId,
-          status: "AVAILABLE",
-        },
-        data: { status: "HELD" },
-      });
-      if (reclaimed.count !== notHeld.length) {
-        throw new AppError(
-          ErrorCode.SEAT_NOT_AVAILABLE,
-          "One or more seats are no longer available. Go back and select seats again.",
-          409,
-        );
-      }
-    }
-
-    if (hold.booking?.status === "CANCELLED") {
-      const cancelledId = hold.booking.id;
-      await tx.payment.deleteMany({ where: { bookingId: cancelledId } });
-      await tx.bookingSeat.deleteMany({ where: { bookingId: cancelledId } });
-      await tx.ticket.deleteMany({ where: { bookingId: cancelledId } });
-      await tx.counterTransaction.deleteMany({
-        where: { bookingId: cancelledId },
-      });
-      await tx.booking.delete({ where: { id: cancelledId } });
-    }
-
-    await tx.seatHold.update({
-      where: { id: hold.id },
-      data: { expiresAt: paymentExpiresAt },
-    });
-
-    return tx.booking.create({
-      data: {
-        scheduleId: hold.scheduleId,
-        holdId: hold.id,
-        ...(resolvedUserId ? { userId: resolvedUserId } : {}),
-        boardingPointId: boardingPoint.id,
-        passengerName: input.passenger.name,
-        passengerPhone: input.passenger.phone,
-        passengerEmail: input.passenger.email || null,
-        status: "HELD",
-        totalAmount: hold.items.reduce(
-          (sum, i) => sum + i.scheduleSeat.price,
-          0,
-        ),
-        seats: {
-          create: hold.items.map((i) => ({
-            scheduleSeatId: i.scheduleSeatId,
-            price: i.scheduleSeat.price,
-          })),
-        },
-      },
-      include: {
-        seats: { include: { scheduleSeat: true } },
-      },
-    });
-  });
+  const { booking, paymentExpiresAt } = await prisma.$transaction(async (tx) =>
+    createBookingWithClient(tx, input, resolvedUserId),
+  );
 
   return {
     ...toBookingDto(booking, {

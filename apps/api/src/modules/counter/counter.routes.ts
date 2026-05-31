@@ -8,8 +8,6 @@ import {
   ErrorCode,
 } from "@repo/shared";
 import { authenticateRequired, requireRole } from "../../middleware/auth.js";
-import * as bookingService from "../booking/bookings.service.js";
-import * as paymentService from "../payment/payments.service.js";
 import * as counterService from "./counter.service.js";
 
 export const counterRouter = Router();
@@ -18,38 +16,7 @@ counterRouter.use(authenticateRequired, requireRole("COUNTER_SELLER", "ADMIN"));
 counterRouter.post("/sell", async (req, res, next) => {
   try {
     const input = counterSellSchema.parse(req.body);
-    const sessionId = `counter_${req.userId}_${Date.now()}`;
-    const hold = await bookingService.createHold({
-      scheduleId: input.scheduleId,
-      seatLabels: input.seatLabels,
-      sessionId,
-    });
-    const booking = await bookingService.createBooking({
-      holdId: hold.holdId,
-      boardingPointId: input.boardingPointId,
-      passenger: input.passenger,
-    });
-    const initiated = await paymentService.initiatePayment({
-      bookingId: booking.id,
-      method: input.method,
-    });
-    const result = await paymentService.confirmPayment(
-      booking.id,
-      initiated.clientSecret,
-      `counter_${booking.id}`,
-    );
-    await prisma.counterTransaction.create({
-      data: {
-        type: "SELL",
-        sellerId: req.userId!,
-        bookingId: booking.id,
-        amount: booking.totalAmount,
-      },
-    });
-    await prisma.booking.update({
-      where: { id: booking.id },
-      data: { soldById: req.userId, channel: "COUNTER" },
-    });
+    const result = await counterService.executeCounterSell(req.userId!, input);
     res.status(201).json(successResponse(result));
   } catch (e) {
     next(e);

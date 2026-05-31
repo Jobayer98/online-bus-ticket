@@ -3,8 +3,17 @@ import {
   AppError,
   ErrorCode,
   assertCounterRefundEligible,
+  type ConfirmPaymentResponseDto,
   type CounterRefundResponseDto,
+  type CounterSellInput,
 } from "@repo/shared";
+import { enqueueBookingNotifications } from "../../jobs/dispatch-notifications.js";
+import { createHoldWithClient, createBookingWithClient } from "../booking/bookings.service.js";
+import {
+  initiatePaymentWithClient,
+  confirmPaymentWithClient,
+} from "../payment/payments.service.js";
+import { issueTicket } from "../ticket/tickets.service.js";
 
 /** Sole API entry point that mutates booking/payment to REFUNDED. Counter staff only. */
 export async function executeCounterRefund(
@@ -59,4 +68,58 @@ export async function executeCounterRefund(
   });
 
   return { refunded: true, refundAmount };
+}
+
+/** Atomic counter sell: hold → booking → pay → audit → channel in one transaction. */
+export async function executeCounterSell(
+  sellerId: string,
+  input: CounterSellInput,
+): Promise<ConfirmPaymentResponseDto> {
+  const sessionId = `counter_${sellerId}_${Date.now()}`;
+
+  const bookingId = await prisma.$transaction(async (tx) => {
+    const hold = await createHoldWithClient(tx, {
+      scheduleId: input.scheduleId,
+      seatLabels: input.seatLabels,
+      sessionId,
+    });
+    const { booking } = await createBookingWithClient(tx, {
+      holdId: hold.id,
+      boardingPointId: input.boardingPointId,
+      passenger: input.passenger,
+    });
+    const initiated = await initiatePaymentWithClient(tx, {
+      bookingId: booking.id,
+      method: input.method,
+    });
+    await confirmPaymentWithClient(
+      tx,
+      booking.id,
+      initiated.clientSecret,
+      `counter_${booking.id}`,
+    );
+    await tx.counterTransaction.create({
+      data: {
+        type: "SELL",
+        sellerId,
+        bookingId: booking.id,
+        amount: booking.totalAmount,
+      },
+    });
+    await tx.booking.update({
+      where: { id: booking.id },
+      data: { soldById: sellerId, channel: "COUNTER" },
+    });
+    return booking.id;
+  });
+
+  const ticket = await issueTicket(bookingId);
+  enqueueBookingNotifications(bookingId);
+  return {
+    bookingId,
+    ticket: {
+      passengerNumber: ticket.passengerNumber,
+      id: ticket.id,
+    },
+  };
 }
