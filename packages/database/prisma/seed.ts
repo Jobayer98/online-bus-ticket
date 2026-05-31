@@ -2,6 +2,7 @@ import "dotenv/config";
 import bcrypt from "bcryptjs";
 import { buildSeatLabel, priceForScheduleSeat } from "@repo/shared";
 import { PrismaClient } from "../generated/client/index.js";
+import { seedCms } from "./seed-cms.js";
 
 const prisma = new PrismaClient();
 
@@ -183,6 +184,8 @@ async function main() {
       },
     });
   }
+
+  await seedCms(prisma);
 
   console.log("Seed complete:");
   console.log("  Admin: 01700000001 / password123");
