@@ -124,7 +124,7 @@
         content:
           application/json:
             schema:
-              $ref: '../components/common.yaml#/components/schemas/ErrorEnvelope'
+              $ref: '../components/common.yaml#/components/schemas/ApiErrorEnvelope'
             examples:
               refundNotAllowed:
                 value:

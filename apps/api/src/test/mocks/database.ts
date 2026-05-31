@@ -15,6 +15,9 @@ export const prismaMock = {
     create: vi.fn(),
     update: vi.fn(),
   },
+  bookingSeat: {
+    count: vi.fn(),
+  },
   seatHold: {
     findMany: vi.fn(),
     findUnique: vi.fn(),
@@ -27,11 +30,13 @@ export const prismaMock = {
     findUnique: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
+    count: vi.fn(),
   },
   scheduleSeat: {
     findMany: vi.fn(),
     updateMany: vi.fn(),
     createMany: vi.fn(),
+    count: vi.fn(),
   },
   route: {
     findMany: vi.fn(),

@@ -303,11 +303,11 @@ Apply on `POST /counter/refund` before mutating state:
 
 | ID | Task | Layer | Acceptance |
 |----|------|-------|------------|
-| [ ] E14-13 | **Net revenue reports:** gross (PAID) + refunds (`CounterTransaction` type REFUND) + net; Zod DTOs in shared | shared/api/web | Dashboard shows gross/refund/net |
-| [ ] E14-14 | **Date range fix:** parse `from`/`to` in Asia/Dhaka with end-of-day inclusive | shared/api | Last day of range fully counted |
-| [ ] E14-15 | **KPI scope fix:** label `soldSeats` / `activeSchedules` correctly; optional “upcoming schedules” metric | api/web | No misleading 30d vs lifetime mix |
-| [ ] E14-16 | **CSV export:** include refunds as negative rows or separate refund sheet | api | Export reconciles with counter shift |
-| [ ] E14-17 | **Restore contract docs** for counter refund, search schedules (`seatClasses`), reports | docs | Matches CONTRACTS.md workflow |
+| [x] E14-13 | **Net revenue reports:** gross (PAID) + refunds (`CounterTransaction` type REFUND) + net; Zod DTOs in shared | shared/api/web | Dashboard shows gross/refund/net |
+| [x] E14-14 | **Date range fix:** parse `from`/`to` in Asia/Dhaka with end-of-day inclusive | shared/api | Last day of range fully counted |
+| [x] E14-15 | **KPI scope fix:** label `soldSeats` / `activeSchedules` correctly; optional “upcoming schedules” metric | api/web | No misleading 30d vs lifetime mix |
+| [x] E14-16 | **CSV export:** include refunds as negative rows or separate refund sheet | api | Export reconciles with counter shift |
+| [x] E14-17 | **Restore contract docs** for counter refund, search schedules (`seatClasses`), reports | docs | Matches CONTRACTS.md workflow |
 
 ---
 

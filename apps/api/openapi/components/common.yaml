@@ -48,6 +48,7 @@ components:
             - SEAT_NOT_AVAILABLE
             - HOLD_EXPIRED
             - BOOKING_NOT_FOUND
+            - REFUND_NOT_ALLOWED
             - PAYMENT_FAILED
             - TICKET_NOT_FOUND
         message:

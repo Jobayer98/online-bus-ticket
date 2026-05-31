@@ -4,26 +4,11 @@ import { useEffect, useState } from "react";
 import { apiGet } from "@/lib/api-client";
 import { useGlobalLoading } from "@/components/global-loading-provider";
 import { formatMoneyBdt } from "@/lib/format";
-
-type Overview = {
-  revenue30d: number;
-  tickets30d: number;
-  activeSchedules: number;
-  soldSeats: number;
-  avgTicketValue: number;
-};
-
-type Sales = {
-  totalRevenue: number;
-  ticketCount: number;
-  online: { count: number; revenue: number };
-  counter: { count: number; revenue: number };
-  byRoute: { routeSlug: string; count: number; revenue: number }[];
-};
+import type { AnalyticsOverviewDto, SalesReportDto } from "@repo/shared";
 
 export function AdminDashboardPanel() {
-  const [overview, setOverview] = useState<Overview | null>(null);
-  const [sales, setSales] = useState<Sales | null>(null);
+  const [overview, setOverview] = useState<AnalyticsOverviewDto | null>(null);
+  const [sales, setSales] = useState<SalesReportDto | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   useGlobalLoading(loading);
@@ -31,8 +16,8 @@ export function AdminDashboardPanel() {
   useEffect(() => {
     setLoading(true);
     Promise.all([
-      apiGet<Overview>("/admin/reports/analytics/overview"),
-      apiGet<Sales>("/admin/reports/sales"),
+      apiGet<AnalyticsOverviewDto>("/admin/reports/analytics/overview"),
+      apiGet<SalesReportDto>("/admin/reports/sales"),
     ])
       .then(([o, s]) => {
         setOverview(o.data);
@@ -50,21 +35,29 @@ export function AdminDashboardPanel() {
       {overview && (
         <div className="adm-kpi-grid">
           <div className="adm-kpi-card">
-            <label>Revenue</label>
-            <strong>{formatMoneyBdt(overview.revenue30d)}</strong>
+            <label>Net revenue (30d)</label>
+            <strong>{formatMoneyBdt(overview.netRevenue30d)}</strong>
+            <span>
+              Gross {formatMoneyBdt(overview.grossRevenue30d)} · Refunds{" "}
+              {formatMoneyBdt(overview.refundTotal30d)}
+            </span>
           </div>
           <div className="adm-kpi-card">
-            <label>Tickets sold</label>
-            <strong>{overview.tickets30d}</strong>
+            <label>Tickets sold (30d)</label>
+            <strong>{overview.ticketsSold30d}</strong>
+            {overview.refundCount30d > 0 && (
+              <span>{overview.refundCount30d} refunds</span>
+            )}
           </div>
           <div className="adm-kpi-card">
-            <label>Active schedules</label>
-            <strong>{overview.activeSchedules}</strong>
+            <label>Upcoming trips</label>
+            <strong>{overview.upcomingSchedules}</strong>
+            <span>Scheduled, not yet departed</span>
           </div>
           <div className="adm-kpi-card">
-            <label>Avg ticket</label>
+            <label>Avg ticket (30d)</label>
             <strong>{formatMoneyBdt(overview.avgTicketValue)}</strong>
-            <span>{overview.soldSeats} seats sold</span>
+            <span>{overview.seatsSold30d} seats sold</span>
           </div>
         </div>
       )}
@@ -79,21 +72,34 @@ export function AdminDashboardPanel() {
                   <tr>
                     <th scope="row">Online</th>
                     <td>
-                      {sales.online.count} tickets · {formatMoneyBdt(sales.online.revenue)}
+                      {sales.online.count} tickets ·{" "}
+                      {formatMoneyBdt(sales.online.grossRevenue)}
                     </td>
                   </tr>
                   <tr>
                     <th scope="row">Counter</th>
                     <td>
-                      {sales.counter.count} tickets · {formatMoneyBdt(sales.counter.revenue)}
+                      {sales.counter.count} tickets ·{" "}
+                      {formatMoneyBdt(sales.counter.grossRevenue)}
                     </td>
                   </tr>
                   <tr>
-                    <th scope="row">Total</th>
+                    <th scope="row">Gross</th>
                     <td>
-                      <strong>
-                        {sales.ticketCount} tickets · {formatMoneyBdt(sales.totalRevenue)}
-                      </strong>
+                      {sales.ticketCount} tickets ·{" "}
+                      {formatMoneyBdt(sales.grossRevenue)}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Refunds</th>
+                    <td>
+                      {sales.refundCount} · {formatMoneyBdt(sales.refundTotal)}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Net</th>
+                    <td>
+                      <strong>{formatMoneyBdt(sales.netRevenue)}</strong>
                     </td>
                   </tr>
                 </tbody>
@@ -109,7 +115,7 @@ export function AdminDashboardPanel() {
                   <tr>
                     <th>Route</th>
                     <th>Tickets</th>
-                    <th>Revenue</th>
+                    <th>Gross</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -124,7 +130,7 @@ export function AdminDashboardPanel() {
                       <tr key={r.routeSlug}>
                         <td>{r.routeSlug}</td>
                         <td>{r.count}</td>
-                        <td>{formatMoneyBdt(r.revenue)}</td>
+                        <td>{formatMoneyBdt(r.grossRevenue)}</td>
                       </tr>
                     ))
                   )}
