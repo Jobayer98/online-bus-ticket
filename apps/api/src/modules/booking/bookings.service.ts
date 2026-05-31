@@ -86,14 +86,63 @@ export async function createHold(input: CreateHoldInput) {
   };
 }
 
-export async function releaseHold(holdId: string) {
+export async function releaseHoldSystem(holdId: string) {
   const hold = await prisma.seatHold.findUnique({
     where: { id: holdId },
     include: { items: true, booking: true },
   });
   if (!hold) return;
   if (hold.booking?.status === "PAID") return;
+  await releaseHoldInternal(hold);
+}
 
+export type ReleaseHoldAuth = {
+  sessionId?: string;
+  accessToken?: string;
+};
+
+function isHoldReleaseAuthorized(
+  hold: {
+    sessionId: string;
+    booking: { id: string } | null;
+  },
+  auth: ReleaseHoldAuth,
+): boolean {
+  if (auth.sessionId && auth.sessionId === hold.sessionId) {
+    return true;
+  }
+  if (auth.accessToken && hold.booking) {
+    return isBookingAccessGranted(
+      bookingAccessSigningSecret(),
+      hold.booking.id,
+      auth.accessToken,
+    );
+  }
+  return false;
+}
+
+export async function releaseHold(holdId: string, auth: ReleaseHoldAuth) {
+  const hold = await prisma.seatHold.findUnique({
+    where: { id: holdId },
+    include: { items: true, booking: true },
+  });
+  if (!hold) return;
+  if (!isHoldReleaseAuthorized(hold, auth)) {
+    throw new AppError(
+      ErrorCode.FORBIDDEN,
+      "Not authorized to release hold",
+      403,
+    );
+  }
+  if (hold.booking?.status === "PAID") return;
+  await releaseHoldInternal(hold);
+}
+
+async function releaseHoldInternal(hold: {
+  id: string;
+  items: { scheduleSeatId: string }[];
+  booking: { id: string; status: string; holdId: string | null } | null;
+}) {
   await prisma.$transaction(async (tx) => {
     if (hold.booking) {
       if (hold.booking.status !== "CANCELLED" && hold.booking.status !== "PAID") {
@@ -115,7 +164,7 @@ export async function releaseHold(holdId: string) {
       },
       data: { status: "AVAILABLE" },
     });
-    await tx.seatHold.delete({ where: { id: holdId } });
+    await tx.seatHold.delete({ where: { id: hold.id } });
   });
 }
 
@@ -141,6 +190,9 @@ export async function createBookingWithClient(
   }
   if (hold.booking && hold.booking.status !== "CANCELLED") {
     throw new AppError(ErrorCode.CONFLICT, "Hold already used", 409);
+  }
+  if (input.sessionId !== hold.sessionId) {
+    throw new AppError(ErrorCode.FORBIDDEN, "Hold session mismatch", 403);
   }
 
   const boardingPoint = await db.boardingPoint.findFirst({

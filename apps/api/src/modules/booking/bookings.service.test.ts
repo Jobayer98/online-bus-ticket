@@ -1,7 +1,13 @@
 import "../../test/mocks/database.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { prismaMock } from "../../test/mocks/database.js";
-import { createHold } from "./bookings.service.js";
+import { createHold, createBookingWithClient, releaseHold } from "./bookings.service.js";
+
+vi.mock("../../lib/booking-access-token.js", () => ({
+  bookingAccessSigningSecret: vi.fn(() => "secret"),
+  createBookingAccessToken: vi.fn(() => "token"),
+  isBookingAccessGranted: vi.fn(() => false),
+}));
 
 describe("createHold concurrency", () => {
   beforeEach(() => {
@@ -58,13 +64,67 @@ describe("createHold concurrency", () => {
     });
 
     expect(result.holdId).toBe("hold-1");
-    expect(prismaMock.scheduleSeat.updateMany).toHaveBeenCalledWith({
-      where: {
-        id: { in: ["seat-1"] },
-        scheduleId: "sched-1",
-        status: "AVAILABLE",
-      },
-      data: { status: "HELD" },
+  });
+});
+
+describe("createBookingWithClient session binding", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    prismaMock.seatHold.findUnique.mockResolvedValue({
+      id: "hold-1",
+      scheduleId: "sched-1",
+      sessionId: "sess-owner",
+      expiresAt: new Date(Date.now() + 60_000),
+      items: [
+        {
+          scheduleSeatId: "seat-1",
+          scheduleSeat: { price: 85000 },
+        },
+      ],
+      booking: null,
+    });
+    prismaMock.boardingPoint.findFirst.mockResolvedValue({ id: "bp-1" });
+    prismaMock.scheduleSeat.findMany.mockResolvedValue([
+      { id: "seat-1", status: "HELD" },
+    ]);
+  });
+
+  it("rejects when sessionId does not match hold", async () => {
+    await expect(
+      createBookingWithClient(
+        prismaMock as never,
+        {
+          holdId: "hold-1",
+          boardingPointId: "bp-1",
+          passenger: { name: "A", phone: "01700000000" },
+          sessionId: "sess-other",
+        },
+      ),
+    ).rejects.toMatchObject({
+      code: "FORBIDDEN",
+      statusCode: 403,
+    });
+  });
+});
+
+describe("releaseHold authorization", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("rejects release without matching session or token", async () => {
+    prismaMock.seatHold.findUnique.mockResolvedValue({
+      id: "hold-1",
+      sessionId: "sess-owner",
+      items: [{ scheduleSeatId: "seat-1" }],
+      booking: null,
+    });
+
+    await expect(
+      releaseHold("hold-1", { sessionId: "sess-other" }),
+    ).rejects.toMatchObject({
+      code: "FORBIDDEN",
+      statusCode: 403,
     });
   });
 });

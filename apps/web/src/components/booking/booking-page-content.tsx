@@ -14,6 +14,7 @@ import { useGlobalLoading } from "@/components/global-loading-provider";
 import { SeatHoldTimer } from "@/components/search/seat-hold-timer";
 import type { CreateBookingResponseDto, SeatMapDto, HoldDto } from "@repo/shared";
 import { buildPaymentUrl } from "@/lib/booking-access";
+import { getGuestSessionId } from "@/lib/guest-session";
 
 export function BookingPageContent() {
   const { scheduleId } = useParams<{ scheduleId: string }>();
@@ -70,13 +71,7 @@ export function BookingPageContent() {
     }
     setSubmitting(true);
     try {
-      const sessionId =
-        localStorage.getItem("sessionId") ??
-        (() => {
-          const id = crypto.randomUUID();
-          localStorage.setItem("sessionId", id);
-          return id;
-        })();
+      const sessionId = getGuestSessionId();
       const r = await apiPost<HoldDto>("/bookings/hold", {
         scheduleId,
         seatLabels: selected,
@@ -107,6 +102,7 @@ export function BookingPageContent() {
         holdId: hold.holdId,
         boardingPointId,
         passenger,
+        sessionId: getGuestSessionId(),
       });
       if (r.data.holdId) {
         setActiveHoldId(r.data.holdId);

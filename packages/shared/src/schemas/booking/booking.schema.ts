@@ -19,10 +19,25 @@ export const createBookingSchema = z.object({
   holdId: prismaIdSchema,
   boardingPointId: prismaIdSchema,
   passenger: passengerSchema,
+  sessionId: z.string().min(1),
 });
+
+export const releaseHoldParamsSchema = z.object({
+  id: prismaIdSchema,
+});
+
+export const releaseHoldQuerySchema = z
+  .object({
+    sessionId: z.string().min(1).optional(),
+    accessToken: z.string().min(1).optional(),
+  })
+  .refine((q) => Boolean(q.sessionId || q.accessToken), {
+    message: "sessionId or accessToken is required",
+  });
 
 export type CreateHoldInput = z.infer<typeof createHoldSchema>;
 export type CreateBookingInput = z.infer<typeof createBookingSchema>;
+export type ReleaseHoldQuery = z.infer<typeof releaseHoldQuerySchema>;
 
 export const bookingIdParamsSchema = z.object({
   id: prismaIdSchema,

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useGlobalLoading } from "@/components/global-loading-provider";
+import { getGuestSessionId } from "@/lib/guest-session";
 import { apiPost } from "@/lib/api-client";
 import { formatDateDdMmYyyy, formatMoneyBdt, formatTime12h } from "@/lib/format";
 import { SeatMapGrid } from "./seat-map-grid";
@@ -61,13 +62,7 @@ export function ScheduleSeatPanel({
     }
     setLoading(true);
     try {
-      const sessionId =
-        localStorage.getItem("sessionId") ??
-        (() => {
-          const id = crypto.randomUUID();
-          localStorage.setItem("sessionId", id);
-          return id;
-        })();
+      const sessionId = getGuestSessionId();
       const r = await apiPost<HoldDto>("/bookings/hold", {
         scheduleId: schedule.scheduleId,
         seatLabels: selected,

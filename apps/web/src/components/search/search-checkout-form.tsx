@@ -19,6 +19,7 @@ import {
 import { SeatHoldTimer } from "./seat-hold-timer";
 import type { CreateBookingResponseDto, HoldDto, ScheduleCardDto, SeatMapDto } from "@repo/shared";
 import { buildPaymentUrl } from "@/lib/booking-access";
+import { getGuestSessionId } from "@/lib/guest-session";
 
 export type SearchCheckoutState = {
   schedule: ScheduleCardDto;
@@ -125,6 +126,7 @@ export function SearchCheckoutForm({
           phone: passenger.phone.replace(/\s/g, ""),
           email: passenger.email.trim() || undefined,
         },
+        sessionId: getGuestSessionId(),
       });
       if (r.data.holdId) {
         setActiveHoldId(r.data.holdId);

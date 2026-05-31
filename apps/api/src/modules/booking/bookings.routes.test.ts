@@ -49,4 +49,15 @@ describe("booking routes", () => {
     expect(res.status).toBe(201);
     expect(res.body.data.holdId).toBe("hold-1");
   });
+
+  it("DELETE /bookings/hold/:id requires sessionId or accessToken", async () => {
+    const app = await createTestApp();
+    const res = await request(app).delete(
+      "/api/v1/bookings/hold/clh3qbaz40000l8145c6v8v9k",
+    );
+
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe("VALIDATION_ERROR");
+    expect(bookingService.releaseHold).not.toHaveBeenCalled();
+  });
 });

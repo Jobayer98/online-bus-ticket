@@ -1,4 +1,5 @@
 import { apiDelete } from "@/lib/api-client";
+import { holdReleaseQuery } from "@/lib/guest-session";
 
 const HOLD_ID_KEY = "activeSeatHoldId";
 const SEARCH_PAGE_LOAD_TOKEN_KEY = "searchPageLoadToken";
@@ -94,7 +95,7 @@ export function releaseActiveHoldKeepalive(): void {
   const holdId = getActiveHoldId();
   if (!holdId) return;
   clearActiveHoldId();
-  fetch(`${API_URL}/api/v1/bookings/hold/${holdId}`, {
+  fetch(`${API_URL}/api/v1/bookings/hold/${holdId}${holdReleaseQuery()}`, {
     method: "DELETE",
     credentials: "include",
     keepalive: true,
@@ -109,7 +110,7 @@ export async function releaseActiveHold(): Promise<void> {
   if (!holdId) return;
   clearActiveHoldId();
   try {
-    await apiDelete(`/bookings/hold/${holdId}`);
+    await apiDelete(`/bookings/hold/${holdId}${holdReleaseQuery()}`);
   } catch {
     /* hold may already be released or expired */
   }

@@ -294,8 +294,8 @@ Apply on `POST /counter/refund` before mutating state:
 | [x] E14-08 | **Block online refund surface:** no public refund route; webhook stub cannot trigger refund | api | Only counter refund mutates refund state |
 | [x] E14-09 | **Counter sell atomicity:** wrap sell flow in single `$transaction` (hold → booking → pay → audit → channel) | api | Partial sell failure rolls back |
 | [x] E14-10 | **Payment + ticket atomicity:** move `issueTicket` inside confirm transaction or compensating retry | api | PAID booking always has ticket |
-| [ ] E14-11 | **Hold session binding:** `createBooking` verifies `sessionId`; release hold requires matching session or booking token | shared/api/web | Guest isolation; no hold hijack |
-| [ ] E14-12 | **Rate limit** `POST /bookings/hold` | api | Per-IP limit configured |
+| [x] E14-11 | **Hold session binding:** `createBooking` verifies `sessionId`; release hold requires matching session or booking token | shared/api/web | Guest isolation; no hold hijack |
+| [x] E14-12 | **Rate limit** `POST /bookings/hold` | api | Per-IP limit configured |
 
 ---
 

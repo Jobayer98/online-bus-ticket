@@ -2,7 +2,7 @@ import { prisma } from "@repo/database";
 
 import { logger } from "../lib/logger.js";
 
-import { releaseHold } from "../modules/booking/bookings.service.js";
+import { releaseHoldSystem } from "../modules/booking/bookings.service.js";
 
 
 
@@ -28,7 +28,7 @@ export function startHoldExpiryJob() {
 
         if (hold.booking?.status === "PAID") continue;
 
-        await releaseHold(hold.id);
+        await releaseHoldSystem(hold.id);
 
       }
 

@@ -17,8 +17,10 @@ export const prismaMock = {
   },
   seatHold: {
     findMany: vi.fn(),
+    findUnique: vi.fn(),
     create: vi.fn(),
     delete: vi.fn(),
+    update: vi.fn(),
   },
   schedule: {
     findMany: vi.fn(),
@@ -35,6 +37,9 @@ export const prismaMock = {
     findMany: vi.fn(),
     findUnique: vi.fn(),
     create: vi.fn(),
+  },
+  boardingPoint: {
+    findFirst: vi.fn(),
   },
   coach: {
     findMany: vi.fn(),

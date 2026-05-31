@@ -86,6 +86,7 @@ export async function executeCounterSell(
       holdId: hold.id,
       boardingPointId: input.boardingPointId,
       passenger: input.passenger,
+      sessionId,
     });
     const initiated = await initiatePaymentWithClient(tx, {
       bookingId: booking.id,
