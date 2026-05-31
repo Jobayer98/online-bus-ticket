@@ -3,6 +3,7 @@ import {
   AppError,
   ErrorCode,
   getTimePeriod,
+  priceForScheduleSeat,
   SeatClass,
   type SearchSchedulesQuery,
   type ScheduleCardDto,
@@ -14,7 +15,9 @@ const SEAT_CLASS_ORDER = [
   SeatClass.BUSINESS,
 ] as const;
 
-function uniqueSeatClasses(seats: { seatClass: string }[]): string[] {
+function uniqueSeatClasses(
+  seats: { seatClass: string }[],
+): Array<(typeof SEAT_CLASS_ORDER)[number]> {
   const seen = new Set<string>();
   for (const seat of seats) seen.add(seat.seatClass);
   return SEAT_CLASS_ORDER.filter((sc) => seen.has(sc));
@@ -110,14 +113,7 @@ export async function getSeatMap(scheduleId: string) {
   const seatByLabel = new Map(
     schedule.scheduleSeats.map((ss) => [ss.label, ss]),
   );
-  const classMultiplier: Record<string, number> = {
-    STANDARD: 1,
-    PREMIUM: 1.3,
-    BUSINESS: 1.6,
-  };
-
-  const priceForClass = (seatClass: string) =>
-    Math.round(schedule.baseFare * (classMultiplier[seatClass] ?? 1));
+  const defaultSeatPrice = priceForScheduleSeat(schedule.baseFare);
 
   let seats: {
     label: string;
@@ -137,7 +133,7 @@ export async function getSeatMap(scheduleId: string) {
         col: tmpl.col,
         seatClass: ss?.seatClass ?? tmpl.seatClass,
         status: (ss?.status ?? "SOLD") as "AVAILABLE" | "HELD" | "SOLD",
-        price: ss?.price ?? priceForClass(tmpl.seatClass),
+        price: ss?.price ?? defaultSeatPrice,
       };
     });
     for (const ss of schedule.scheduleSeats) {

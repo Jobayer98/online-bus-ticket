@@ -1,6 +1,6 @@
 import "dotenv/config";
 import bcrypt from "bcryptjs";
-import { buildSeatLabel } from "@repo/shared";
+import { buildSeatLabel, priceForScheduleSeat } from "@repo/shared";
 import { PrismaClient } from "../generated/client/index.js";
 
 const prisma = new PrismaClient();
@@ -159,18 +159,13 @@ async function main() {
     const templates = await prisma.seatTemplate.findMany({
       where: { seatLayoutId: layout.id },
     });
-    const classMultiplier: Record<string, number> = {
-      STANDARD: 1,
-      PREMIUM: 1.3,
-      BUSINESS: 1.6,
-    };
     await prisma.scheduleSeat.createMany({
       data: templates.map((t) => ({
         scheduleId: schedule.id,
         label: t.label,
         seatClass: t.seatClass,
         status: "AVAILABLE",
-        price: Math.round(85000 * (classMultiplier[t.seatClass] ?? 1)),
+        price: priceForScheduleSeat(85000),
       })),
     });
 

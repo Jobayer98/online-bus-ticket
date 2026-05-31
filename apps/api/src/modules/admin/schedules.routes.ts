@@ -6,6 +6,7 @@ import {
   successResponse,
   AppError,
   ErrorCode,
+  priceForScheduleSeat,
 } from "@repo/shared";
 import { authenticateRequired, requireRole } from "../../middleware/auth.js";
 
@@ -25,18 +26,13 @@ async function initScheduleSeats(
       400,
     );
   }
-  const classMultiplier: Record<string, number> = {
-    STANDARD: 1,
-    PREMIUM: 1,
-    BUSINESS: 1,
-  };
   await prisma.scheduleSeat.createMany({
     data: coach.seatLayout.templates.map((t) => ({
       scheduleId,
       label: t.label,
       seatClass: t.seatClass,
       status: "AVAILABLE",
-      price: Math.round(baseFare * (classMultiplier[t.seatClass] ?? 1)),
+      price: priceForScheduleSeat(baseFare),
     })),
   });
 }

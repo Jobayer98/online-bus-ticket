@@ -245,6 +245,111 @@ Each **Epic** is independently deliverable. Each **micro-task** should be one PR
 
 ---
 
+## Epic E14 — Correctness, Security & Reporting (Staff Review Remediation)
+
+**Goal:** Fix financial/state bugs, secure public flows without breaking guest checkout, align pricing and reports with product rules.  
+**Depends on:** E08–E11 (core flows live).  
+**Source:** Senior staff review (2026-05-31).
+
+### Product constraints (non-negotiable)
+
+| # | Rule | Implication |
+|---|------|-------------|
+| 1 | **Refunds are counter-only** | No online self-service refund; no payment-gateway reversal. Only `POST /api/v1/counter/refund` (and counter UI). Counter staff (`COUNTER_SELLER` / `ADMIN`) act with policy conditions — not open to public or webhook. |
+| 2 | **Guest checkout stays** | Users without an account must complete search → hold → booking → pay → ticket. Security fixes must use session-bound holds, scoped booking tokens, or phone proof — **not** mandatory login. |
+| 3 | **Flat fare by schedule** | `STANDARD`, `PREMIUM`, and `BUSINESS` are **labels/filters only**. Every seat on a schedule pays `schedule.baseFare`. Remove class multipliers everywhere (admin init, seat-map fallback, seed). |
+
+### Refund conditions (counter desk)
+
+Apply on `POST /counter/refund` before mutating state:
+
+- Booking `status === PAID`
+- Schedule not departed (trip `departureAt` > now, Asia/Dhaka)
+- Refund amount = `booking.totalAmount` (full refund only for MVP)
+- Audit row on `CounterTransaction` (already exists)
+- **Online bookings:** may be refunded **at counter only** (cash/handling offline); payment row → `REFUNDED` in DB — no gateway API call
+
+**Cancel vs refund:** `cancel` is for unpaid / held bookings only. **Never** cancel a `PAID` booking — use refund. Counter UI must hide/disable Cancel for PAID.
+
+---
+
+### Phase P0 — Stop data corruption & fraud (do first)
+
+| ID | Task | Layer | Acceptance |
+|----|------|-------|------------|
+| [x] E14-01 | **Flat pricing:** shared constant `FLAT_SEAT_CLASS_MULTIPLIER = 1`; remove 1.3/1.6 from `schedules.service.ts`, `seed.ts`; document seat class ≠ price | shared/api/db | All new schedule seats priced at `baseFare`; seat-map prices match DB |
+| [ ] E14-02 | **Payment confirm guards:** require `booking.status === HELD`; reject `CANCELLED`/`REFUNDED`/`PAID`; optional signed `clientSecret` from initiate (guest-safe, no login) | shared/api | Cannot re-pay cancelled booking; guest flow unchanged |
+| [ ] E14-03 | **Protect `GET /bookings/:id`:** return summary only with `bookingAccessToken` (issued at create) or authenticated owner; never expose PII to anonymous UUID guess | shared/api/web | Guest checkout works via token in checkout URL/state; no public PII leak |
+| [ ] E14-04 | **Seat hold concurrency:** `updateMany` with `status: AVAILABLE` + verify affected count; reject partial lock | api | Two concurrent holds cannot take same seat |
+| [ ] E14-05 | **Counter cancel/refund split:** cancel only `HELD`/`DRAFT`; refund only `PAID`; cancel must not touch `Payment` | api/web | PAID + cancel impossible; counter UI matches |
+| [ ] E14-06 | **Remove debug auth telemetry** (`auth.ts` ingest to localhost) | api | No outbound debug calls in auth path |
+
+---
+
+### Phase P1 — Financial truth & counter policy
+
+| ID | Task | Layer | Acceptance |
+|----|------|-------|------------|
+| [ ] E14-07 | **Refund conditions:** enforce PAID + not departed + full amount; Zod + contract doc `docs/contracts/counter/refund.md` | shared/api | 409 with clear code if policy fails |
+| [ ] E14-08 | **Block online refund surface:** no public refund route; webhook stub cannot trigger refund | api | Only counter refund mutates refund state |
+| [ ] E14-09 | **Counter sell atomicity:** wrap sell flow in single `$transaction` (hold → booking → pay → audit → channel) | api | Partial sell failure rolls back |
+| [ ] E14-10 | **Payment + ticket atomicity:** move `issueTicket` inside confirm transaction or compensating retry | api | PAID booking always has ticket |
+| [ ] E14-11 | **Hold session binding:** `createBooking` verifies `sessionId`; release hold requires matching session or booking token | shared/api/web | Guest isolation; no hold hijack |
+| [ ] E14-12 | **Rate limit** `POST /bookings/hold` | api | Per-IP limit configured |
+
+---
+
+### Phase P2 — Reporting & admin accuracy
+
+| ID | Task | Layer | Acceptance |
+|----|------|-------|------------|
+| [ ] E14-13 | **Net revenue reports:** gross (PAID) + refunds (`CounterTransaction` type REFUND) + net; Zod DTOs in shared | shared/api/web | Dashboard shows gross/refund/net |
+| [ ] E14-14 | **Date range fix:** parse `from`/`to` in Asia/Dhaka with end-of-day inclusive | shared/api | Last day of range fully counted |
+| [ ] E14-15 | **KPI scope fix:** label `soldSeats` / `activeSchedules` correctly; optional “upcoming schedules” metric | api/web | No misleading 30d vs lifetime mix |
+| [ ] E14-16 | **CSV export:** include refunds as negative rows or separate refund sheet | api | Export reconciles with counter shift |
+| [ ] E14-17 | **Restore contract docs** for counter refund, search schedules (`seatClasses`), reports | docs | Matches CONTRACTS.md workflow |
+
+---
+
+### Phase P3 — Performance & RBAC cleanup
+
+| ID | Task | Layer | Acceptance |
+|----|------|-------|------------|
+| [ ] E14-18 | **Search API:** filter `timePeriod`/`seatClass` in SQL; stop loading all seats when only counts needed | api | Single query or aggregated counts endpoint |
+| [ ] E14-19 | **Search web:** one API call for results + filter counts (or server facet counts) | web | No 2–5× duplicate search calls |
+| [ ] E14-20 | **Search date window:** Dhaka calendar day boundaries in `searchSchedules` | shared/api | Aligns with `isValidTripDate` |
+| [ ] E14-21 | **Schedule mutations ADMIN-only:** create/reschedule/cancel; counter read-only on schedules | api | COUNTER_SELLER cannot cancel trips |
+| [ ] E14-22 | **DB indexes:** `Booking(status, createdAt)`, `Stop(city)`, `Schedule(routeId, status, departureAt)` | db | Migration reviewed |
+| [ ] E14-23 | **JWT hardening:** fail startup without `JWT_SECRET` in production; `Secure` cookie flag | api | No default secret in prod |
+
+---
+
+### Phase P4 — Ops & maintainability (backlog)
+
+| ID | Task | Layer | Acceptance |
+|----|------|-------|------------|
+| [ ] E14-24 | Hold expiry → BullMQ job (durable, `DISABLE_HOLD_EXPIRY_WORKER` flag) | api | Safe multi-instance |
+| [ ] E14-25 | Admin schedule cancel policy: block new holds; document existing PAID booking handling | api/docs | No silent valid tickets on cancelled trip |
+| [ ] E14-26 | Integration tests: counter refund/cancel guards, payment confirm guards, flat pricing | test | CI covers P0/P1 |
+| [ ] E14-27 | Align return-policy page with counter refund-at-desk policy | web | Legal copy matches product |
+| [ ] E14-28 | Idempotency: require `Idempotency-Key` on payment confirm | api | Duplicate confirm safe |
+
+---
+
+### E14 priority order
+
+```
+P0 (E14-01 … E14-06)  →  ship before any production traffic
+P1 (E14-07 … E14-12)  →  counter policy + guest-safe security complete
+P2 (E14-13 … E14-17)  →  trustworthy admin numbers
+P3 (E14-18 … E14-23)  →  scale + RBAC
+P4 (E14-24 … E14-28)  →  ops polish
+```
+
+**One micro-task per PR.** Check `[x]` when done.
+
+---
+
 ## Suggested Implementation Order
 
 ```
@@ -253,6 +358,7 @@ E00 → E02 → E03 → E04 → E05 → E06 → E07 → E08 → E09
 E04 + E06 → E10
 E08 + E10 → E11
 E12 last
+E14 (P0→P1→P2→P3→P4) — after E08/E10/E11; P0 before production
 ```
 
 ---
@@ -266,9 +372,12 @@ E12 last
 | Pay and get ticket | E07, E08, E09 |
 | Download without login | E09 |
 | Login + history | E01, E07 |
-| Counter sell/change/refund/cancel | E10 |
-| Counter/admin scheduling | E04, E10 |
-| Admin reports | E11 |
+| Counter sell/change/refund/cancel | E10, E14 |
+| Counter/admin scheduling | E04, E10, E14 |
+| Admin reports | E11, E14 |
+| Guest purchase (no account) | E01, E07, E14 (must preserve) |
+| Counter-only refund at desk | E10, E14 |
+| Flat fare (all seat classes) | E14 |
 
 ---
 

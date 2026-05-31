@@ -1,5 +1,6 @@
 export * from "./api/envelope.js";
 export * from "./constants/seat-hold.js";
+export * from "./constants/pricing.js";
 export * from "./dtos/health.dto.js";
 export * from "./dtos/schedule/schedule-card.dto.js";
 export * from "./dtos/booking/seat-map.dto.js";

@@ -178,6 +178,7 @@ apps/web/src/
 4. **Ticket download:** requires matching `passengerNumber` + `phone`.
 5. **Cancelled schedule:** no new holds; existing bookings handled per policy in E04.
 6. **Filters:** `busType`, `timePeriod`, `seatClass` combine with AND logic.
+7. **Flat fare:** `STANDARD`, `PREMIUM`, and `BUSINESS` are layout/filter labels only — every seat on a schedule uses `schedule.baseFare` (`priceForScheduleSeat` in `@repo/shared`).
 
 ---
 
