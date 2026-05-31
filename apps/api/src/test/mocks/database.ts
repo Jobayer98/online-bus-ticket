@@ -27,6 +27,7 @@ export const prismaMock = {
     update: vi.fn(),
   },
   scheduleSeat: {
+    findMany: vi.fn(),
     updateMany: vi.fn(),
     createMany: vi.fn(),
   },

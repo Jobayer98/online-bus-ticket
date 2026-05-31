@@ -16,30 +16,38 @@ import {
 export async function createHold(input: CreateHoldInput) {
   const schedule = await prisma.schedule.findUnique({
     where: { id: input.scheduleId },
-    include: { scheduleSeats: true },
+    select: { id: true, status: true },
   });
   if (!schedule || schedule.status !== "SCHEDULED") {
     throw new AppError(ErrorCode.NOT_FOUND, "Schedule not available", 404);
   }
 
-  const seats = schedule.scheduleSeats.filter((s) =>
-    input.seatLabels.includes(s.label),
-  );
-  if (seats.length !== input.seatLabels.length) {
-    throw new AppError(ErrorCode.VALIDATION_ERROR, "Invalid seat labels", 400);
-  }
-  if (seats.some((s) => s.status !== "AVAILABLE")) {
-    throw new AppError(ErrorCode.SEAT_NOT_AVAILABLE, "Seat not available", 409);
-  }
-
   const expiresAt = new Date(Date.now() + SEAT_HOLD_SELECTION_TTL_MS);
-  const totalAmount = seats.reduce((sum, s) => sum + s.price, 0);
 
   const hold = await prisma.$transaction(async (tx) => {
-    await tx.scheduleSeat.updateMany({
-      where: { id: { in: seats.map((s) => s.id) } },
+    const seats = await tx.scheduleSeat.findMany({
+      where: {
+        scheduleId: input.scheduleId,
+        label: { in: input.seatLabels },
+      },
+    });
+    if (seats.length !== input.seatLabels.length) {
+      throw new AppError(ErrorCode.VALIDATION_ERROR, "Invalid seat labels", 400);
+    }
+
+    const seatIds = seats.map((s) => s.id);
+    const locked = await tx.scheduleSeat.updateMany({
+      where: {
+        id: { in: seatIds },
+        scheduleId: input.scheduleId,
+        status: "AVAILABLE",
+      },
       data: { status: "HELD" },
     });
+    if (locked.count !== seatIds.length) {
+      throw new AppError(ErrorCode.SEAT_NOT_AVAILABLE, "Seat not available", 409);
+    }
+
     return tx.seatHold.create({
       data: {
         scheduleId: input.scheduleId,
@@ -52,6 +60,9 @@ export async function createHold(input: CreateHoldInput) {
       include: { items: { include: { scheduleSeat: true } } },
     });
   });
+
+  const seats = hold.items.map((i) => i.scheduleSeat);
+  const totalAmount = seats.reduce((sum, s) => sum + s.price, 0);
 
   return {
     holdId: hold.id,
