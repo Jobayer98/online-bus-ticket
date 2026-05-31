@@ -32,23 +32,5 @@ export async function login(input: LoginInput) {
     throw new AppError(ErrorCode.UNAUTHORIZED, "Invalid credentials", 401);
   }
   const token = signToken({ userId: user.id, role: user.role });
-  // #region agent log
-  fetch("http://127.0.0.1:7854/ingest/f6036832-8c1b-4501-95fc-cb1871e7602a", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Debug-Session-Id": "1df7a0",
-    },
-    body: JSON.stringify({
-      sessionId: "1df7a0",
-      runId: "login",
-      hypothesisId: "D",
-      location: "auth.service.ts:login",
-      message: "login success",
-      data: { role: user.role, tokenLen: token.length },
-      timestamp: Date.now(),
-    }),
-  }).catch(() => {});
-  // #endregion
   return { token, user: { id: user.id, phone: user.phone, name: user.name, role: user.role } };
 }
