@@ -119,6 +119,18 @@
                 value:
                   data:
                     received: true
+      '409':
+        description: Refund-shaped webhook rejected (counter-only refunds)
+        content:
+          application/json:
+            schema:
+              $ref: '../components/common.yaml#/components/schemas/ErrorEnvelope'
+            examples:
+              refundNotAllowed:
+                value:
+                  error:
+                    code: REFUND_NOT_ALLOWED
+                    message: Refunds are counter-only; webhook cannot process refund events
       '500':
         $ref: '../components/common.yaml#/components/responses/Error500Internal'
 

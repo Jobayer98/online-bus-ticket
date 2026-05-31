@@ -6,6 +6,7 @@ import {
   successResponse,
 } from "@repo/shared";
 import * as paymentService from "./payments.service.js";
+import { handlePaymentWebhook } from "./payments.webhook.js";
 
 export const paymentsRouter = Router();
 
@@ -40,6 +41,11 @@ paymentsRouter.post("/confirm", paymentLimiter, async (req, res, next) => {
   }
 });
 
-paymentsRouter.post("/webhook", (_req, res) => {
-  res.json(successResponse({ received: true }));
+paymentsRouter.post("/webhook", (req, res, next) => {
+  try {
+    const data = handlePaymentWebhook(req.body);
+    res.json(successResponse(data));
+  } catch (e) {
+    next(e);
+  }
 });

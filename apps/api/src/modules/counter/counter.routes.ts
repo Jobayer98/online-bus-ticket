@@ -6,11 +6,11 @@ import {
   successResponse,
   AppError,
   ErrorCode,
-  assertCounterRefundEligible,
 } from "@repo/shared";
 import { authenticateRequired, requireRole } from "../../middleware/auth.js";
 import * as bookingService from "../booking/bookings.service.js";
 import * as paymentService from "../payment/payments.service.js";
+import * as counterService from "./counter.service.js";
 
 export const counterRouter = Router();
 counterRouter.use(authenticateRequired, requireRole("COUNTER_SELLER", "ADMIN"));
@@ -77,52 +77,12 @@ counterRouter.post("/change", async (req, res, next) => {
 counterRouter.post("/refund", async (req, res, next) => {
   try {
     const { bookingId, note } = counterBookingActionSchema.parse(req.body);
-    const booking = await prisma.booking.findUnique({
-      where: { id: bookingId },
-      include: { seats: true, payment: true, schedule: true },
-    });
-    if (!booking) {
-      throw new AppError(ErrorCode.BOOKING_NOT_FOUND, "Not found", 404);
-    }
-
-    const refundAmount = assertCounterRefundEligible({
-      bookingStatus: booking.status,
-      paymentStatus: booking.payment?.status,
-      paymentAmount: booking.payment?.amount,
-      totalAmount: booking.totalAmount,
-      departureAt: booking.schedule.departureAt,
-    });
-
-    await prisma.$transaction(async (tx) => {
-      const updated = await tx.booking.updateMany({
-        where: { id: bookingId, status: "PAID" },
-        data: { status: "REFUNDED" },
-      });
-      if (updated.count !== 1) {
-        throw new AppError(ErrorCode.CONFLICT, "Booking cannot be refunded", 409);
-      }
-      await tx.payment.updateMany({
-        where: { bookingId, status: "COMPLETED" },
-        data: { status: "REFUNDED" },
-      });
-      await tx.scheduleSeat.updateMany({
-        where: {
-          id: { in: booking.seats.map((s) => s.scheduleSeatId) },
-          status: "SOLD",
-        },
-        data: { status: "AVAILABLE" },
-      });
-      await tx.counterTransaction.create({
-        data: {
-          type: "REFUND",
-          sellerId: req.userId!,
-          bookingId,
-          amount: -refundAmount,
-          note,
-        },
-      });
-    });
-    res.json(successResponse({ refunded: true, refundAmount }));
+    const data = await counterService.executeCounterRefund(
+      bookingId,
+      req.userId!,
+      note,
+    );
+    res.json(successResponse(data));
   } catch (e) {
     next(e);
   }

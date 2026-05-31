@@ -291,7 +291,7 @@ Apply on `POST /counter/refund` before mutating state:
 | ID | Task | Layer | Acceptance |
 |----|------|-------|------------|
 | [x] E14-07 | **Refund conditions:** enforce PAID + not departed + full amount; Zod + contract doc `docs/contracts/counter/refund.md` | shared/api | 409 with clear code if policy fails |
-| [ ] E14-08 | **Block online refund surface:** no public refund route; webhook stub cannot trigger refund | api | Only counter refund mutates refund state |
+| [x] E14-08 | **Block online refund surface:** no public refund route; webhook stub cannot trigger refund | api | Only counter refund mutates refund state |
 | [ ] E14-09 | **Counter sell atomicity:** wrap sell flow in single `$transaction` (hold → booking → pay → audit → channel) | api | Partial sell failure rolls back |
 | [ ] E14-10 | **Payment + ticket atomicity:** move `issueTicket` inside confirm transaction or compensating retry | api | PAID booking always has ticket |
 | [ ] E14-11 | **Hold session binding:** `createBooking` verifies `sessionId`; release hold requires matching session or booking token | shared/api/web | Guest isolation; no hold hijack |

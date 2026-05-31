@@ -14,3 +14,14 @@ export const confirmPaymentSchema = z.object({
 
 export type InitiatePaymentInput = z.infer<typeof initiatePaymentSchema>;
 export type ConfirmPaymentInput = z.infer<typeof confirmPaymentSchema>;
+
+/** Provider webhook body (stub). Refund-shaped events are rejected — counter-only refunds. */
+export const paymentWebhookSchema = z
+  .object({
+    event: z.string().optional(),
+    type: z.string().optional(),
+    status: z.string().optional(),
+  })
+  .passthrough();
+
+export type PaymentWebhookInput = z.infer<typeof paymentWebhookSchema>;
