@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { useGlobalLoading } from "@/components/global-loading-provider";
 import { SslCommerzPaymentStrip } from "@/components/payment/sslcommerz-payment-strip";
 import { useRouter } from "next/navigation";
 import { apiGet, apiPost } from "@/lib/api-client";
@@ -9,7 +8,6 @@ import {
   clearHoldBookingInProgress,
   markHoldBookingInProgress,
   markHoldPaymentNavigation,
-  markPaymentPageEnterLoading,
   setActiveHoldId,
 } from "@/lib/active-hold";
 import {
@@ -58,7 +56,6 @@ export function SearchCheckoutForm({
   const [agreed, setAgreed] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  useGlobalLoading(loading);
   const [holdExpired, setHoldExpired] = useState(false);
 
   const processingFee = 0;
@@ -132,7 +129,6 @@ export function SearchCheckoutForm({
         setActiveHoldId(r.data.holdId);
       }
       markHoldPaymentNavigation();
-      markPaymentPageEnterLoading();
       navigating = true;
       router.push(
         buildPaymentUrl(

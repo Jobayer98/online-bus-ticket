@@ -4,12 +4,10 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { apiGet } from "@/lib/api-client";
-import { downloadElementAsPng } from "@/lib/download-ticket-png";
 import { readTicketLookup, storeTicketLookup } from "@/lib/ticket-lookup-session";
-import { useGlobalLoading } from "@/components/global-loading-provider";
 import { HomeHeader } from "@/components/home-header";
 import { SearchFooter } from "@/components/search/search-footer";
-import { BusTicketCard } from "@/components/ticket/bus-ticket-card";
+import { BusTicketPreview } from "@/components/ticket/bus-ticket-preview";
 import type { TicketDto } from "@repo/shared";
 
 const TICKET_CAPTURE_ID = "bus-ticket-download";
@@ -22,7 +20,6 @@ export function BookingConfirmationContent() {
   const [ticket, setTicket] = useState<TicketDto | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
-  const [downloading, setDownloading] = useState(false);
   const [phoneInput, setPhoneInput] = useState("");
   const [needsPhone, setNeedsPhone] = useState(false);
 
@@ -72,22 +69,6 @@ export function BookingConfirmationContent() {
     }
   }, [passengerNumber, bookingId, loadTicket]);
 
-  async function handleDownload() {
-    const el = document.getElementById(TICKET_CAPTURE_ID);
-    if (!el || !ticket) return;
-    setDownloading(true);
-    try {
-      await downloadElementAsPng(
-        el,
-        `ticket-${ticket.passengerNumber}.png`,
-      );
-    } catch {
-      setError("Download failed. Please try again or use Print Screen.");
-    } finally {
-      setDownloading(false);
-    }
-  }
-
   function handlePhoneSubmit(e: React.FormEvent) {
     e.preventDefault();
     const phone = phoneInput.replace(/\s/g, "");
@@ -97,8 +78,6 @@ export function BookingConfirmationContent() {
     }
     void loadTicket(phone);
   }
-
-  useGlobalLoading(loading || downloading);
 
   return (
     <div className="search-page confirmation-page">
@@ -133,7 +112,7 @@ export function BookingConfirmationContent() {
             />
             <button
               type="submit"
-              className={`confirmation-page__btn confirmation-page__btn--primary${loading ? " btn-is-busy" : ""}`}
+              className={`ticket-preview__btn ticket-preview__btn--primary${loading ? " btn-is-busy" : ""}`}
               disabled={loading}
               aria-busy={loading}
             >
@@ -143,36 +122,18 @@ export function BookingConfirmationContent() {
         )}
 
         {ticket && (
-          <>
-            <BusTicketCard ticket={ticket} captureId={TICKET_CAPTURE_ID} />
-            <div className="confirmation-page__actions">
-              <button
-                type="button"
-                className={`confirmation-page__btn confirmation-page__btn--primary${downloading ? " btn-is-busy" : ""}`}
-                disabled={downloading}
-                aria-busy={downloading}
-                onClick={() => void handleDownload()}
-              >
-                {downloading ? "Downloading…" : "↓ Download ticket (PNG)"}
-              </button>
-              <Link
-                href="/"
-                className="confirmation-page__btn confirmation-page__btn--ghost"
-              >
-                Book another trip
-              </Link>
-              <Link
-                href="/ticket"
-                className="confirmation-page__btn confirmation-page__btn--ghost"
-              >
-                Download ticket later
-              </Link>
-            </div>
-            <p className="confirmation-page__hint">
-              The downloaded image matches this ticket exactly. You can also
-              retrieve it anytime from Download Ticket using your PNR and phone.
-            </p>
-          </>
+          <BusTicketPreview
+            ticket={ticket}
+            captureId={TICKET_CAPTURE_ID}
+            hint="The downloaded image matches this ticket exactly. You can also retrieve it anytime from Download Ticket using your PNR and phone."
+          >
+            <Link href="/" className="ticket-preview__btn ticket-preview__btn--ghost">
+              Book another trip
+            </Link>
+            <Link href="/ticket" className="ticket-preview__btn ticket-preview__btn--ghost">
+              Download ticket later
+            </Link>
+          </BusTicketPreview>
         )}
 
         {error && (

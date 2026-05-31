@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { HomeHeader } from "@/components/home-header";
 import { SiteFooter } from "@/components/site-footer";
 import { TicketDownloadForm } from "@/components/ticket-download-form";
+import "../booking/booking-ticket.css";
 import "../home.css";
 import "./ticket.css";
 

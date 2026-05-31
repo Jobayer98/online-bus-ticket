@@ -6,13 +6,7 @@ import "../../../home.css";
 
 export default function ConfirmationPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="confirmation-page" style={{ padding: "2rem" }}>
-          Loading confirmation…
-        </div>
-      }
-    >
+    <Suspense fallback={null}>
       <BookingConfirmationContent />
     </Suspense>
   );

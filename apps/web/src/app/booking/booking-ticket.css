@@ -1,11 +1,86 @@
 /* Professional e-ticket — Shahzadpur Travels brand */
 
-.confirmation-page {
+/* Shared ticket tokens — confirmation page & /ticket lookup */
+.confirmation-page,
+.ticket-preview-shell {
   --ticket-green: #2e7d32;
   --ticket-green-dark: #1b5e20;
   --ticket-green-soft: #e8f5e9;
+}
+
+.confirmation-page {
   background: linear-gradient(180deg, #e8f0ea 0%, #f4f6f8 40%, #fff 100%);
   min-height: 100vh;
+}
+
+.ticket-preview-shell {
+  width: 100%;
+  text-align: left;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.ticket-preview__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin-top: 1.25rem;
+}
+
+.ticket-preview__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s, transform 0.1s;
+  box-sizing: border-box;
+}
+
+.ticket-preview__btn--primary {
+  background: linear-gradient(180deg, var(--ticket-green) 0%, var(--ticket-green-dark) 100%);
+  color: #fff;
+  box-shadow: 0 3px 12px rgba(27, 94, 32, 0.3);
+}
+
+.ticket-preview__btn--primary:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+
+.ticket-preview__btn--primary:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.ticket-preview__btn--ghost {
+  background: #fff;
+  color: var(--ticket-green-dark);
+  border: 2px solid var(--ticket-green);
+}
+
+.ticket-preview__btn--ghost:hover {
+  background: var(--ticket-green-soft);
+}
+
+.ticket-preview__hint {
+  text-align: center;
+  font-size: 0.78rem;
+  color: #78909c;
+  margin: 0.75rem 0 0;
+  line-height: 1.45;
+}
+
+.ticket-preview__error {
+  text-align: center;
+  margin-top: 0.75rem;
 }
 
 .confirmation-page__inner {
@@ -46,63 +121,6 @@
   margin: 0.4rem 0 0;
   font-size: 0.88rem;
   color: #546e7a;
-}
-
-.confirmation-page__actions {
-  display: flex;
-  flex-direction: column;
-  gap: 0.65rem;
-  margin-top: 1.25rem;
-}
-
-.confirmation-page__btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.45rem;
-  width: 100%;
-  padding: 0.75rem 1rem;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.95rem;
-  font-weight: 700;
-  font-family: inherit;
-  cursor: pointer;
-  text-decoration: none;
-  transition: background 0.15s, transform 0.1s;
-}
-
-.confirmation-page__btn--primary {
-  background: linear-gradient(180deg, var(--ticket-green) 0%, var(--ticket-green-dark) 100%);
-  color: #fff;
-  box-shadow: 0 3px 12px rgba(27, 94, 32, 0.3);
-}
-
-.confirmation-page__btn--primary:hover:not(:disabled) {
-  filter: brightness(1.05);
-}
-
-.confirmation-page__btn--primary:disabled {
-  opacity: 0.65;
-  cursor: wait;
-}
-
-.confirmation-page__btn--ghost {
-  background: #fff;
-  color: var(--ticket-green-dark);
-  border: 2px solid var(--ticket-green);
-}
-
-.confirmation-page__btn--ghost:hover {
-  background: var(--ticket-green-soft);
-}
-
-.confirmation-page__hint {
-  text-align: center;
-  font-size: 0.78rem;
-  color: #78909c;
-  margin: 0.75rem 0 0;
-  line-height: 1.45;
 }
 
 .confirmation-page__error {

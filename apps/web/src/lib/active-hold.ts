@@ -8,8 +8,6 @@ const HOLD_CREATED_ON_LOAD_KEY = "holdCreatedOnLoadToken";
 export const HOLD_BOOKING_IN_PROGRESS_KEY = "holdBookingInProgress";
 /** Set before client navigation to payment — do not release hold. */
 export const HOLD_PAYMENT_NAV_KEY = "holdPaymentNavigation";
-/** Keeps brand loading visible from checkout until payment page is ready. */
-export const PAYMENT_PAGE_LOADING_KEY = "paymentPageEnterLoading";
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
 function shouldSkipHoldRelease(): boolean {
@@ -72,21 +70,6 @@ export function markHoldPaymentNavigation() {
 export function clearHoldPaymentNavigation() {
   if (typeof window === "undefined") return;
   sessionStorage.removeItem(HOLD_PAYMENT_NAV_KEY);
-}
-
-export function markPaymentPageEnterLoading() {
-  if (typeof window === "undefined") return;
-  sessionStorage.setItem(PAYMENT_PAGE_LOADING_KEY, "1");
-}
-
-export function clearPaymentPageEnterLoading() {
-  if (typeof window === "undefined") return;
-  sessionStorage.removeItem(PAYMENT_PAGE_LOADING_KEY);
-}
-
-export function isPaymentPageEnterLoading(): boolean {
-  if (typeof window === "undefined") return false;
-  return sessionStorage.getItem(PAYMENT_PAGE_LOADING_KEY) === "1";
 }
 
 /** Best-effort release during page unload (reload, close tab). */

@@ -100,6 +100,17 @@
   font-size: 0.9rem;
 }
 
+.ticket-download-wrap {
+  margin: 0 auto;
+}
+
+.ticket-download-preview {
+  margin-top: 2rem;
+  padding: 2rem 1rem 2.5rem;
+  background: linear-gradient(180deg, #e8f0ea 0%, #f4f6f8 40%, #fff 100%);
+  border-radius: 8px;
+}
+
 @media (max-width: 640px) {
   .ticket-download-main {
     padding: 2rem 1rem 3rem;

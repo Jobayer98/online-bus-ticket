@@ -1,8 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { apiGet } from "@/lib/api-client";
+import { BusTicketPreview } from "@/components/ticket/bus-ticket-preview";
+import type { TicketDto } from "@repo/shared";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+const TICKET_CAPTURE_ID = "bus-ticket-download-lookup";
 
 function SearchIcon() {
   return (
@@ -15,61 +18,104 @@ function SearchIcon() {
 export function TicketDownloadForm() {
   const [pnr, setPnr] = useState("");
   const [mobile, setMobile] = useState("");
+  const [ticket, setTicket] = useState<TicketDto | null>(null);
   const [error, setError] = useState("");
+  const [searching, setSearching] = useState(false);
 
-  function handleSearch(e: React.FormEvent) {
+  async function handleSearch(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    setTicket(null);
 
     const passengerNumber = pnr.trim();
-    const phone = mobile.trim();
+    const phone = mobile.replace(/\s/g, "").trim();
 
     if (!passengerNumber || !phone) {
       setError("Please enter both PNR number and mobile number.");
       return;
     }
+    if (!/^\d{11}$/.test(phone)) {
+      setError("Enter the 11-digit mobile number used when booking.");
+      return;
+    }
 
-    const q = new URLSearchParams({ passengerNumber, phone });
-    window.open(`${API_URL}/api/v1/tickets/download?${q}`, "_blank");
+    setSearching(true);
+    try {
+      const q = new URLSearchParams({ passengerNumber, phone });
+      const r = await apiGet<TicketDto>(`/tickets/lookup?${q}`);
+      setTicket(r.data);
+    } catch {
+      setError(
+        "Ticket not found. Check your PNR and mobile number, then try again.",
+      );
+    } finally {
+      setSearching(false);
+    }
   }
 
   return (
-    <form className="ticket-download-form" onSubmit={handleSearch} noValidate>
-      <p className="ticket-download-hint">
-        Please provide your Ticket PNR number and Mobile number which you used
-        while purchasing the ticket
-      </p>
+    <div className="ticket-download-wrap">
+      <form
+        className="ticket-download-form"
+        onSubmit={(e) => void handleSearch(e)}
+        noValidate
+      >
+        <p className="ticket-download-hint">
+          Please provide your Ticket PNR number and Mobile number which you used
+          while purchasing the ticket
+        </p>
 
-      <div className="ticket-download-fields">
-        <div className="ticket-download-field">
-          <label htmlFor="ticket-pnr">PNR No</label>
-          <input
-            id="ticket-pnr"
-            name="pnr"
-            type="text"
-            autoComplete="off"
-            value={pnr}
-            onChange={(e) => setPnr(e.target.value)}
-          />
+        <div className="ticket-download-fields">
+          <div className="ticket-download-field">
+            <label htmlFor="ticket-pnr">PNR No</label>
+            <input
+              id="ticket-pnr"
+              name="pnr"
+              type="text"
+              autoComplete="off"
+              value={pnr}
+              onChange={(e) => setPnr(e.target.value)}
+            />
+          </div>
+          <div className="ticket-download-field">
+            <label htmlFor="ticket-mobile">Mobile No</label>
+            <input
+              id="ticket-mobile"
+              name="mobile"
+              type="tel"
+              inputMode="numeric"
+              autoComplete="tel"
+              value={mobile}
+              onChange={(e) => setMobile(e.target.value)}
+            />
+          </div>
+          <button
+            type="submit"
+            className={`ticket-download-search${searching ? " btn-is-busy" : ""}`}
+            disabled={searching}
+            aria-busy={searching}
+          >
+            <SearchIcon />
+            {searching ? "Searching…" : "SEARCH"}
+          </button>
         </div>
-        <div className="ticket-download-field">
-          <label htmlFor="ticket-mobile">Mobile No</label>
-          <input
-            id="ticket-mobile"
-            name="mobile"
-            type="tel"
-            autoComplete="tel"
-            value={mobile}
-            onChange={(e) => setMobile(e.target.value)}
-          />
-        </div>
-        <button type="submit" className="ticket-download-search">
-          <SearchIcon />
-          SEARCH
-        </button>
-      </div>
 
-      {error ? <p className="ticket-download-error">{error}</p> : null}
-    </form>
+        {error ? (
+          <p className="ticket-download-error" role="alert">
+            {error}
+          </p>
+        ) : null}
+      </form>
+
+      {ticket ? (
+        <section className="ticket-download-preview" aria-label="Your e-ticket">
+          <BusTicketPreview
+            ticket={ticket}
+            captureId={TICKET_CAPTURE_ID}
+            hint="The downloaded image matches this ticket exactly."
+          />
+        </section>
+      ) : null}
+    </div>
   );
 }
