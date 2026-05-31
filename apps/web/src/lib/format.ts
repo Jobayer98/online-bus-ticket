@@ -24,6 +24,16 @@ export function formatSeatClassLabel(seatClass: string): string {
   return seatClass.replace("_", " ");
 }
 
+export function formatScheduleClassLine(
+  busType: string,
+  seatClasses: string[],
+): string {
+  const classLabel = seatClasses.map(formatSeatClassLabel).join(", ");
+  return classLabel
+    ? `${formatBusTypeLabel(busType)} | ${classLabel}`
+    : formatBusTypeLabel(busType);
+}
+
 export function formatMoneyBdt(minorUnits: number): string {
   return `৳ ${(minorUnits / 100).toFixed(0)}`;
 }

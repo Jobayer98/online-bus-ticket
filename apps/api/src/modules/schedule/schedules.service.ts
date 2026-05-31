@@ -3,9 +3,22 @@ import {
   AppError,
   ErrorCode,
   getTimePeriod,
+  SeatClass,
   type SearchSchedulesQuery,
   type ScheduleCardDto,
 } from "@repo/shared";
+
+const SEAT_CLASS_ORDER = [
+  SeatClass.STANDARD,
+  SeatClass.PREMIUM,
+  SeatClass.BUSINESS,
+] as const;
+
+function uniqueSeatClasses(seats: { seatClass: string }[]): string[] {
+  const seen = new Set<string>();
+  for (const seat of seats) seen.add(seat.seatClass);
+  return SEAT_CLASS_ORDER.filter((sc) => seen.has(sc));
+}
 
 export async function searchSchedules(
   query: SearchSchedulesQuery,
@@ -71,6 +84,7 @@ export async function searchSchedules(
         endPoint: route.toStop.name,
         estimatedArrivalAt: s.estimatedArrivalAt.toISOString(),
         busType: s.coach.busType,
+        seatClasses: uniqueSeatClasses(s.scheduleSeats),
         fareFrom: fares.length ? Math.min(...fares) : s.baseFare,
         availableSeats: available.length,
         routeSlug: route.slug,

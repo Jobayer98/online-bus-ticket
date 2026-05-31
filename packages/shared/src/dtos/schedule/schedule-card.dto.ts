@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { busTypeSchema } from "../../enums/index.js";
+import { busTypeSchema, seatClassSchema } from "../../enums/index.js";
 
 export const scheduleCardSchema = z.object({
   scheduleId: z.string(),
@@ -9,6 +9,7 @@ export const scheduleCardSchema = z.object({
   endPoint: z.string(),
   estimatedArrivalAt: z.string().datetime(),
   busType: busTypeSchema,
+  seatClasses: z.array(seatClassSchema),
   fareFrom: z.number().int(),
   availableSeats: z.number().int(),
   routeSlug: z.string(),

@@ -4,8 +4,8 @@ import { useState } from "react";
 import { useGlobalLoading } from "@/components/global-loading-provider";
 import { apiGet } from "@/lib/api-client";
 import {
-  formatBusTypeLabel,
   formatMoneyBdt,
+  formatScheduleClassLine,
   formatTime12h,
 } from "@/lib/format";
 import type { HoldDto, ScheduleCardDto, SeatMapDto } from "@repo/shared";
@@ -59,7 +59,10 @@ export function ScheduleCard({
     }
   }
 
-  const busClass = `${formatBusTypeLabel(schedule.busType)} | ECONOMY`;
+  const busClass = formatScheduleClassLine(
+    schedule.busType,
+    schedule.seatClasses,
+  );
 
   return (
     <article className={`sp-card${expanded ? " sp-card--expanded" : ""}`}>
