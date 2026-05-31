@@ -392,10 +392,10 @@ P4 (E14-24 … E14-28)  →  ops polish
 
 | ID | Task | Layer | Acceptance |
 |----|------|-------|------------|
-| [ ] E15-15 | `SiteThemeProvider` + update `BrandLogo`, metadata title from CMS profile/theme | web | CSS vars applied site-wide |
-| [ ] E15-16 | Dynamic content pages: about, contact (new `/contact`), policies — fetch markdown, render safe HTML | web | Existing URLs unchanged |
-| [ ] E15-17 | Home: hero background, gallery, featured routes from CMS (remove `home-routes-data.ts`) | web | Links still resolve to search |
-| [ ] E15-18 | Dynamic `SiteFooter` from CMS footer settings | web | Contact + bar links editable |
+| [x] E15-15 | `SiteThemeProvider` + update `BrandLogo`, metadata title from CMS profile/theme | web | CSS vars applied site-wide |
+| [x] E15-16 | Dynamic content pages: about, contact (new `/contact`), policies — fetch markdown, render safe HTML | web | Existing URLs unchanged |
+| [x] E15-17 | Home: hero background, gallery, featured routes from CMS (remove `home-routes-data.ts`) | web | Links still resolve to search |
+| [x] E15-18 | Dynamic `SiteFooter` from CMS footer settings | web | Contact + bar links editable |
 
 ### Phase 4 — Admin UI
 
