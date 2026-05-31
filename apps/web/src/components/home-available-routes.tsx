@@ -1,15 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
-import { apiGet } from "@/lib/api-client";
-import {
-  HOME_AVAILABLE_ROUTES,
-  cityToSlugPart,
-} from "@/lib/home-routes-data";
+import { useSiteTheme } from "@/components/site-theme-provider";
+import { resolveCmsAssetUrl } from "@/lib/cms-client";
 import { getTodayIso } from "@/lib/trip-date";
-
-type Stop = { id: string; name: string; city: string; code: string };
 
 function BusIcon() {
   return (
@@ -26,30 +21,12 @@ function BusIcon() {
   );
 }
 
-function normalizeCity(city: string): string {
-  return city.toUpperCase().replace(/['']/g, "'");
-}
-
-function findStopByCity(stops: Stop[], city: string): Stop | undefined {
-  const target = normalizeCity(city);
-  return stops.find(
-    (s) =>
-      normalizeCity(s.city) === target ||
-      normalizeCity(s.name) === target ||
-      normalizeCity(s.city).replace(/\s+/g, "") === target.replace(/\s+/g, ""),
-  );
-}
-
 export function HomeAvailableRoutes() {
-  const [stops, setStops] = useState<Stop[]>([]);
-
-  useEffect(() => {
-    apiGet<Stop[]>("/schedules/stops")
-      .then((r) => setStops(r.data))
-      .catch(() => setStops([]));
-  }, []);
-
+  const { featuredRoutes } = useSiteTheme();
   const today = getTodayIso();
+  const routes = featuredRoutes
+    .filter((route) => route.isVisible)
+    .sort((a, b) => a.sortOrder - b.sortOrder);
 
   return (
     <section className="home-routes" aria-labelledby="home-routes-title">
@@ -60,37 +37,65 @@ export function HomeAvailableRoutes() {
 
       <div className="home-routes-panel">
         <ul className="home-routes-grid">
-          {HOME_AVAILABLE_ROUTES.map((route) => {
-            const fromStop = findStopByCity(stops, route.from);
-            const toStop = findStopByCity(stops, route.to);
-            const canSearch = Boolean(fromStop && toStop);
-            const slug = `${cityToSlugPart(route.from)}-${cityToSlugPart(route.to)}`;
-            const href = canSearch ? `/search/${slug}/${today}` : undefined;
-
-            const content = (
-              <>
-                <span className="home-route-city">{route.from}</span>
-                <BusIcon />
-                <span className="home-route-city">{route.to}</span>
-              </>
-            );
+          {routes.map((route) => {
+            const href = `/search/${route.routeSlug}/${today}`;
 
             return (
-              <li key={`${route.from}-${route.to}`}>
-                {canSearch ? (
-                  <Link href={href!} className="home-route-card">
-                    {content}
-                  </Link>
-                ) : (
-                  <span className="home-route-card home-route-card--static">
-                    {content}
-                  </span>
-                )}
+              <li key={route.id}>
+                <Link href={href} className="home-route-card">
+                  <span className="home-route-city">{route.fromStop.city}</span>
+                  <BusIcon />
+                  <span className="home-route-city">{route.toStop.city}</span>
+                </Link>
               </li>
             );
           })}
         </ul>
       </div>
+    </section>
+  );
+}
+
+export function HomeGallery() {
+  const { media } = useSiteTheme();
+  const images = [...media.featured].sort((a, b) => a.sortOrder - b.sortOrder);
+
+  if (images.length === 0) return null;
+
+  return (
+    <section className="home-gallery">
+      <div className="home-gallery-inner">
+        {images.map((img) => {
+          const src = resolveCmsAssetUrl(img.url) ?? img.url;
+          const isExternal = src.startsWith("http");
+          return (
+            <div className="home-gallery-item" key={img.id}>
+              <Image
+                src={src}
+                alt={img.alt}
+                width={480}
+                height={320}
+                sizes="(max-width: 900px) 50vw, 25vw"
+                unoptimized={isExternal}
+              />
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+export function HomeHero({ children }: { children: React.ReactNode }) {
+  const { media } = useSiteTheme();
+  const heroUrl = resolveCmsAssetUrl(media.hero?.url ?? null) ?? "/images/home/hero.jpg";
+
+  return (
+    <section
+      className="home-hero"
+      style={{ backgroundImage: `url(${heroUrl})` }}
+    >
+      {children}
     </section>
   );
 }

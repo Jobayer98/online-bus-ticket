@@ -33,6 +33,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
   const isMarketing =
     isHome ||
     pathname === "/about" ||
+    pathname === "/contact" ||
     pathname === "/ticket" ||
     pathname === "/login" ||
     pathname === "/dashboard" ||

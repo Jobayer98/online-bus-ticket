@@ -3,6 +3,9 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import type { CmsContactIcon } from "@repo/shared";
+import { useSiteTheme } from "@/components/site-theme-provider";
+import { resolveCmsAssetUrl } from "@/lib/cms-client";
 import "./site-footer.css";
 
 function IconPin() {
@@ -45,6 +48,20 @@ function IconMail() {
   );
 }
 
+function ContactIcon({ icon }: { icon: CmsContactIcon }) {
+  switch (icon) {
+    case "home":
+      return <IconHome />;
+    case "building":
+      return <IconBuilding />;
+    case "globe":
+      return <IconGlobe />;
+    case "pin":
+    default:
+      return <IconPin />;
+  }
+}
+
 function BackToTop() {
   const [visible, setVisible] = useState(false);
 
@@ -80,6 +97,12 @@ function BackToTop() {
 }
 
 export function SiteFooter() {
+  const { profile, footer } = useSiteTheme();
+  const paymentSrc =
+    resolveCmsAssetUrl(footer.paymentBannerUrl) ??
+    "/images/home/ssl-commerz-inline.png";
+  const paymentIsExternal = paymentSrc.startsWith("http");
+
   return (
     <footer className="site-footer">
       <section className="site-footer-contact" id="contact">
@@ -87,69 +110,63 @@ export function SiteFooter() {
         <hr className="site-footer-rule" />
         <div className="site-footer-contact-body">
           <ul className="site-footer-address">
-            <li>
-              <IconPin />
-              <span>Dawriapur Bazar</span>
-            </li>
-            <li>
-              <IconHome />
-              <span>Shahzadpur-6770</span>
-            </li>
-            <li>
-              <IconBuilding />
-              <span>Shahzadpur</span>
-            </li>
-            <li>
-              <IconGlobe />
-              <span>Sirajganj</span>
-            </li>
+            {footer.contactLines.map((line, index) => (
+              <li key={`${line.icon}-${index}`}>
+                <ContactIcon icon={line.icon} />
+                <span>{line.text}</span>
+              </li>
+            ))}
           </ul>
           <p className="site-footer-email">
             <IconMail />
-            <a href="mailto:shahzadpurtravels1980@gmail.com">
-              shahzadpurtravels1980@gmail.com
-            </a>
+            <a href={`mailto:${footer.email}`}>{footer.email}</a>
           </p>
         </div>
         <hr className="site-footer-rule" />
       </section>
 
-      <section className="site-footer-payments" aria-label="Payment methods">
-        <div className="site-footer-payments-frame">
-          <Image
-            src="/images/home/ssl-commerz-inline.png"
-            alt="Pay with Visa, Mastercard, bKash, Nagad, and other methods. Verified by SSLCommerz"
-            width={1100}
-            height={120}
-            className="site-footer-payments-img"
-          />
-        </div>
-      </section>
+      {paymentSrc ? (
+        <section className="site-footer-payments" aria-label="Payment methods">
+          <div className="site-footer-payments-frame">
+            <Image
+              src={paymentSrc}
+              alt="Accepted payment methods"
+              width={1100}
+              height={120}
+              className="site-footer-payments-img"
+              unoptimized={paymentIsExternal}
+            />
+          </div>
+        </section>
+      ) : null}
 
       <div className="site-footer-bar">
         <div className="site-footer-bar-inner">
           <p className="site-footer-bar-left">
-            <span>Powered By: Shahzadpur Travels</span>
-            <span className="site-footer-bar-sep" aria-hidden>
-              |
-            </span>
-            <Link href="/about">About Us</Link>
-            <span className="site-footer-bar-sep" aria-hidden>
-              |
-            </span>
-            <Link href="/return-policy">Return Policy</Link>
-            <span className="site-footer-bar-sep" aria-hidden>
-              |
-            </span>
-            <Link href="/terms-and-conditions">Terms &amp; Conditions</Link>
-            <span className="site-footer-bar-sep" aria-hidden>
-              |
-            </span>
-            <Link href="/privacy-policy">Privacy Policy</Link>
+            {footer.poweredByText ? (
+              <>
+                <span>{footer.poweredByText}</span>
+                <span className="site-footer-bar-sep" aria-hidden>
+                  |
+                </span>
+              </>
+            ) : null}
+            {footer.barLinks.map((link, index) => (
+              <span key={link.href}>
+                <Link href={link.href}>{link.label}</Link>
+                {index < footer.barLinks.length - 1 ? (
+                  <span className="site-footer-bar-sep" aria-hidden>
+                    |
+                  </span>
+                ) : null}
+              </span>
+            ))}
           </p>
-          <p className="site-footer-bar-right">
-            Trade License No: 08-032-01046
-          </p>
+          {profile.tradeLicenseNo ? (
+            <p className="site-footer-bar-right">
+              Trade License No: {profile.tradeLicenseNo}
+            </p>
+          ) : null}
         </div>
       </div>
 
