@@ -6,6 +6,7 @@ import {
   successResponse,
   AppError,
   ErrorCode,
+  assertCounterRefundEligible,
 } from "@repo/shared";
 import { authenticateRequired, requireRole } from "../../middleware/auth.js";
 import * as bookingService from "../booking/bookings.service.js";
@@ -78,24 +79,19 @@ counterRouter.post("/refund", async (req, res, next) => {
     const { bookingId, note } = counterBookingActionSchema.parse(req.body);
     const booking = await prisma.booking.findUnique({
       where: { id: bookingId },
-      include: { seats: true, payment: true },
+      include: { seats: true, payment: true, schedule: true },
     });
     if (!booking) {
       throw new AppError(ErrorCode.BOOKING_NOT_FOUND, "Not found", 404);
     }
-    if (booking.status === "REFUNDED") {
-      throw new AppError(ErrorCode.CONFLICT, "Booking already refunded", 409);
-    }
-    if (booking.status !== "PAID") {
-      throw new AppError(
-        ErrorCode.CONFLICT,
-        "Only paid bookings can be refunded",
-        409,
-      );
-    }
-    if (!booking.payment || booking.payment.status !== "COMPLETED") {
-      throw new AppError(ErrorCode.CONFLICT, "Payment not completed", 409);
-    }
+
+    const refundAmount = assertCounterRefundEligible({
+      bookingStatus: booking.status,
+      paymentStatus: booking.payment?.status,
+      paymentAmount: booking.payment?.amount,
+      totalAmount: booking.totalAmount,
+      departureAt: booking.schedule.departureAt,
+    });
 
     await prisma.$transaction(async (tx) => {
       const updated = await tx.booking.updateMany({
@@ -121,12 +117,12 @@ counterRouter.post("/refund", async (req, res, next) => {
           type: "REFUND",
           sellerId: req.userId!,
           bookingId,
-          amount: -booking.totalAmount,
+          amount: -refundAmount,
           note,
         },
       });
     });
-    res.json(successResponse({ refunded: true }));
+    res.json(successResponse({ refunded: true, refundAmount }));
   } catch (e) {
     next(e);
   }

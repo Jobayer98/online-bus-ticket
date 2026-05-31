@@ -21,19 +21,4 @@ Paid bookings must use `POST /counter/refund`.
 
 # POST /api/v1/counter/refund
 
-| Field | Value |
-|-------|--------|
-| **Task ID** | E14-05 |
-| **Module** | counter |
-| **Auth** | `COUNTER_SELLER` or `ADMIN` |
-
-## Description
-
-Full refund for **PAID** bookings with `COMPLETED` payment. Sets booking and payment to `REFUNDED`, releases `SOLD` seats.
-
-## Errors
-
-| HTTP | code | When |
-|------|------|------|
-| 409 | CONFLICT | Not `PAID`, already refunded, or payment not completed |
-| 404 | BOOKING_NOT_FOUND | Unknown booking |
+See [refund.md](refund.md) (E14-07) for full contract, policy conditions, and `REFUND_NOT_ALLOWED` errors.
