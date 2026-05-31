@@ -32,6 +32,7 @@ export function HomeHeader() {
   const pathname = usePathname();
   const isHome = pathname === "/";
   const isAbout = pathname === "/about";
+  const isContact = pathname === "/contact";
   const isTicket = pathname === "/ticket";
   const isReturnPolicy = pathname === "/return-policy";
   const isTerms = pathname === "/terms-and-conditions";
@@ -42,6 +43,7 @@ export function HomeHeader() {
   const mobileItems: MobileNavItem[] = [
     { type: "link", href: "/", label: "Home", active: isHome },
     { type: "link", href: "/about", label: "About Us", active: isAbout },
+    { type: "link", href: "/contact", label: "Contact Us", active: isContact },
     { type: "link", href: "/ticket", label: "Download Ticket", active: isTicket },
     { type: "link", href: "/return-policy", label: "Return Policy", active: isReturnPolicy },
     {
@@ -51,7 +53,6 @@ export function HomeHeader() {
       active: isTerms,
     },
     { type: "link", href: "/privacy-policy", label: "Privacy Policy", active: isPrivacy },
-    { type: "link", href: "/#contact", label: "Contact Us" },
     { type: "link", href: "/login", label: "Login", active: isLogin },
   ];
 
@@ -115,7 +116,9 @@ export function HomeHeader() {
               </li>
             </ul>
           </div>
-          <Link href="/#contact">Contact Us</Link>
+          <Link href="/contact" className={isContact ? "is-active" : undefined}>
+            Contact Us
+          </Link>
           <Link href="/login" className={isLogin ? "is-active" : undefined}>
             Login
           </Link>
