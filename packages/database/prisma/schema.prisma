@@ -81,6 +81,17 @@ enum NotificationStatus {
   SKIPPED
 }
 
+enum ContentStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum SiteMediaKind {
+  HERO
+  FEATURED
+  FOOTER_PAYMENT
+}
+
 model User {
   id           String   @id @default(cuid())
   email        String?  @unique
@@ -125,6 +136,7 @@ model Route {
   toStop         Stop            @relation("RouteTo", fields: [toStopId], references: [id])
   schedules      Schedule[]
   boardingPoints BoardingPoint[]
+  featuredRoutes FeaturedRoute[]
 
   @@unique([fromStopId, toStopId])
   @@index([slug])
@@ -369,4 +381,89 @@ model NotificationLog {
   @@unique([bookingId, channel])
   @@index([status, createdAt])
   @@map("notification_logs")
+}
+
+model SiteProfile {
+  id             String        @id @default("default")
+  companyName    String        @map("company_name")
+  tagline        String?
+  logoUrl        String?       @map("logo_url")
+  faviconUrl     String?       @map("favicon_url")
+  tradeLicenseNo String?       @map("trade_license_no")
+  status         ContentStatus @default(DRAFT)
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+
+  @@map("site_profiles")
+}
+
+model SiteTheme {
+  id           String        @id @default("default")
+  primaryColor String        @map("primary_color")
+  fontFamily   String        @default("Inter") @map("font_family")
+  paletteJson  Json          @map("palette_json")
+  status       ContentStatus @default(DRAFT)
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+
+  @@map("site_themes")
+}
+
+model ContentPage {
+  id           String        @id @default(cuid())
+  slug         String
+  title        String
+  bodyMarkdown String        @map("body_markdown") @db.Text
+  status       ContentStatus @default(DRAFT)
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+
+  @@unique([slug, status])
+  @@index([slug])
+  @@map("content_pages")
+}
+
+model SiteMedia {
+  id        String        @id @default(cuid())
+  kind      SiteMediaKind
+  url       String
+  alt       String        @default("")
+  sortOrder Int           @map("sort_order")
+  status    ContentStatus @default(DRAFT)
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedAt DateTime      @updatedAt @map("updated_at")
+
+  @@unique([kind, sortOrder, status])
+  @@index([kind, status])
+  @@map("site_media")
+}
+
+model FeaturedRoute {
+  id        String        @id @default(cuid())
+  routeId   String        @map("route_id")
+  sortOrder Int           @map("sort_order")
+  isVisible Boolean       @default(true) @map("is_visible")
+  status    ContentStatus @default(DRAFT)
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedAt DateTime      @updatedAt @map("updated_at")
+
+  route Route @relation(fields: [routeId], references: [id], onDelete: Cascade)
+
+  @@unique([routeId, status])
+  @@index([status, sortOrder])
+  @@map("featured_routes")
+}
+
+model FooterSettings {
+  id               String        @id @default("default")
+  contactLines     Json          @map("contact_lines")
+  email            String
+  paymentBannerUrl String?       @map("payment_banner_url")
+  barLinks         Json          @map("bar_links")
+  poweredByText    String?       @map("powered_by_text")
+  status           ContentStatus @default(DRAFT)
+  createdAt        DateTime      @default(now()) @map("created_at")
+  updatedAt        DateTime      @updatedAt @map("updated_at")
+
+  @@map("footer_settings")
 }

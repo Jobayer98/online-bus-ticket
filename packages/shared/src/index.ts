@@ -27,6 +27,7 @@ export * from "./utils/seat-label.js";
 export * from "./utils/unique-city-stops.js";
 export * from "./utils/refund-policy.js";
 export * from "./utils/payment-webhook-policy.js";
+export * from "./utils/brand-palette.js";
 export * from "./schemas/identity/auth.schema.js";
 export * from "./schemas/admin/stop.schema.js";
 export * from "./schemas/admin/route.schema.js";

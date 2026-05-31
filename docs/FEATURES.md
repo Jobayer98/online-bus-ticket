@@ -350,6 +350,80 @@ P4 (E14-24 … E14-28)  →  ops polish
 
 ---
 
+## Epic E15 — Content Management (CMS)
+
+**Goal:** Admin manages public-site branding, pages, media, featured routes, footer, theme, and preview/publish — replacing hardcoded web content.  
+**Depends on:** E01 (ADMIN RBAC), E02 (routes for featured-route curation).  
+**Suggested start:** after MVP core (E08–E11) or in parallel with E14 P4.
+
+### Product notes
+
+- **Draft / publish:** CMS entities carry `ContentStatus` (`DRAFT` \| `PUBLISHED`). Public API returns published only; admin preview returns drafts.
+- **Assets (MVP):** local filesystem via `CMS_ASSETS_DIR`; served at `GET /api/v1/cms/assets/:key`.
+- **Content format:** Markdown stored in DB; sanitized HTML on web.
+- **Featured routes:** curate from existing `Route` records — not duplicate route CRUD.
+- **Brand palette:** admin picks primary hex + font; `generateBrandPalette()` in `@repo/shared` produces semantic CSS tokens with WCAG AA on primary buttons.
+
+### Phase 1 — Foundation
+
+| ID | Task | Layer | Acceptance |
+|----|------|-------|------------|
+| [x] E15-01 | Prisma CMS models + migration (`SiteProfile`, `SiteTheme`, `ContentPage`, `SiteMedia`, `FeaturedRoute`, `FooterSettings`, `ContentStatus`) | db | `pnpm db:migrate` succeeds |
+| [ ] E15-02 | Seed script: import current Shahzadpur static content + image refs into CMS tables as `PUBLISHED` | db | Dev home matches today |
+| [ ] E15-03 | Zod request schemas + response DTOs for all CMS endpoints in `packages/shared/src/schemas/admin/cms/` and `dtos/admin/cms/` | shared | Exported types; invalid hex rejected |
+| [x] E15-04 | `generateBrandPalette(primaryHex)` + WCAG contrast helper + unit tests | shared | Palette JSON matches contract; AA on primary button |
+| [ ] E15-05 | Contract docs under `docs/contracts/admin/cms/` (profile, theme, pages, media, routes, footer, assets, publish, preview) | docs | Matches CONTRACTS.md workflow |
+
+### Phase 2 — API (admin + public)
+
+| ID | Task | Layer | Acceptance |
+|----|------|-------|------------|
+| [ ] E15-06 | Asset upload `POST /api/v1/admin/cms/assets` (multipart, image types, size limit) + `GET /api/v1/cms/assets/:key` | api | ADMIN RBAC; files on disk |
+| [ ] E15-07 | Admin `GET/PATCH /api/v1/admin/cms/profile` (company name, logo, tagline, trade license) | api | Saves draft; returns DTO |
+| [ ] E15-08 | Admin `GET/PATCH /api/v1/admin/cms/theme` — recomputes `paletteJson` on PATCH | api | Palette in response |
+| [ ] E15-09 | Admin CRUD `/api/v1/admin/cms/pages/:slug` (about, contact, terms, privacy, return-policy) | api | Markdown body validated |
+| [ ] E15-10 | Admin CRUD `/api/v1/admin/cms/media` (hero, featured, footer payment banner; reorder) | api | sortOrder unique per kind |
+| [ ] E15-11 | Admin CRUD `/api/v1/admin/cms/featured-routes` (pick `routeId`, order, visibility) | api | FK to Route; 409 if duplicate |
+| [ ] E15-12 | Admin `GET/PATCH /api/v1/admin/cms/footer` | api | JSON contact lines + bar links |
+| [ ] E15-13 | Public `GET /api/v1/cms/site` (published bundle) + `GET /api/v1/cms/pages/:slug` | api | No auth; drafts hidden |
+| [ ] E15-14 | Admin `GET /api/v1/admin/cms/preview` (all drafts) + `POST /api/v1/admin/cms/publish` (transactional) | api | Publish atomically flips status |
+
+### Phase 3 — Web (consume published content)
+
+| ID | Task | Layer | Acceptance |
+|----|------|-------|------------|
+| [ ] E15-15 | `SiteThemeProvider` + update `BrandLogo`, metadata title from CMS profile/theme | web | CSS vars applied site-wide |
+| [ ] E15-16 | Dynamic content pages: about, contact (new `/contact`), policies — fetch markdown, render safe HTML | web | Existing URLs unchanged |
+| [ ] E15-17 | Home: hero background, gallery, featured routes from CMS (remove `home-routes-data.ts`) | web | Links still resolve to search |
+| [ ] E15-18 | Dynamic `SiteFooter` from CMS footer settings | web | Contact + bar links editable |
+
+### Phase 4 — Admin UI
+
+| ID | Task | Layer | Acceptance |
+|----|------|-------|------------|
+| [ ] E15-19 | Admin CMS nav + **Profile** panel (name, logo upload) | web | Saves draft |
+| [ ] E15-20 | Admin **Theme** panel: color picker, font select, generated palette swatches + mini preview | web | Shows E15-04 tokens live |
+| [ ] E15-21 | Admin **Pages** panel: markdown editor per slug with preview | web | All 5 pages editable |
+| [ ] E15-22 | Admin **Media** panel: hero upload, featured gallery drag-reorder | web | Image preview |
+| [ ] E15-23 | Admin **Featured routes** panel: route picker + reorder | web | Uses existing routes list |
+| [ ] E15-24 | Admin **Footer** panel: contact lines, email, links, payment banner | web | Matches public footer |
+| [ ] E15-25 | Admin **Preview & Publish**: iframe/tab preview of draft site + Publish button | web | Preview uses admin preview API |
+
+### E15 dependency order
+
+```
+E15-01 → E15-02
+E15-01 → E15-03 → E15-05
+E15-03 → E15-04
+E15-03 + E15-05 → E15-06 … E15-14
+E15-13 + E15-14 → E15-15 … E15-18
+E15-06 … E15-14 → E15-19 … E15-25
+```
+
+Recommended PR sequence: **01 → 03 → 04 → 05 → 06 → 07 → 08 → 09–12 → 13–14 → 15–18 → 19–25**.
+
+---
+
 ## Suggested Implementation Order
 
 ```
@@ -359,6 +433,7 @@ E04 + E06 → E10
 E08 + E10 → E11
 E12 last
 E14 (P0→P1→P2→P3→P4) — after E08/E10/E11; P0 before production
+E15 — after E02 + E01; start E15-01 after MVP or parallel with E14 P4
 ```
 
 ---
@@ -378,6 +453,14 @@ E14 (P0→P1→P2→P3→P4) — after E08/E10/E11; P0 before production
 | Guest purchase (no account) | E01, E07, E14 (must preserve) |
 | Counter-only refund at desk | E10, E14 |
 | Flat fare (all seat classes) | E14 |
+| Admin sets company name and logo | E15 |
+| Admin edits policies / terms | E15 |
+| Admin edits about / contact | E15 |
+| Admin manages hero and featured images | E15 |
+| Admin curates home available routes | E15 |
+| Admin manages footer | E15 |
+| Admin picks brand color + font; system generates palette | E15 |
+| Admin previews CMS before go-live | E15 |
 
 ---
 
