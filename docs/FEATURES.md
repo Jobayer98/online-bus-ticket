@@ -369,10 +369,10 @@ P4 (E14-24 … E14-28)  →  ops polish
 | ID | Task | Layer | Acceptance |
 |----|------|-------|------------|
 | [x] E15-01 | Prisma CMS models + migration (`SiteProfile`, `SiteTheme`, `ContentPage`, `SiteMedia`, `FeaturedRoute`, `FooterSettings`, `ContentStatus`) | db | `pnpm db:migrate` succeeds |
-| [ ] E15-02 | Seed script: import current Shahzadpur static content + image refs into CMS tables as `PUBLISHED` | db | Dev home matches today |
-| [ ] E15-03 | Zod request schemas + response DTOs for all CMS endpoints in `packages/shared/src/schemas/admin/cms/` and `dtos/admin/cms/` | shared | Exported types; invalid hex rejected |
+| [x] E15-02 | Seed script: import current Shahzadpur static content + image refs into CMS tables as `PUBLISHED` | db | Dev home matches today |
+| [x] E15-03 | Zod request schemas + response DTOs for all CMS endpoints in `packages/shared/src/schemas/admin/cms/` and `dtos/admin/cms/` | shared | Exported types; invalid hex rejected |
 | [x] E15-04 | `generateBrandPalette(primaryHex)` + WCAG contrast helper + unit tests | shared | Palette JSON matches contract; AA on primary button |
-| [ ] E15-05 | Contract docs under `docs/contracts/admin/cms/` (profile, theme, pages, media, routes, footer, assets, publish, preview) | docs | Matches CONTRACTS.md workflow |
+| [x] E15-05 | Contract docs under `docs/contracts/admin/cms/` (profile, theme, pages, media, routes, footer, assets, publish, preview) | docs | Matches CONTRACTS.md workflow |
 
 ### Phase 2 — API (admin + public)
 
