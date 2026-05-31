@@ -213,6 +213,22 @@ Each **Epic** is independently deliverable. Each **micro-task** should be one PR
 
 ---
 
+## Epic E13 — Notifications (SMS & Email)
+
+**Goal:** After payment, send SMS confirmation; if email provided, send ticket PNG by email. Non-blocking background delivery.  
+**Depends on:** E08, E09.
+
+| ID | Task | Layer | Acceptance |
+|----|------|-------|------------|
+| [x] E13-01 | Prisma: `NotificationLog` (channel, status, bookingId) | db | Unique per booking+channel |
+| [x] E13-02 | Zod: `BookingTicketNotificationDto` | shared | Matches ticket + optional email |
+| [x] E13-03 | Twilio SMS + Nodemailer email adapters | api | Env-configured |
+| [x] E13-04 | Server ticket PNG generator (SVG → PNG) | api | Attached to email |
+| [x] E13-05 | BullMQ queue + worker on payment confirm | api | Redis + HTTP not blocked |
+| [x] E13-06 | Contract doc `docs/contracts/notification/booking-confirmed.md` | docs | — |
+
+---
+
 ## Epic E12 — Hardening & Operations (Post-MVP)
 
 **Goal:** Production readiness.  
@@ -229,6 +245,185 @@ Each **Epic** is independently deliverable. Each **micro-task** should be one PR
 
 ---
 
+## Epic E14 — Correctness, Security & Reporting (Staff Review Remediation)
+
+**Goal:** Fix financial/state bugs, secure public flows without breaking guest checkout, align pricing and reports with product rules.  
+**Depends on:** E08–E11 (core flows live).  
+**Source:** Senior staff review (2026-05-31).
+
+### Product constraints (non-negotiable)
+
+| # | Rule | Implication |
+|---|------|-------------|
+| 1 | **Refunds are counter-only** | No online self-service refund; no payment-gateway reversal. Only `POST /api/v1/counter/refund` (and counter UI). Counter staff (`COUNTER_SELLER` / `ADMIN`) act with policy conditions — not open to public or webhook. |
+| 2 | **Guest checkout stays** | Users without an account must complete search → hold → booking → pay → ticket. Security fixes must use session-bound holds, scoped booking tokens, or phone proof — **not** mandatory login. |
+| 3 | **Flat fare by schedule** | `STANDARD`, `PREMIUM`, and `BUSINESS` are **labels/filters only**. Every seat on a schedule pays `schedule.baseFare`. Remove class multipliers everywhere (admin init, seat-map fallback, seed). |
+
+### Refund conditions (counter desk)
+
+Apply on `POST /counter/refund` before mutating state:
+
+- Booking `status === PAID`
+- Schedule not departed (trip `departureAt` > now, Asia/Dhaka)
+- Refund amount = `booking.totalAmount` (full refund only for MVP)
+- Audit row on `CounterTransaction` (already exists)
+- **Online bookings:** may be refunded **at counter only** (cash/handling offline); payment row → `REFUNDED` in DB — no gateway API call
+
+**Cancel vs refund:** `cancel` is for unpaid / held bookings only. **Never** cancel a `PAID` booking — use refund. Counter UI must hide/disable Cancel for PAID.
+
+---
+
+### Phase P0 — Stop data corruption & fraud (do first)
+
+| ID | Task | Layer | Acceptance |
+|----|------|-------|------------|
+| [x] E14-01 | **Flat pricing:** shared constant `FLAT_SEAT_CLASS_MULTIPLIER = 1`; remove 1.3/1.6 from `schedules.service.ts`, `seed.ts`; document seat class ≠ price | shared/api/db | All new schedule seats priced at `baseFare`; seat-map prices match DB |
+| [x] E14-02 | **Payment confirm guards:** require `booking.status === HELD`; reject `CANCELLED`/`REFUNDED`/`PAID`; optional signed `clientSecret` from initiate (guest-safe, no login) | shared/api | Cannot re-pay cancelled booking; guest flow unchanged |
+| [x] E14-03 | **Protect `GET /bookings/:id`:** return summary only with `bookingAccessToken` (issued at create) or authenticated owner; never expose PII to anonymous UUID guess | shared/api/web | Guest checkout works via token in checkout URL/state; no public PII leak |
+| [x] E14-04 | **Seat hold concurrency:** `updateMany` with `status: AVAILABLE` + verify affected count; reject partial lock | api | Two concurrent holds cannot take same seat |
+| [x] E14-05 | **Counter cancel/refund split:** cancel only `HELD`/`DRAFT`; refund only `PAID`; cancel must not touch `Payment` | api/web | PAID + cancel impossible; counter UI matches |
+| [x] E14-06 | **Remove debug auth telemetry** (`auth.ts` ingest to localhost) | api | No outbound debug calls in auth path |
+
+---
+
+### Phase P1 — Financial truth & counter policy
+
+| ID | Task | Layer | Acceptance |
+|----|------|-------|------------|
+| [x] E14-07 | **Refund conditions:** enforce PAID + not departed + full amount; Zod + contract doc `docs/contracts/counter/refund.md` | shared/api | 409 with clear code if policy fails |
+| [x] E14-08 | **Block online refund surface:** no public refund route; webhook stub cannot trigger refund | api | Only counter refund mutates refund state |
+| [x] E14-09 | **Counter sell atomicity:** wrap sell flow in single `$transaction` (hold → booking → pay → audit → channel) | api | Partial sell failure rolls back |
+| [x] E14-10 | **Payment + ticket atomicity:** move `issueTicket` inside confirm transaction or compensating retry | api | PAID booking always has ticket |
+| [x] E14-11 | **Hold session binding:** `createBooking` verifies `sessionId`; release hold requires matching session or booking token | shared/api/web | Guest isolation; no hold hijack |
+| [x] E14-12 | **Rate limit** `POST /bookings/hold` | api | Per-IP limit configured |
+
+---
+
+### Phase P2 — Reporting & admin accuracy
+
+| ID | Task | Layer | Acceptance |
+|----|------|-------|------------|
+| [x] E14-13 | **Net revenue reports:** gross (PAID) + refunds (`CounterTransaction` type REFUND) + net; Zod DTOs in shared | shared/api/web | Dashboard shows gross/refund/net |
+| [x] E14-14 | **Date range fix:** parse `from`/`to` in Asia/Dhaka with end-of-day inclusive | shared/api | Last day of range fully counted |
+| [x] E14-15 | **KPI scope fix:** label `soldSeats` / `activeSchedules` correctly; optional “upcoming schedules” metric | api/web | No misleading 30d vs lifetime mix |
+| [x] E14-16 | **CSV export:** include refunds as negative rows or separate refund sheet | api | Export reconciles with counter shift |
+| [x] E14-17 | **Restore contract docs** for counter refund, search schedules (`seatClasses`), reports | docs | Matches CONTRACTS.md workflow |
+
+---
+
+### Phase P3 — Performance & RBAC cleanup
+
+| ID | Task | Layer | Acceptance |
+|----|------|-------|------------|
+| [x] E14-18 | **Search API:** filter `timePeriod`/`seatClass` in SQL; stop loading all seats when only counts needed | api | Single query or aggregated counts endpoint |
+| [x] E14-19 | **Search web:** one API call for results + filter counts (or server facet counts) | web | No 2–5× duplicate search calls |
+| [x] E14-20 | **Search date window:** Dhaka calendar day boundaries in `searchSchedules` | shared/api | Aligns with `isValidTripDate` |
+| [x] E14-21 | **Schedule mutations ADMIN-only:** create/reschedule/cancel; counter read-only on schedules | api | COUNTER_SELLER cannot cancel trips |
+| [x] E14-22 | **DB indexes:** `Booking(status, createdAt)`, `Stop(city)`, `Schedule(routeId, status, departureAt)` | db | Migration reviewed |
+| [x] E14-23 | **JWT hardening:** fail startup without `JWT_SECRET` in production; `Secure` cookie flag | api | No default secret in prod |
+
+---
+
+### Phase P4 — Ops & maintainability (backlog)
+
+| ID | Task | Layer | Acceptance |
+|----|------|-------|------------|
+| [ ] E14-24 | Hold expiry → BullMQ job (durable, `DISABLE_HOLD_EXPIRY_WORKER` flag) | api | Safe multi-instance |
+| [ ] E14-25 | Admin schedule cancel policy: block new holds; document existing PAID booking handling | api/docs | No silent valid tickets on cancelled trip |
+| [ ] E14-26 | Integration tests: counter refund/cancel guards, payment confirm guards, flat pricing | test | CI covers P0/P1 |
+| [ ] E14-27 | Align return-policy page with counter refund-at-desk policy | web | Legal copy matches product |
+| [ ] E14-28 | Idempotency: require `Idempotency-Key` on payment confirm | api | Duplicate confirm safe |
+
+---
+
+### E14 priority order
+
+```
+P0 (E14-01 … E14-06)  →  ship before any production traffic
+P1 (E14-07 … E14-12)  →  counter policy + guest-safe security complete
+P2 (E14-13 … E14-17)  →  trustworthy admin numbers
+P3 (E14-18 … E14-23)  →  scale + RBAC
+P4 (E14-24 … E14-28)  →  ops polish
+```
+
+**One micro-task per PR.** Check `[x]` when done.
+
+---
+
+## Epic E15 — Content Management (CMS)
+
+**Goal:** Admin manages public-site branding, pages, media, featured routes, footer, theme, and preview/publish — replacing hardcoded web content.  
+**Depends on:** E01 (ADMIN RBAC), E02 (routes for featured-route curation).  
+**Suggested start:** after MVP core (E08–E11) or in parallel with E14 P4.
+
+### Product notes
+
+- **Draft / publish:** CMS entities carry `ContentStatus` (`DRAFT` \| `PUBLISHED`). Public API returns published only; admin preview returns drafts.
+- **Assets (MVP):** local filesystem via `CMS_ASSETS_DIR`; served at `GET /api/v1/cms/assets/:key`.
+- **Content format:** Markdown stored in DB; sanitized HTML on web.
+- **Featured routes:** curate from existing `Route` records — not duplicate route CRUD.
+- **Brand palette:** admin picks primary hex + font; `generateBrandPalette()` in `@repo/shared` produces semantic CSS tokens with WCAG AA on primary buttons.
+
+### Phase 1 — Foundation
+
+| ID | Task | Layer | Acceptance |
+|----|------|-------|------------|
+| [x] E15-01 | Prisma CMS models + migration (`SiteProfile`, `SiteTheme`, `ContentPage`, `SiteMedia`, `FeaturedRoute`, `FooterSettings`, `ContentStatus`) | db | `pnpm db:migrate` succeeds |
+| [ ] E15-02 | Seed script: import current Shahzadpur static content + image refs into CMS tables as `PUBLISHED` | db | Dev home matches today |
+| [ ] E15-03 | Zod request schemas + response DTOs for all CMS endpoints in `packages/shared/src/schemas/admin/cms/` and `dtos/admin/cms/` | shared | Exported types; invalid hex rejected |
+| [x] E15-04 | `generateBrandPalette(primaryHex)` + WCAG contrast helper + unit tests | shared | Palette JSON matches contract; AA on primary button |
+| [ ] E15-05 | Contract docs under `docs/contracts/admin/cms/` (profile, theme, pages, media, routes, footer, assets, publish, preview) | docs | Matches CONTRACTS.md workflow |
+
+### Phase 2 — API (admin + public)
+
+| ID | Task | Layer | Acceptance |
+|----|------|-------|------------|
+| [ ] E15-06 | Asset upload `POST /api/v1/admin/cms/assets` (multipart, image types, size limit) + `GET /api/v1/cms/assets/:key` | api | ADMIN RBAC; files on disk |
+| [ ] E15-07 | Admin `GET/PATCH /api/v1/admin/cms/profile` (company name, logo, tagline, trade license) | api | Saves draft; returns DTO |
+| [ ] E15-08 | Admin `GET/PATCH /api/v1/admin/cms/theme` — recomputes `paletteJson` on PATCH | api | Palette in response |
+| [ ] E15-09 | Admin CRUD `/api/v1/admin/cms/pages/:slug` (about, contact, terms, privacy, return-policy) | api | Markdown body validated |
+| [ ] E15-10 | Admin CRUD `/api/v1/admin/cms/media` (hero, featured, footer payment banner; reorder) | api | sortOrder unique per kind |
+| [ ] E15-11 | Admin CRUD `/api/v1/admin/cms/featured-routes` (pick `routeId`, order, visibility) | api | FK to Route; 409 if duplicate |
+| [ ] E15-12 | Admin `GET/PATCH /api/v1/admin/cms/footer` | api | JSON contact lines + bar links |
+| [ ] E15-13 | Public `GET /api/v1/cms/site` (published bundle) + `GET /api/v1/cms/pages/:slug` | api | No auth; drafts hidden |
+| [ ] E15-14 | Admin `GET /api/v1/admin/cms/preview` (all drafts) + `POST /api/v1/admin/cms/publish` (transactional) | api | Publish atomically flips status |
+
+### Phase 3 — Web (consume published content)
+
+| ID | Task | Layer | Acceptance |
+|----|------|-------|------------|
+| [ ] E15-15 | `SiteThemeProvider` + update `BrandLogo`, metadata title from CMS profile/theme | web | CSS vars applied site-wide |
+| [ ] E15-16 | Dynamic content pages: about, contact (new `/contact`), policies — fetch markdown, render safe HTML | web | Existing URLs unchanged |
+| [ ] E15-17 | Home: hero background, gallery, featured routes from CMS (remove `home-routes-data.ts`) | web | Links still resolve to search |
+| [ ] E15-18 | Dynamic `SiteFooter` from CMS footer settings | web | Contact + bar links editable |
+
+### Phase 4 — Admin UI
+
+| ID | Task | Layer | Acceptance |
+|----|------|-------|------------|
+| [ ] E15-19 | Admin CMS nav + **Profile** panel (name, logo upload) | web | Saves draft |
+| [ ] E15-20 | Admin **Theme** panel: color picker, font select, generated palette swatches + mini preview | web | Shows E15-04 tokens live |
+| [ ] E15-21 | Admin **Pages** panel: markdown editor per slug with preview | web | All 5 pages editable |
+| [ ] E15-22 | Admin **Media** panel: hero upload, featured gallery drag-reorder | web | Image preview |
+| [ ] E15-23 | Admin **Featured routes** panel: route picker + reorder | web | Uses existing routes list |
+| [ ] E15-24 | Admin **Footer** panel: contact lines, email, links, payment banner | web | Matches public footer |
+| [ ] E15-25 | Admin **Preview & Publish**: iframe/tab preview of draft site + Publish button | web | Preview uses admin preview API |
+
+### E15 dependency order
+
+```
+E15-01 → E15-02
+E15-01 → E15-03 → E15-05
+E15-03 → E15-04
+E15-03 + E15-05 → E15-06 … E15-14
+E15-13 + E15-14 → E15-15 … E15-18
+E15-06 … E15-14 → E15-19 … E15-25
+```
+
+Recommended PR sequence: **01 → 03 → 04 → 05 → 06 → 07 → 08 → 09–12 → 13–14 → 15–18 → 19–25**.
+
+---
+
 ## Suggested Implementation Order
 
 ```
@@ -237,6 +432,8 @@ E00 → E02 → E03 → E04 → E05 → E06 → E07 → E08 → E09
 E04 + E06 → E10
 E08 + E10 → E11
 E12 last
+E14 (P0→P1→P2→P3→P4) — after E08/E10/E11; P0 before production
+E15 — after E02 + E01; start E15-01 after MVP or parallel with E14 P4
 ```
 
 ---
@@ -250,9 +447,20 @@ E12 last
 | Pay and get ticket | E07, E08, E09 |
 | Download without login | E09 |
 | Login + history | E01, E07 |
-| Counter sell/change/refund/cancel | E10 |
-| Counter/admin scheduling | E04, E10 |
-| Admin reports | E11 |
+| Counter sell/change/refund/cancel | E10, E14 |
+| Counter/admin scheduling | E04, E10, E14 |
+| Admin reports | E11, E14 |
+| Guest purchase (no account) | E01, E07, E14 (must preserve) |
+| Counter-only refund at desk | E10, E14 |
+| Flat fare (all seat classes) | E14 |
+| Admin sets company name and logo | E15 |
+| Admin edits policies / terms | E15 |
+| Admin edits about / contact | E15 |
+| Admin manages hero and featured images | E15 |
+| Admin curates home available routes | E15 |
+| Admin manages footer | E15 |
+| Admin picks brand color + font; system generates palette | E15 |
+| Admin previews CMS before go-live | E15 |
 
 ---
 
