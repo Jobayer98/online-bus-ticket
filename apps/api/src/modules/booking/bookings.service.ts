@@ -7,6 +7,11 @@ import {
   type CreateBookingInput,
   type CreateHoldInput,
 } from "@repo/shared";
+import {
+  bookingAccessSigningSecret,
+  createBookingAccessToken,
+  isBookingAccessGranted,
+} from "../../lib/booking-access-token.js";
 
 export async function createHold(input: CreateHoldInput) {
   const schedule = await prisma.schedule.findUnique({
@@ -217,10 +222,16 @@ export async function createBooking(
     });
   });
 
-  return toBookingDto(booking, {
-    holdId: booking.holdId,
-    holdExpiresAt: paymentExpiresAt.toISOString(),
-  });
+  return {
+    ...toBookingDto(booking, {
+      holdId: booking.holdId,
+      holdExpiresAt: paymentExpiresAt.toISOString(),
+    }),
+    bookingAccessToken: createBookingAccessToken(bookingAccessSigningSecret(), {
+      bookingId: booking.id,
+      exp: paymentExpiresAt.getTime(),
+    }),
+  };
 }
 
 function toBookingDto(
@@ -251,7 +262,10 @@ function toBookingDto(
   };
 }
 
-export async function getBooking(id: string) {
+export async function getBooking(
+  id: string,
+  access?: { userId?: string; accessToken?: string },
+) {
   const booking = await prisma.booking.findUnique({
     where: { id },
     include: {
@@ -259,7 +273,21 @@ export async function getBooking(id: string) {
       hold: true,
     },
   });
-  if (!booking) throw new AppError(ErrorCode.BOOKING_NOT_FOUND, "Not found", 404);
+  if (!booking) {
+    throw new AppError(ErrorCode.BOOKING_NOT_FOUND, "Not found", 404);
+  }
+
+  const isOwner = Boolean(access?.userId && booking.userId === access.userId);
+  const hasToken = isBookingAccessGranted(
+    bookingAccessSigningSecret(),
+    id,
+    access?.accessToken,
+  );
+
+  if (!isOwner && !hasToken) {
+    throw new AppError(ErrorCode.BOOKING_NOT_FOUND, "Not found", 404);
+  }
+
   return toBookingDto(
     booking,
     booking.holdId

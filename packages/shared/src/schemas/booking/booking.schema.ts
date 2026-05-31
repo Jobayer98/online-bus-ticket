@@ -23,3 +23,13 @@ export const createBookingSchema = z.object({
 
 export type CreateHoldInput = z.infer<typeof createHoldSchema>;
 export type CreateBookingInput = z.infer<typeof createBookingSchema>;
+
+export const bookingIdParamsSchema = z.object({
+  id: prismaIdSchema,
+});
+
+export const getBookingQuerySchema = z.object({
+  accessToken: z.string().min(1).optional(),
+});
+
+export type GetBookingQuery = z.infer<typeof getBookingQuerySchema>;

@@ -17,7 +17,8 @@ import {
   formatTime12h,
 } from "@/lib/format";
 import { SeatHoldTimer } from "./seat-hold-timer";
-import type { BookingDto, HoldDto, ScheduleCardDto, SeatMapDto } from "@repo/shared";
+import type { CreateBookingResponseDto, HoldDto, ScheduleCardDto, SeatMapDto } from "@repo/shared";
+import { buildPaymentUrl } from "@/lib/booking-access";
 
 export type SearchCheckoutState = {
   schedule: ScheduleCardDto;
@@ -116,7 +117,7 @@ export function SearchCheckoutForm({
         return;
       }
 
-      const r = await apiPost<BookingDto>("/bookings", {
+      const r = await apiPost<CreateBookingResponseDto>("/bookings", {
         holdId: hold.holdId,
         boardingPointId: validBoarding.id,
         passenger: {
@@ -132,7 +133,11 @@ export function SearchCheckoutForm({
       markPaymentPageEnterLoading();
       navigating = true;
       router.push(
-        `/booking/${schedule.scheduleId}/payment?bookingId=${r.data.id}`,
+        buildPaymentUrl(
+          schedule.scheduleId,
+          r.data.id,
+          r.data.bookingAccessToken,
+        ),
       );
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not create booking");

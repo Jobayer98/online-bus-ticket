@@ -14,3 +14,10 @@ export const bookingDtoSchema = z.object({
 });
 
 export type BookingDto = z.infer<typeof bookingDtoSchema>;
+
+/** Returned once from POST /bookings — required for guest GET /bookings/:id. */
+export const createBookingResponseSchema = bookingDtoSchema.extend({
+  bookingAccessToken: z.string(),
+});
+
+export type CreateBookingResponseDto = z.infer<typeof createBookingResponseSchema>;

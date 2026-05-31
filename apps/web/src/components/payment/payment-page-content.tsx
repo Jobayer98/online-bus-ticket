@@ -12,6 +12,10 @@ import {
   releaseActiveHold,
   setActiveHoldId,
 } from "@/lib/active-hold";
+import {
+  bookingAccessQuery,
+  resolveBookingAccessToken,
+} from "@/lib/booking-access";
 import { formatMoneyBdt } from "@/lib/format";
 import { storeTicketLookup } from "@/lib/ticket-lookup-session";
 import { useGlobalLoading } from "@/components/global-loading-provider";
@@ -26,6 +30,7 @@ export function PaymentPageContent() {
   const { scheduleId } = useParams<{ scheduleId: string }>();
   const searchParams = useSearchParams();
   const bookingId = searchParams.get("bookingId");
+  const accessTokenParam = searchParams.get("accessToken");
   const router = useRouter();
 
   const [booking, setBooking] = useState<BookingDto | null>(null);
@@ -41,7 +46,15 @@ export function PaymentPageContent() {
       setError("Missing booking reference");
       return;
     }
-    apiGet<BookingDto>(`/bookings/${bookingId}`)
+    const accessToken = resolveBookingAccessToken(
+      bookingId,
+      accessTokenParam,
+    );
+    if (!accessToken) {
+      setError("Missing booking access. Please start checkout again.");
+      return;
+    }
+    apiGet<BookingDto>(`/bookings/${bookingId}?${bookingAccessQuery(accessToken)}`)
       .then((r) => {
         setBooking(r.data);
         if (r.data.holdExpiresAt) {
@@ -58,7 +71,7 @@ export function PaymentPageContent() {
         clearPaymentPageEnterLoading();
         setEnterLoading(false);
       });
-  }, [bookingId]);
+  }, [bookingId, accessTokenParam]);
 
   const handleHoldExpired = useCallback(() => {
     setHoldExpired(true);

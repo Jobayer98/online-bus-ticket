@@ -12,7 +12,8 @@ import { formatMoneyBdt } from "@/lib/format";
 import { groupSeatsByRow, seatRow } from "@/lib/seat-layout";
 import { useGlobalLoading } from "@/components/global-loading-provider";
 import { SeatHoldTimer } from "@/components/search/seat-hold-timer";
-import type { BookingDto, SeatMapDto, HoldDto } from "@repo/shared";
+import type { CreateBookingResponseDto, SeatMapDto, HoldDto } from "@repo/shared";
+import { buildPaymentUrl } from "@/lib/booking-access";
 
 export function BookingPageContent() {
   const { scheduleId } = useParams<{ scheduleId: string }>();
@@ -102,7 +103,7 @@ export function BookingPageContent() {
     }
     setSubmitting(true);
     try {
-      const r = await apiPost<BookingDto>("/bookings", {
+      const r = await apiPost<CreateBookingResponseDto>("/bookings", {
         holdId: hold.holdId,
         boardingPointId,
         passenger,
@@ -111,7 +112,9 @@ export function BookingPageContent() {
         setActiveHoldId(r.data.holdId);
       }
       sessionStorage.removeItem(`booking-prefill-${scheduleId}`);
-      router.push(`/booking/${scheduleId}/payment?bookingId=${r.data.id}`);
+      router.push(
+        buildPaymentUrl(scheduleId, r.data.id, r.data.bookingAccessToken),
+      );
     } catch (e) {
       setError(e instanceof Error ? e.message : "Booking failed");
       setSubmitting(false);

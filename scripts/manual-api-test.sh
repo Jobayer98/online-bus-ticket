@@ -236,10 +236,11 @@ if [[ -n "${SCHEDULE_ID:-}" && "$SCHEDULE_ID" != "null" && -n "${SEAT_LABEL:-}" 
       -d "{\"holdId\":\"$HOLD_ID\",\"boardingPointId\":\"$BOARDING_ID\",\"passenger\":{\"name\":\"Manual Tester\",\"phone\":\"01799999999\"}}"
     assert_status "POST /bookings" 201
     BOOKING_ID=$(json_val '.data.id')
+    BOOKING_ACCESS=$(json_val '.data.bookingAccessToken')
     PASSENGER_NUM=$(json_val '.data.ticket.passengerNumber')
 
     if [[ -n "$BOOKING_ID" && "$BOOKING_ID" != "null" ]]; then
-      run GET "/bookings/$BOOKING_ID"
+      run GET "/bookings/$BOOKING_ID?accessToken=$BOOKING_ACCESS"
       assert_status "GET /bookings/:id" 200
 
       run POST /payments/initiate -H 'Content-Type: application/json' \

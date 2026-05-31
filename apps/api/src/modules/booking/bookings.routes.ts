@@ -2,6 +2,8 @@ import { Router } from "express";
 import {
   createHoldSchema,
   createBookingSchema,
+  getBookingQuerySchema,
+  bookingIdParamsSchema,
   successResponse,
 } from "@repo/shared";
 import * as bookingService from "./bookings.service.js";
@@ -39,7 +41,12 @@ bookingsRouter.post("/", async (req, res, next) => {
 
 bookingsRouter.get("/:id", async (req, res, next) => {
   try {
-    const data = await bookingService.getBooking(req.params.id);
+    const { id } = bookingIdParamsSchema.parse(req.params);
+    const query = getBookingQuerySchema.parse(req.query);
+    const data = await bookingService.getBooking(id, {
+      userId: req.userId,
+      accessToken: query.accessToken,
+    });
     res.json(successResponse(data));
   } catch (e) {
     next(e);
