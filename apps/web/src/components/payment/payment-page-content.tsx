@@ -73,10 +73,13 @@ export function PaymentPageContent() {
       }
       setError("");
       try {
-        await apiPost("/payments/initiate", { bookingId, method: "ONLINE" });
+        const initiated = await apiPost<{ clientSecret: string }>(
+          "/payments/initiate",
+          { bookingId, method: "ONLINE" },
+        );
         const r = await apiPost<{ ticket: { passengerNumber: string } }>(
           "/payments/confirm",
-          { bookingId },
+          { bookingId, clientSecret: initiated.data.clientSecret },
           { "Idempotency-Key": bookingId },
         );
         clearActiveHoldId();

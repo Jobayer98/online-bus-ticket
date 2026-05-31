@@ -245,10 +245,11 @@ if [[ -n "${SCHEDULE_ID:-}" && "$SCHEDULE_ID" != "null" && -n "${SEAT_LABEL:-}" 
       run POST /payments/initiate -H 'Content-Type: application/json' \
         -d "{\"bookingId\":\"$BOOKING_ID\",\"method\":\"ONLINE\"}"
       assert_status "POST /payments/initiate" 200
+      CLIENT_SECRET=$(json_val '.data.clientSecret')
 
       run POST /payments/confirm -H 'Content-Type: application/json' \
         -H "Idempotency-Key: manual-$BOOKING_ID" \
-        -d "{\"bookingId\":\"$BOOKING_ID\"}"
+        -d "{\"bookingId\":\"$BOOKING_ID\",\"clientSecret\":\"$CLIENT_SECRET\"}"
       assert_status "POST /payments/confirm" 200
 
       if [[ -n "$PASSENGER_NUM" && "$PASSENGER_NUM" != "null" ]]; then

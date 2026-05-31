@@ -28,12 +28,13 @@ counterRouter.post("/sell", async (req, res, next) => {
       boardingPointId: input.boardingPointId,
       passenger: input.passenger,
     });
-    await paymentService.initiatePayment({
+    const initiated = await paymentService.initiatePayment({
       bookingId: booking.id,
       method: input.method,
     });
     const result = await paymentService.confirmPayment(
       booking.id,
+      initiated.clientSecret,
       `counter_${booking.id}`,
     );
     await prisma.counterTransaction.create({

@@ -6,6 +6,7 @@ export * from "./dtos/schedule/schedule-card.dto.js";
 export * from "./dtos/booking/seat-map.dto.js";
 export * from "./dtos/booking/hold.dto.js";
 export * from "./dtos/booking/booking.dto.js";
+export * from "./dtos/payment/payment.dto.js";
 export * from "./dtos/ticket/ticket.dto.js";
 export * from "./errors/app-error.js";
 export * from "./errors/error-codes.js";

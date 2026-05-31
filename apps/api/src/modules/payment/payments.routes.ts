@@ -30,6 +30,7 @@ paymentsRouter.post("/confirm", paymentLimiter, async (req, res, next) => {
     const idempotencyKey = req.headers["idempotency-key"] as string | undefined;
     const data = await paymentService.confirmPayment(
       input.bookingId,
+      input.clientSecret,
       idempotencyKey,
       input.providerRef,
     );

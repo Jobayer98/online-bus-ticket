@@ -1,14 +1,59 @@
 import { prisma } from "@repo/database";
-import { AppError, ErrorCode, type InitiatePaymentInput } from "@repo/shared";
+import {
+  AppError,
+  ErrorCode,
+  SEAT_HOLD_PAYMENT_TTL_MS,
+  type InitiatePaymentInput,
+} from "@repo/shared";
+import {
+  createPaymentClientSecret,
+  paymentSigningSecret,
+  verifyPaymentClientSecret,
+} from "../../lib/payment-client-secret.js";
 import { enqueueBookingNotifications } from "../../jobs/dispatch-notifications.js";
 import { issueTicket } from "../ticket/tickets.service.js";
 
-export async function initiatePayment(input: InitiatePaymentInput) {
-  const booking = await prisma.booking.findUnique({ where: { id: input.bookingId } });
-  if (!booking) throw new AppError(ErrorCode.BOOKING_NOT_FOUND, "Booking not found", 404);
+type BookingForPayment = {
+  id: string;
+  status: string;
+  totalAmount: number;
+  hold: { expiresAt: Date } | null;
+};
+
+function assertBookingPayable(booking: BookingForPayment): void {
   if (booking.status === "PAID") {
     throw new AppError(ErrorCode.CONFLICT, "Already paid", 409);
   }
+  if (booking.status === "CANCELLED") {
+    throw new AppError(ErrorCode.CONFLICT, "Booking cancelled", 409);
+  }
+  if (booking.status === "REFUNDED") {
+    throw new AppError(ErrorCode.CONFLICT, "Booking refunded", 409);
+  }
+  if (booking.status !== "HELD") {
+    throw new AppError(
+      ErrorCode.CONFLICT,
+      "Booking is not ready for payment",
+      409,
+    );
+  }
+  const holdExpiresAt =
+    booking.hold?.expiresAt ??
+    new Date(Date.now() + SEAT_HOLD_PAYMENT_TTL_MS);
+  if (holdExpiresAt < new Date()) {
+    throw new AppError(ErrorCode.HOLD_EXPIRED, "Hold expired", 409);
+  }
+}
+
+export async function initiatePayment(input: InitiatePaymentInput) {
+  const booking = await prisma.booking.findUnique({
+    where: { id: input.bookingId },
+    include: { hold: true },
+  });
+  if (!booking) {
+    throw new AppError(ErrorCode.BOOKING_NOT_FOUND, "Booking not found", 404);
+  }
+  assertBookingPayable(booking);
 
   const payment = await prisma.payment.upsert({
     where: { bookingId: booking.id },
@@ -18,7 +63,20 @@ export async function initiatePayment(input: InitiatePaymentInput) {
       method: input.method,
       status: "PENDING",
     },
-    update: { method: input.method, status: "PENDING" },
+    update: {
+      method: input.method,
+      status: "PENDING",
+      amount: booking.totalAmount,
+    },
+  });
+
+  const holdExpiresAt =
+    booking.hold?.expiresAt ??
+    new Date(Date.now() + SEAT_HOLD_PAYMENT_TTL_MS);
+  const clientSecret = createPaymentClientSecret(paymentSigningSecret(), {
+    paymentId: payment.id,
+    bookingId: booking.id,
+    exp: holdExpiresAt.getTime(),
   });
 
   return {
@@ -26,12 +84,13 @@ export async function initiatePayment(input: InitiatePaymentInput) {
     bookingId: booking.id,
     amount: payment.amount,
     method: payment.method,
-    clientSecret: `mock_${payment.id}`,
+    clientSecret,
   };
 }
 
 export async function confirmPayment(
   bookingId: string,
+  clientSecret: string,
   idempotencyKey?: string,
   providerRef?: string,
 ) {
@@ -49,26 +108,55 @@ export async function confirmPayment(
     }
   }
 
+  const tokenPayload = verifyPaymentClientSecret(
+    paymentSigningSecret(),
+    clientSecret,
+    bookingId,
+  );
+
   const booking = await prisma.booking.findUnique({
     where: { id: bookingId },
     include: {
-      hold: { include: { items: true } },
+      hold: true,
       seats: true,
+      payment: true,
     },
   });
-  if (!booking) throw new AppError(ErrorCode.BOOKING_NOT_FOUND, "Booking not found", 404);
+  if (!booking) {
+    throw new AppError(ErrorCode.BOOKING_NOT_FOUND, "Booking not found", 404);
+  }
+
+  assertBookingPayable(booking);
+
+  if (!booking.payment || booking.payment.status !== "PENDING") {
+    throw new AppError(
+      ErrorCode.CONFLICT,
+      "Payment not initiated or already completed",
+      409,
+    );
+  }
+  if (booking.payment.id !== tokenPayload.paymentId) {
+    throw new AppError(ErrorCode.UNAUTHORIZED, "Invalid payment token", 401);
+  }
 
   await prisma.$transaction(async (tx) => {
-    await tx.payment.update({
-      where: { bookingId },
+    const updated = await tx.payment.updateMany({
+      where: { bookingId, status: "PENDING", id: tokenPayload.paymentId },
       data: {
         status: "COMPLETED",
         idempotencyKey,
         providerRef: providerRef ?? `mock_${Date.now()}`,
       },
     });
+    if (updated.count !== 1) {
+      throw new AppError(
+        ErrorCode.CONFLICT,
+        "Payment not initiated or already completed",
+        409,
+      );
+    }
     await tx.booking.update({
-      where: { id: bookingId },
+      where: { id: bookingId, status: "HELD" },
       data: { status: "PAID" },
     });
     const seatIds = booking.seats.map((s) => s.scheduleSeatId);
