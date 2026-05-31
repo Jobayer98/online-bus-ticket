@@ -1,9 +1,11 @@
+import { describe, expect, it, vi, afterEach } from "vitest";
 import express from "express";
 import request from "supertest";
 import { AppError, ErrorCode } from "@repo/shared";
 import {
   authenticateOptional,
   authenticateRequired,
+  assertJwtSecretConfigured,
   requireRole,
   signToken,
 } from "./auth.js";
@@ -80,5 +82,27 @@ describe("auth middleware", () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ userId: "user-1" });
+  });
+});
+
+describe("JWT hardening (E14-23)", () => {
+  const env = process.env;
+
+  afterEach(() => {
+    process.env = { ...env };
+  });
+
+  it("assertJwtSecretConfigured throws in production without JWT_SECRET", () => {
+    process.env.NODE_ENV = "production";
+    delete process.env.JWT_SECRET;
+    expect(() => assertJwtSecretConfigured()).toThrow(
+      "JWT_SECRET is required in production",
+    );
+  });
+
+  it("assertJwtSecretConfigured passes in production with JWT_SECRET", () => {
+    process.env.NODE_ENV = "production";
+    process.env.JWT_SECRET = "prod-secret";
+    expect(() => assertJwtSecretConfigured()).not.toThrow();
   });
 });

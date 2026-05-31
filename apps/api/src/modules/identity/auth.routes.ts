@@ -1,6 +1,7 @@
 import { Router } from "express";
 import rateLimit from "express-rate-limit";
 import { registerSchema, loginSchema, successResponse } from "@repo/shared";
+import { authCookieOptions } from "../../middleware/auth.js";
 import * as authService from "./auth.service.js";
 
 export const authRouter = Router();
@@ -13,7 +14,7 @@ authRouter.post("/register", async (req, res, next) => {
     const input = registerSchema.parse(req.body);
     const result = await authService.register(input);
     res
-      .cookie("token", result.token, { httpOnly: true, sameSite: "lax" })
+      .cookie("token", result.token, authCookieOptions())
       .json(successResponse(result));
   } catch (e) {
     next(e);
@@ -25,7 +26,7 @@ authRouter.post("/login", async (req, res, next) => {
     const input = loginSchema.parse(req.body);
     const result = await authService.login(input);
     res
-      .cookie("token", result.token, { httpOnly: true, sameSite: "lax" })
+      .cookie("token", result.token, authCookieOptions())
       .json(successResponse(result));
   } catch (e) {
     next(e);
@@ -33,5 +34,5 @@ authRouter.post("/login", async (req, res, next) => {
 });
 
 authRouter.post("/logout", (_req, res) => {
-  res.clearCookie("token").json(successResponse({ ok: true }));
+  res.clearCookie("token", authCookieOptions()).json(successResponse({ ok: true }));
 });

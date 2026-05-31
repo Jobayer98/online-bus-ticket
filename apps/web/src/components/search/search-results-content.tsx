@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { getTimePeriod, resolveStopIdForCity } from "@repo/shared";
+import { resolveStopIdForCity } from "@repo/shared";
 import { apiGet } from "@/lib/api-client";
 import {
   addDaysIso,
@@ -27,7 +27,13 @@ import {
   releaseActiveHold,
   setActiveHoldId,
 } from "@/lib/active-hold";
-import type { HoldDto, ScheduleCardDto } from "@repo/shared";
+import type {
+  HoldDto,
+  ScheduleCardDto,
+  SearchSchedulesFacets,
+  SearchSchedulesMeta,
+} from "@repo/shared";
+import { emptySearchFacets } from "@repo/shared";
 
 type Stop = { id: string; name: string; city: string; code: string };
 type RouteInfo = {
@@ -37,8 +43,6 @@ type RouteInfo = {
   fromStop: { name: string; city: string };
   toStop: { name: string; city: string };
 };
-
-const SEAT_CLASS_VALUES = ["PREMIUM", "STANDARD", "BUSINESS"] as const;
 
 export function SearchResultsContent() {
   useSearchPageHoldCleanup();
@@ -50,15 +54,12 @@ export function SearchResultsContent() {
   const [stops, setStops] = useState<Stop[]>([]);
   const [route, setRoute] = useState<RouteInfo | null>(null);
   const [schedules, setSchedules] = useState<ScheduleCardDto[]>([]);
-  const [allForCounts, setAllForCounts] = useState<ScheduleCardDto[]>([]);
+  const [facets, setFacets] = useState<SearchSchedulesFacets>(emptySearchFacets());
   const [loading, setLoading] = useState(true);
   useGlobalLoading(loading);
   const [error, setError] = useState("");
   const [filterError, setFilterError] = useState("");
   const [filtersExpanded, setFiltersExpanded] = useState(false);
-  const [seatClassCounts, setSeatClassCounts] = useState<Record<string, number>>(
-    {},
-  );
 
   const timePeriod = searchParams.get("timePeriod") ?? "";
   const seatClass = searchParams.get("seatClass") ?? "";
@@ -148,8 +149,11 @@ export function SearchResultsContent() {
     if (timePeriod) q.set("timePeriod", timePeriod);
     if (seatClass) q.set("seatClass", seatClass);
 
-    apiGet<ScheduleCardDto[]>(`/schedules/search?${q}`)
-      .then((r) => setSchedules(r.data))
+    apiGet<ScheduleCardDto[], SearchSchedulesMeta>(`/schedules/search?${q}`)
+      .then((r) => {
+        setSchedules(r.data);
+        setFacets(r.meta?.facets ?? emptySearchFacets());
+      })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, [
@@ -161,46 +165,9 @@ export function SearchResultsContent() {
     seatClass,
   ]);
 
-  const fetchCounts = useCallback(() => {
-    if (!resolvedFromStopId || !resolvedToStopId) return;
-    const q = apiSearchQuery();
-    apiGet<ScheduleCardDto[]>(`/schedules/search?${q}`)
-      .then((r) => setAllForCounts(r.data))
-      .catch(() => setAllForCounts([]));
-  }, [resolvedFromStopId, resolvedToStopId, params.date, busTypeParam]);
-
   useEffect(() => {
     fetchSchedules();
-    fetchCounts();
-  }, [fetchSchedules, fetchCounts]);
-
-  useEffect(() => {
-    if (!filtersExpanded || !resolvedFromStopId || !resolvedToStopId) return;
-    const base = apiSearchQuery();
-    Promise.all(
-      SEAT_CLASS_VALUES.map(async (sc) => {
-        const q = new URLSearchParams(base);
-        q.set("seatClass", sc);
-        const r = await apiGet<ScheduleCardDto[]>(`/schedules/search?${q}`);
-        return [sc, r.data.length] as const;
-      }),
-    ).then((pairs) => setSeatClassCounts(Object.fromEntries(pairs)));
-  }, [
-    filtersExpanded,
-    resolvedFromStopId,
-    resolvedToStopId,
-    params.date,
-    busTypeParam,
-  ]);
-
-  const timePeriodCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    for (const s of allForCounts) {
-      const p = getTimePeriod(new Date(s.departureAt));
-      counts[p] = (counts[p] ?? 0) + 1;
-    }
-    return counts;
-  }, [allForCounts]);
+  }, [fetchSchedules]);
 
   useEffect(() => {
     const tick = () => {
@@ -243,6 +210,9 @@ export function SearchResultsContent() {
   }, [params.date]);
 
   const todayIso = getTodayIso();
+
+  const timePeriodCounts = facets.timePeriod;
+  const seatClassCounts = facets.seatClass;
 
   function resolveBusType(): string {
     if (acOn && !nonAcOn) return "AC";
@@ -372,7 +342,7 @@ export function SearchResultsContent() {
         filterError={filterError}
         timePeriodCounts={timePeriodCounts}
         seatClassCounts={seatClassCounts}
-        totalCount={allForCounts.length}
+        totalCount={facets.total}
         onFromChange={setFromDraft}
         onToChange={setToDraft}
         onDateChange={setDate}

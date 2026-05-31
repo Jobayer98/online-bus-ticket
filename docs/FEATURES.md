@@ -315,12 +315,12 @@ Apply on `POST /counter/refund` before mutating state:
 
 | ID | Task | Layer | Acceptance |
 |----|------|-------|------------|
-| [ ] E14-18 | **Search API:** filter `timePeriod`/`seatClass` in SQL; stop loading all seats when only counts needed | api | Single query or aggregated counts endpoint |
-| [ ] E14-19 | **Search web:** one API call for results + filter counts (or server facet counts) | web | No 2–5× duplicate search calls |
-| [ ] E14-20 | **Search date window:** Dhaka calendar day boundaries in `searchSchedules` | shared/api | Aligns with `isValidTripDate` |
-| [ ] E14-21 | **Schedule mutations ADMIN-only:** create/reschedule/cancel; counter read-only on schedules | api | COUNTER_SELLER cannot cancel trips |
-| [ ] E14-22 | **DB indexes:** `Booking(status, createdAt)`, `Stop(city)`, `Schedule(routeId, status, departureAt)` | db | Migration reviewed |
-| [ ] E14-23 | **JWT hardening:** fail startup without `JWT_SECRET` in production; `Secure` cookie flag | api | No default secret in prod |
+| [x] E14-18 | **Search API:** filter `timePeriod`/`seatClass` in SQL; stop loading all seats when only counts needed | api | Single query or aggregated counts endpoint |
+| [x] E14-19 | **Search web:** one API call for results + filter counts (or server facet counts) | web | No 2–5× duplicate search calls |
+| [x] E14-20 | **Search date window:** Dhaka calendar day boundaries in `searchSchedules` | shared/api | Aligns with `isValidTripDate` |
+| [x] E14-21 | **Schedule mutations ADMIN-only:** create/reschedule/cancel; counter read-only on schedules | api | COUNTER_SELLER cannot cancel trips |
+| [x] E14-22 | **DB indexes:** `Booking(status, createdAt)`, `Stop(city)`, `Schedule(routeId, status, departureAt)` | db | Migration reviewed |
+| [x] E14-23 | **JWT hardening:** fail startup without `JWT_SECRET` in production; `Secure` cookie flag | api | No default secret in prod |
 
 ---
 

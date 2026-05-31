@@ -17,10 +17,10 @@ function authHeaders(extra?: HeadersInit): HeadersInit {
   return headers;
 }
 
-export async function api<T>(
+export async function api<T, M = undefined>(
   path: string,
   options?: RequestInit,
-): Promise<{ data: T }> {
+): Promise<M extends undefined ? { data: T } : { data: T; meta: M }> {
   const res = await fetch(`${API_URL}/api/v1${path}`, {
     ...options,
     credentials: "include",
@@ -34,8 +34,8 @@ export async function api<T>(
   return json;
 }
 
-export function apiGet<T>(path: string) {
-  return api<T>(path);
+export function apiGet<T, M = undefined>(path: string) {
+  return api<T, M>(path);
 }
 
 export function apiPost<T>(

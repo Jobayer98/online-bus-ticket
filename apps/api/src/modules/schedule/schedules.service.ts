@@ -2,12 +2,16 @@ import { prisma } from "@repo/database";
 import {
   AppError,
   ErrorCode,
+  emptySearchFacets,
   getTimePeriod,
   priceForScheduleSeat,
   SeatClass,
+  buildScheduleDepartureWhere,
+  type SearchSchedulesFacets,
   type SearchSchedulesQuery,
   type ScheduleCardDto,
 } from "@repo/shared";
+import type { Prisma } from "@repo/database";
 
 const SEAT_CLASS_ORDER = [
   SeatClass.STANDARD,
@@ -15,17 +19,186 @@ const SEAT_CLASS_ORDER = [
   SeatClass.BUSINESS,
 ] as const;
 
+type SeatAggRow = {
+  scheduleId: string;
+  seatClass: string;
+  _count: { _all: number };
+  _min: { price: number | null };
+};
+
+type SeatClassAggRow = {
+  scheduleId: string;
+  seatClass: string;
+};
+
+export type SearchSchedulesResult = {
+  schedules: ScheduleCardDto[];
+  facets: SearchSchedulesFacets;
+};
+
 function uniqueSeatClasses(
-  seats: { seatClass: string }[],
+  seatClasses: Iterable<string>,
 ): Array<(typeof SEAT_CLASS_ORDER)[number]> {
-  const seen = new Set<string>();
-  for (const seat of seats) seen.add(seat.seatClass);
+  const seen = new Set(seatClasses);
   return SEAT_CLASS_ORDER.filter((sc) => seen.has(sc));
+}
+
+function buildBaseWhere(
+  routeId: string,
+  query: SearchSchedulesQuery,
+): Prisma.ScheduleWhereInput {
+  const departureWhere = buildScheduleDepartureWhere(
+    query.date,
+    query.timePeriod,
+  );
+
+  return {
+    routeId,
+    status: "SCHEDULED",
+    ...(departureWhere as Prisma.ScheduleWhereInput),
+    ...(query.busType ? { coach: { busType: query.busType } } : {}),
+    ...(query.seatClass
+      ? {
+          scheduleSeats: {
+            some: {
+              seatClass: query.seatClass,
+              status: "AVAILABLE",
+            },
+          },
+        }
+      : {}),
+  };
+}
+
+function buildFacetWhere(
+  routeId: string,
+  query: SearchSchedulesQuery,
+): Prisma.ScheduleWhereInput {
+  const departureWhere = buildScheduleDepartureWhere(query.date);
+
+  return {
+    routeId,
+    status: "SCHEDULED",
+    ...(departureWhere as Prisma.ScheduleWhereInput),
+    ...(query.busType ? { coach: { busType: query.busType } } : {}),
+  };
+}
+
+function buildScheduleCard(
+  schedule: {
+    id: string;
+    departureAt: Date;
+    estimatedArrivalAt: Date;
+    baseFare: number;
+    coach: { coachNumber: string; busType: string };
+  },
+  route: {
+    slug: string;
+    fromStop: { name: string };
+    toStop: { name: string };
+  },
+  availableBySchedule: Map<
+    string,
+    { count: number; minPrice: number | null; classes: Set<string> }
+  >,
+  layoutClassesBySchedule: Map<string, Set<string>>,
+): ScheduleCardDto {
+  const available = availableBySchedule.get(schedule.id);
+  const layoutClasses =
+    layoutClassesBySchedule.get(schedule.id) ?? new Set<string>();
+  const seatClasses = uniqueSeatClasses([
+    ...layoutClasses,
+    ...(available ? [...available.classes] : []),
+  ]);
+
+  return {
+    scheduleId: schedule.id,
+    coachNumber: schedule.coach.coachNumber,
+    startPoint: route.fromStop.name,
+    departureAt: schedule.departureAt.toISOString(),
+    endPoint: route.toStop.name,
+    estimatedArrivalAt: schedule.estimatedArrivalAt.toISOString(),
+    busType: schedule.coach.busType as ScheduleCardDto["busType"],
+    seatClasses,
+    fareFrom: available?.minPrice ?? schedule.baseFare,
+    availableSeats: available?.count ?? 0,
+    routeSlug: route.slug,
+  };
+}
+
+function indexAvailableSeats(rows: SeatAggRow[]) {
+  const availableBySchedule = new Map<
+    string,
+    { count: number; minPrice: number | null; classes: Set<string> }
+  >();
+
+  for (const row of rows) {
+    const existing = availableBySchedule.get(row.scheduleId) ?? {
+      count: 0,
+      minPrice: null,
+      classes: new Set<string>(),
+    };
+    existing.count += row._count._all;
+    existing.classes.add(row.seatClass);
+    if (row._min.price != null) {
+      existing.minPrice =
+        existing.minPrice == null
+          ? row._min.price
+          : Math.min(existing.minPrice, row._min.price);
+    }
+    availableBySchedule.set(row.scheduleId, existing);
+  }
+
+  return availableBySchedule;
+}
+
+function indexLayoutClasses(rows: SeatClassAggRow[]) {
+  const layoutClassesBySchedule = new Map<string, Set<string>>();
+  for (const row of rows) {
+    const classes =
+      layoutClassesBySchedule.get(row.scheduleId) ?? new Set<string>();
+    classes.add(row.seatClass);
+    layoutClassesBySchedule.set(row.scheduleId, classes);
+  }
+  return layoutClassesBySchedule;
+}
+
+function computeFacets(
+  facetSchedules: { id: string; departureAt: Date }[],
+  availableRows: SeatAggRow[],
+): SearchSchedulesFacets {
+  const facets = emptySearchFacets();
+  facets.total = facetSchedules.length;
+
+  for (const schedule of facetSchedules) {
+    const period = getTimePeriod(schedule.departureAt);
+    facets.timePeriod[period] += 1;
+  }
+
+  const seenByClass: Record<(typeof SEAT_CLASS_ORDER)[number], Set<string>> = {
+    STANDARD: new Set(),
+    PREMIUM: new Set(),
+    BUSINESS: new Set(),
+  };
+
+  for (const row of availableRows) {
+    if (row.seatClass in seenByClass) {
+      seenByClass[row.seatClass as (typeof SEAT_CLASS_ORDER)[number]].add(
+        row.scheduleId,
+      );
+    }
+  }
+
+  for (const seatClass of SEAT_CLASS_ORDER) {
+    facets.seatClass[seatClass] = seenByClass[seatClass].size;
+  }
+
+  return facets;
 }
 
 export async function searchSchedules(
   query: SearchSchedulesQuery,
-): Promise<ScheduleCardDto[]> {
+): Promise<SearchSchedulesResult> {
   const [fromStop, toStop] = await Promise.all([
     prisma.stop.findUnique({ where: { id: query.fromStopId } }),
     prisma.stop.findUnique({ where: { id: query.toStopId } }),
@@ -45,54 +218,61 @@ export async function searchSchedules(
     throw new AppError(ErrorCode.ROUTE_NOT_FOUND, "Route not found", 404);
   }
 
-  const dayStart = new Date(`${query.date}T00:00:00.000Z`);
-  const dayEnd = new Date(`${query.date}T23:59:59.999Z`);
+  const facetWhere = buildFacetWhere(route.id, query);
+  const resultWhere = buildBaseWhere(route.id, query);
 
-  const schedules = await prisma.schedule.findMany({
-    where: {
-      routeId: route.id,
-      status: "SCHEDULED",
-      departureAt: { gte: dayStart, lte: dayEnd },
-      ...(query.busType ? { coach: { busType: query.busType } } : {}),
-    },
-    include: {
-      coach: true,
-      scheduleSeats: true,
-    },
-    orderBy: { departureAt: "asc" },
-  });
+  const [facetSchedules, resultSchedules] = await Promise.all([
+    prisma.schedule.findMany({
+      where: facetWhere,
+      select: { id: true, departureAt: true },
+      orderBy: { departureAt: "asc" },
+    }),
+    prisma.schedule.findMany({
+      where: resultWhere,
+      include: { coach: true },
+      orderBy: { departureAt: "asc" },
+    }),
+  ]);
 
-  return schedules
-    .filter((s) => {
-      if (query.timePeriod && getTimePeriod(s.departureAt) !== query.timePeriod) {
-        return false;
-      }
-      if (query.seatClass) {
-        const hasClass = s.scheduleSeats.some(
-          (seat) =>
-            seat.seatClass === query.seatClass && seat.status === "AVAILABLE",
-        );
-        if (!hasClass) return false;
-      }
-      return true;
-    })
-    .map((s) => {
-      const available = s.scheduleSeats.filter((x) => x.status === "AVAILABLE");
-      const fares = available.map((x) => x.price);
-      return {
-        scheduleId: s.id,
-        coachNumber: s.coach.coachNumber,
-        startPoint: route.fromStop.name,
-        departureAt: s.departureAt.toISOString(),
-        endPoint: route.toStop.name,
-        estimatedArrivalAt: s.estimatedArrivalAt.toISOString(),
-        busType: s.coach.busType,
-        seatClasses: uniqueSeatClasses(s.scheduleSeats),
-        fareFrom: fares.length ? Math.min(...fares) : s.baseFare,
-        availableSeats: available.length,
-        routeSlug: route.slug,
-      };
-    });
+  if (facetSchedules.length === 0) {
+    return { schedules: [], facets: emptySearchFacets() };
+  }
+
+  const facetScheduleIds = facetSchedules.map((s) => s.id);
+  const resultScheduleIds = new Set(resultSchedules.map((s) => s.id));
+
+  const [availableRows, layoutClassRows] = await Promise.all([
+    prisma.scheduleSeat.groupBy({
+      by: ["scheduleId", "seatClass"],
+      where: {
+        scheduleId: { in: facetScheduleIds },
+        status: "AVAILABLE",
+      },
+      _count: { _all: true },
+      _min: { price: true },
+    }),
+    prisma.scheduleSeat.groupBy({
+      by: ["scheduleId", "seatClass"],
+      where: { scheduleId: { in: [...resultScheduleIds] } },
+    }),
+  ]);
+
+  const availableBySchedule = indexAvailableSeats(availableRows as SeatAggRow[]);
+  const layoutClassesBySchedule = indexLayoutClasses(
+    layoutClassRows as SeatClassAggRow[],
+  );
+  const facets = computeFacets(facetSchedules, availableRows as SeatAggRow[]);
+
+  const schedules = resultSchedules.map((schedule) =>
+    buildScheduleCard(
+      schedule,
+      route,
+      availableBySchedule,
+      layoutClassesBySchedule,
+    ),
+  );
+
+  return { schedules, facets };
 }
 
 export async function getSeatMap(scheduleId: string) {

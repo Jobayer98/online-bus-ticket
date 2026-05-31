@@ -108,6 +108,7 @@ model Stop {
   routesFrom Route[] @relation("RouteFrom")
   routesTo   Route[] @relation("RouteTo")
 
+  @@index([city])
   @@map("stops")
 }
 
@@ -203,6 +204,7 @@ model Schedule {
   rescheduleLogs RescheduleLog[]
 
   @@index([routeId, departureAt])
+  @@index([routeId, status, departureAt])
   @@map("schedules")
 }
 
@@ -290,6 +292,7 @@ model Booking {
 
   @@index([passengerPhone])
   @@index([userId])
+  @@index([status, createdAt])
   @@map("bookings")
 }
 

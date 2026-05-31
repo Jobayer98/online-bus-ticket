@@ -2,6 +2,7 @@ import { Router } from "express";
 import { prisma } from "@repo/database";
 import {
   searchSchedulesQuerySchema,
+  searchSchedulesResponseSchema,
   successResponse,
   uniqueStopsByCity,
 } from "@repo/shared";
@@ -23,8 +24,9 @@ schedulesRouter.get("/stops", async (_req, res, next) => {
 schedulesRouter.get("/search", async (req, res, next) => {
   try {
     const query = searchSchedulesQuerySchema.parse(req.query);
-    const data = await scheduleService.searchSchedules(query);
-    res.json(successResponse(data));
+    const { schedules, facets } = await scheduleService.searchSchedules(query);
+    const payload = { data: schedules, meta: { facets } };
+    res.json(searchSchedulesResponseSchema.parse(payload));
   } catch (e) {
     next(e);
   }

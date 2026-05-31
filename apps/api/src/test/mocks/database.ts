@@ -7,6 +7,7 @@ export const prismaMock = {
   },
   stop: {
     findMany: vi.fn(),
+    findUnique: vi.fn(),
   },
   booking: {
     findMany: vi.fn(),
@@ -37,10 +38,12 @@ export const prismaMock = {
     updateMany: vi.fn(),
     createMany: vi.fn(),
     count: vi.fn(),
+    groupBy: vi.fn(),
   },
   route: {
     findMany: vi.fn(),
     findUnique: vi.fn(),
+    findFirst: vi.fn(),
     create: vi.fn(),
   },
   boardingPoint: {

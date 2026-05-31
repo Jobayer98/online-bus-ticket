@@ -2,15 +2,19 @@
 
 | Field | Value |
 |-------|--------|
-| **Task ID** | E05-03, E14-17 |
+| **Task ID** | E05-03, E14-17, E14-18, E14-19, E14-20 |
 | **Module** | schedule |
 | **Auth** | public |
 | **Zod (query)** | `packages/shared/src/schemas/schedule/search-schedules.schema.ts` → `searchSchedulesQuerySchema` |
-| **Zod (response)** | `packages/shared/src/dtos/schedule/schedule-card.dto.ts` → `scheduleCardSchema[]` |
+| **Zod (response)** | `packages/shared/src/dtos/schedule/search-schedules.dto.ts` → `searchSchedulesResponseSchema` |
 
 ## Description
 
 Search scheduled trips between two stops on a trip date. Filters combine with AND logic.
+
+`timePeriod` and `seatClass` are applied in SQL on the results query. Facet counts (for filter chips) are computed in the same request from schedules matching route, Dhaka calendar day, and optional `busType` only — no duplicate client calls.
+
+Trip date bounds use Asia/Dhaka (`dhakaStartOfDay` / `dhakaEndOfDay`), aligned with `isValidTripDate`.
 
 ## Query parameters
 
@@ -25,7 +29,18 @@ Search scheduled trips between two stops on a trip date. Filters combine with AN
 
 ## Response 200
 
-Array of schedule cards wrapped in `{ data }`.
+```json
+{
+  "data": [ /* ScheduleCardDto[] */ ],
+  "meta": {
+    "facets": {
+      "timePeriod": { "MORNING": 0, "NOON": 0, "AFTERNOON": 0, "NIGHT": 0 },
+      "seatClass": { "STANDARD": 0, "PREMIUM": 0, "BUSINESS": 0 },
+      "total": 0
+    }
+  }
+}
+```
 
 Each `ScheduleCardDto` includes:
 
@@ -42,6 +57,14 @@ Each `ScheduleCardDto` includes:
 | `fareFrom` | int | Minimum available seat price (equals `baseFare` under flat pricing) |
 | `availableSeats` | int | Count of `AVAILABLE` seats |
 | `routeSlug` | string | e.g. `dhaka-pabna` |
+
+### Facets (`meta.facets`)
+
+| Field | Notes |
+|-------|-------|
+| `timePeriod` | Count of schedules per period (before `timePeriod` / `seatClass` filters) |
+| `seatClass` | Count of schedules with ≥1 available seat in that class |
+| `total` | Schedules matching route, date, and `busType` (unfiltered by period/class) |
 
 ## Errors
 
@@ -75,6 +98,13 @@ curl "http://localhost:4000/api/v1/schedules/search?fromStopId=…&toStopId=…&
       "availableSeats": 32,
       "routeSlug": "dhaka-pabna"
     }
-  ]
+  ],
+  "meta": {
+    "facets": {
+      "timePeriod": { "MORNING": 2, "NOON": 1, "AFTERNOON": 0, "NIGHT": 1 },
+      "seatClass": { "STANDARD": 3, "PREMIUM": 2, "BUSINESS": 1 },
+      "total": 4
+    }
+  }
 }
 ```

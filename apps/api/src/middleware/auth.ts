@@ -1,9 +1,32 @@
-import type { Request, RequestHandler } from "express";
+import type { Request, RequestHandler, CookieOptions } from "express";
 import jwt from "jsonwebtoken";
 import { AppError, ErrorCode, Role } from "@repo/shared";
 
+const DEV_JWT_SECRET = "dev-secret-change-me";
+
+export function assertJwtSecretConfigured(): void {
+  if (process.env.NODE_ENV === "production" && !process.env.JWT_SECRET) {
+    throw new Error("JWT_SECRET is required in production");
+  }
+}
+
 function jwtSecret(): string {
-  return process.env.JWT_SECRET ?? "dev-secret-change-me";
+  const secret = process.env.JWT_SECRET;
+  if (process.env.NODE_ENV === "production") {
+    if (!secret) {
+      throw new Error("JWT_SECRET is required in production");
+    }
+    return secret;
+  }
+  return secret ?? DEV_JWT_SECRET;
+}
+
+export function authCookieOptions(): CookieOptions {
+  return {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+  };
 }
 
 export interface JwtPayload {

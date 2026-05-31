@@ -73,12 +73,25 @@
           application/json:
             schema:
               type: object
-              required: [data]
+              required: [data, meta]
               properties:
                 data:
                   type: array
                   items:
                     $ref: '#/components/schemas/ScheduleCard'
+                meta:
+                  type: object
+                  required: [facets]
+                  properties:
+                    facets:
+                      type: object
+                      properties:
+                        timePeriod:
+                          type: object
+                        seatClass:
+                          type: object
+                        total:
+                          type: integer
             examples:
               results:
                 $ref: '../components/examples.yaml#/ScheduleCardList'

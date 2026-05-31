@@ -3,6 +3,7 @@ import "./load-env.js";
 import { prisma } from "@repo/database";
 import { createApp } from "./app.js";
 import { errorHandler } from "./middleware/error-handler.js";
+import { assertJwtSecretConfigured } from "./middleware/auth.js";
 import { startHoldExpiryJob } from "./jobs/expire-holds.js";
 import { startNotificationWorker, stopNotificationWorker } from "./jobs/notification-worker.js";
 import { logger } from "./lib/logger.js";
@@ -20,6 +21,7 @@ async function assertNotificationSchema(): Promise<void> {
 }
 
 async function main() {
+  assertJwtSecretConfigured();
   const app = await createApp();
 
   app.use(errorHandler);
