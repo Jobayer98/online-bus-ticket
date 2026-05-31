@@ -401,13 +401,13 @@ P4 (E14-24 … E14-28)  →  ops polish
 
 | ID | Task | Layer | Acceptance |
 |----|------|-------|------------|
-| [ ] E15-19 | Admin CMS nav + **Profile** panel (name, logo upload) | web | Saves draft |
-| [ ] E15-20 | Admin **Theme** panel: color picker, font select, generated palette swatches + mini preview | web | Shows E15-04 tokens live |
-| [ ] E15-21 | Admin **Pages** panel: markdown editor per slug with preview | web | All 5 pages editable |
-| [ ] E15-22 | Admin **Media** panel: hero upload, featured gallery drag-reorder | web | Image preview |
-| [ ] E15-23 | Admin **Featured routes** panel: route picker + reorder | web | Uses existing routes list |
-| [ ] E15-24 | Admin **Footer** panel: contact lines, email, links, payment banner | web | Matches public footer |
-| [ ] E15-25 | Admin **Preview & Publish**: iframe/tab preview of draft site + Publish button | web | Preview uses admin preview API |
+| [x] E15-19 | Admin CMS nav + **Profile** panel (name, logo upload) | web | Saves draft |
+| [x] E15-20 | Admin **Theme** panel: color picker, font select, generated palette swatches + mini preview | web | Shows E15-04 tokens live |
+| [x] E15-21 | Admin **Pages** panel: markdown editor per slug with preview | web | All 5 pages editable |
+| [x] E15-22 | Admin **Media** panel: hero upload, featured gallery drag-reorder | web | Image preview |
+| [x] E15-23 | Admin **Featured routes** panel: route picker + reorder | web | Uses existing routes list |
+| [x] E15-24 | Admin **Footer** panel: contact lines, email, links, payment banner | web | Matches public footer |
+| [x] E15-25 | Admin **Preview & Publish**: iframe/tab preview of draft site + Publish button | web | Preview uses admin preview API |
 
 ### E15 dependency order
 
