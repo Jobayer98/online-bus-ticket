@@ -281,7 +281,7 @@ Apply on `POST /counter/refund` before mutating state:
 | [x] E14-02 | **Payment confirm guards:** require `booking.status === HELD`; reject `CANCELLED`/`REFUNDED`/`PAID`; optional signed `clientSecret` from initiate (guest-safe, no login) | shared/api | Cannot re-pay cancelled booking; guest flow unchanged |
 | [x] E14-03 | **Protect `GET /bookings/:id`:** return summary only with `bookingAccessToken` (issued at create) or authenticated owner; never expose PII to anonymous UUID guess | shared/api/web | Guest checkout works via token in checkout URL/state; no public PII leak |
 | [x] E14-04 | **Seat hold concurrency:** `updateMany` with `status: AVAILABLE` + verify affected count; reject partial lock | api | Two concurrent holds cannot take same seat |
-| [ ] E14-05 | **Counter cancel/refund split:** cancel only `HELD`/`DRAFT`; refund only `PAID`; cancel must not touch `Payment` | api/web | PAID + cancel impossible; counter UI matches |
+| [x] E14-05 | **Counter cancel/refund split:** cancel only `HELD`/`DRAFT`; refund only `PAID`; cancel must not touch `Payment` | api/web | PAID + cancel impossible; counter UI matches |
 | [ ] E14-06 | **Remove debug auth telemetry** (`auth.ts` ingest to localhost) | api | No outbound debug calls in auth path |
 
 ---

@@ -80,20 +80,40 @@ counterRouter.post("/refund", async (req, res, next) => {
       where: { id: bookingId },
       include: { seats: true, payment: true },
     });
-    if (!booking || booking.status !== "PAID") {
-      throw new AppError(ErrorCode.BOOKING_NOT_FOUND, "Invalid booking", 404);
+    if (!booking) {
+      throw new AppError(ErrorCode.BOOKING_NOT_FOUND, "Not found", 404);
     }
+    if (booking.status === "REFUNDED") {
+      throw new AppError(ErrorCode.CONFLICT, "Booking already refunded", 409);
+    }
+    if (booking.status !== "PAID") {
+      throw new AppError(
+        ErrorCode.CONFLICT,
+        "Only paid bookings can be refunded",
+        409,
+      );
+    }
+    if (!booking.payment || booking.payment.status !== "COMPLETED") {
+      throw new AppError(ErrorCode.CONFLICT, "Payment not completed", 409);
+    }
+
     await prisma.$transaction(async (tx) => {
-      await tx.booking.update({
-        where: { id: bookingId },
+      const updated = await tx.booking.updateMany({
+        where: { id: bookingId, status: "PAID" },
         data: { status: "REFUNDED" },
       });
-      await tx.payment.update({
-        where: { bookingId },
+      if (updated.count !== 1) {
+        throw new AppError(ErrorCode.CONFLICT, "Booking cannot be refunded", 409);
+      }
+      await tx.payment.updateMany({
+        where: { bookingId, status: "COMPLETED" },
         data: { status: "REFUNDED" },
       });
       await tx.scheduleSeat.updateMany({
-        where: { id: { in: booking.seats.map((s) => s.scheduleSeatId) } },
+        where: {
+          id: { in: booking.seats.map((s) => s.scheduleSeatId) },
+          status: "SOLD",
+        },
         data: { status: "AVAILABLE" },
       });
       await tx.counterTransaction.create({
@@ -119,17 +139,44 @@ counterRouter.post("/cancel", async (req, res, next) => {
       where: { id: bookingId },
       include: { seats: true, hold: true },
     });
-    if (!booking) throw new AppError(ErrorCode.BOOKING_NOT_FOUND, "Not found", 404);
+    if (!booking) {
+      throw new AppError(ErrorCode.BOOKING_NOT_FOUND, "Not found", 404);
+    }
+    if (booking.status === "PAID") {
+      throw new AppError(
+        ErrorCode.CONFLICT,
+        "Paid bookings must be refunded, not cancelled",
+        409,
+      );
+    }
+    if (booking.status === "REFUNDED" || booking.status === "CANCELLED") {
+      throw new AppError(ErrorCode.CONFLICT, "Booking cannot be cancelled", 409);
+    }
+    if (booking.status !== "HELD" && booking.status !== "DRAFT") {
+      throw new AppError(ErrorCode.CONFLICT, "Booking cannot be cancelled", 409);
+    }
+
+    const holdId = booking.holdId;
+
     await prisma.$transaction(async (tx) => {
-      await tx.booking.update({
-        where: { id: bookingId },
-        data: { status: "CANCELLED" },
+      const updated = await tx.booking.updateMany({
+        where: { id: bookingId, status: { in: ["HELD", "DRAFT"] } },
+        data: { status: "CANCELLED", holdId: null },
       });
+      if (updated.count !== 1) {
+        throw new AppError(ErrorCode.CONFLICT, "Booking cannot be cancelled", 409);
+      }
       if (booking.seats.length) {
         await tx.scheduleSeat.updateMany({
-          where: { id: { in: booking.seats.map((s) => s.scheduleSeatId) } },
+          where: {
+            id: { in: booking.seats.map((s) => s.scheduleSeatId) },
+            status: "HELD",
+          },
           data: { status: "AVAILABLE" },
         });
+      }
+      if (holdId) {
+        await tx.seatHold.delete({ where: { id: holdId } });
       }
       await tx.counterTransaction.create({
         data: {

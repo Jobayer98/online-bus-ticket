@@ -40,7 +40,7 @@ export function CounterManagePanel() {
   }
 
   async function runAction(
-    path: "/counter/refund" | "/counter/cancel" | "/counter/change",
+    path: "/counter/refund" | "/counter/change",
     label: string,
   ) {
     if (!ticket) return;
@@ -71,7 +71,7 @@ export function CounterManagePanel() {
 
   return (
     <div className="cp-section">
-      <h2 className="cp-section-title">REFUND / CHANGE / CANCEL</h2>
+      <h2 className="cp-section-title">REFUND / CHANGE</h2>
 
       <div className="cp-manage-grid">
         <section>
@@ -120,7 +120,7 @@ export function CounterManagePanel() {
           <div className="cp-manage-body">
             {!ticket && (
               <p className="sp-empty" style={{ border: "none", padding: "1.5rem 0" }}>
-                Lookup a ticket to refund, cancel, or log a change
+                Lookup a paid ticket to refund or log a change
               </p>
             )}
             {ticket && (
@@ -196,14 +196,6 @@ export function CounterManagePanel() {
                   </button>
                   <button
                     type="button"
-                    className="sp-btn-select is-cancel"
-                    disabled={acting}
-                    onClick={() => runAction("/counter/cancel", "Cancel")}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
                     className="sp-filter-search"
                     disabled={acting}
                     onClick={() => runAction("/counter/change", "Log change")}
@@ -211,6 +203,10 @@ export function CounterManagePanel() {
                     Log change
                   </button>
                 </div>
+                <p className="cp-manage-hint" style={{ fontSize: "0.8rem", marginTop: "0.75rem", opacity: 0.85 }}>
+                  Unpaid holds are cancelled automatically on expiry. Paid tickets must
+                  be refunded — not cancelled.
+                </p>
               </>
             )}
           </div>
