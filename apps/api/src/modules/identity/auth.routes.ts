@@ -24,7 +24,11 @@ authRouter.post("/register", async (req, res, next) => {
 authRouter.post("/login", async (req, res, next) => {
   try {
     const input = loginSchema.parse(req.body);
-    const result = await authService.login(input);
+    const tenantSlug = req.headers["x-tenant-slug"];
+    const result = await authService.login(
+      input,
+      typeof tenantSlug === "string" ? tenantSlug.trim().toLowerCase() : undefined,
+    );
     res
       .cookie("token", result.token, authCookieOptions())
       .json(successResponse(result));
