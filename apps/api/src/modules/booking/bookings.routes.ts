@@ -24,7 +24,7 @@ const holdCreateLimiter = rateLimit({
 bookingsRouter.post("/hold", holdCreateLimiter, async (req, res, next) => {
   try {
     const input = createHoldSchema.parse(req.body);
-    const data = await bookingService.createHold(input);
+    const data = await bookingService.createHold(input, req.tenant?.id);
     res.status(201).json(successResponse(data));
   } catch (e) {
     next(e);
@@ -35,7 +35,7 @@ bookingsRouter.delete("/hold/:id", async (req, res, next) => {
   try {
     const { id } = releaseHoldParamsSchema.parse(req.params);
     const query = releaseHoldQuerySchema.parse(req.query);
-    await bookingService.releaseHold(id, query);
+    await bookingService.releaseHold(id, query, req.tenant?.id);
     res.json(successResponse({ released: true }));
   } catch (e) {
     next(e);
@@ -45,7 +45,11 @@ bookingsRouter.delete("/hold/:id", async (req, res, next) => {
 bookingsRouter.post("/", async (req, res, next) => {
   try {
     const input = createBookingSchema.parse(req.body);
-    const data = await bookingService.createBooking(input, req.userId);
+    const data = await bookingService.createBooking(
+      input,
+      req.userId,
+      req.tenant?.id,
+    );
     res.status(201).json(successResponse(data));
   } catch (e) {
     next(e);

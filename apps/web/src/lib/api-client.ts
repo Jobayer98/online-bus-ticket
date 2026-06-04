@@ -1,6 +1,14 @@
+import { extractTenantSlugFromHost } from "@repo/shared";
 import { clearAuthSession, getAuthToken } from "./auth-session";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+
+function getTenantSlug(): string | null {
+  if (typeof window === "undefined") return null;
+  const mainDomain =
+    process.env.NEXT_PUBLIC_MAIN_DOMAIN ?? "localhost";
+  return extractTenantSlugFromHost(window.location.host, mainDomain);
+}
 
 function authHeaders(extra?: HeadersInit): HeadersInit {
   const headers: Record<string, string> = {
@@ -8,6 +16,10 @@ function authHeaders(extra?: HeadersInit): HeadersInit {
   };
   const token = getAuthToken();
   if (token) headers.Authorization = `Bearer ${token}`;
+
+  const slug = getTenantSlug();
+  if (slug) headers["x-tenant-slug"] = slug;
+
   if (extra) {
     const h = new Headers(extra);
     h.forEach((v, k) => {

@@ -4,9 +4,15 @@ export const Role = {
   USER: "USER",
   COUNTER_SELLER: "COUNTER_SELLER",
   ADMIN: "ADMIN",
+  SUPER_ADMIN: "SUPER_ADMIN",
 } as const;
 export type Role = (typeof Role)[keyof typeof Role];
-export const roleSchema = z.enum(["USER", "COUNTER_SELLER", "ADMIN"]);
+export const roleSchema = z.enum([
+  "USER",
+  "COUNTER_SELLER",
+  "ADMIN",
+  "SUPER_ADMIN",
+]);
 
 export const BusType = {
   AC: "AC",

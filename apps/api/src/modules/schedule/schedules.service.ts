@@ -198,10 +198,11 @@ function computeFacets(
 
 export async function searchSchedules(
   query: SearchSchedulesQuery,
+  tenantId?: string,
 ): Promise<SearchSchedulesResult> {
   const [fromStop, toStop] = await Promise.all([
-    prisma.stop.findUnique({ where: { id: query.fromStopId } }),
-    prisma.stop.findUnique({ where: { id: query.toStopId } }),
+    prisma.stop.findFirst({ where: { id: query.fromStopId, tenantId } }),
+    prisma.stop.findFirst({ where: { id: query.toStopId, tenantId } }),
   ]);
   if (!fromStop || !toStop) {
     throw new AppError(ErrorCode.NOT_FOUND, "Stop not found", 404);
@@ -209,6 +210,7 @@ export async function searchSchedules(
 
   const route = await prisma.route.findFirst({
     where: {
+      tenantId,
       fromStop: { city: { equals: fromStop.city, mode: "insensitive" } },
       toStop: { city: { equals: toStop.city, mode: "insensitive" } },
     },
@@ -275,9 +277,9 @@ export async function searchSchedules(
   return { schedules, facets };
 }
 
-export async function getSeatMap(scheduleId: string) {
-  const schedule = await prisma.schedule.findUnique({
-    where: { id: scheduleId },
+export async function getSeatMap(scheduleId: string, tenantId?: string) {
+  const schedule = await prisma.schedule.findFirst({
+    where: { id: scheduleId, tenantId },
     include: {
       coach: { include: { seatLayout: { include: { templates: true } } } },
       scheduleSeats: true,
@@ -353,9 +355,9 @@ export async function getSeatMap(scheduleId: string) {
   };
 }
 
-export async function getRouteBySlug(slug: string) {
-  return prisma.route.findUnique({
-    where: { slug },
+export async function getRouteBySlug(slug: string, tenantId?: string) {
+  return prisma.route.findFirst({
+    where: { slug, tenantId },
     include: { fromStop: true, toStop: true },
   });
 }

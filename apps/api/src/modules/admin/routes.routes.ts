@@ -2,6 +2,7 @@ import { Router } from "express";
 import { prisma } from "@repo/database";
 import { createRouteSchema, successResponse, AppError, ErrorCode } from "@repo/shared";
 import { authenticateRequired, requireRole } from "../../middleware/auth.js";
+import { requireRoutePlanLimit } from "../../middleware/plan-limits.middleware.js";
 import { adminRouteBoardingPointsRouter } from "./route-boarding-points.routes.js";
 
 function slugify(from: string, to: string) {
@@ -19,9 +20,10 @@ adminRoutesRouter.use(
   adminRouteBoardingPointsRouter,
 );
 
-adminRoutesRouter.get("/", async (_req, res, next) => {
+adminRoutesRouter.get("/", async (req, res, next) => {
   try {
     const routes = await prisma.route.findMany({
+      where: { tenantId: req.tenant?.id },
       include: { fromStop: true, toStop: true },
     });
     res.json(successResponse(routes));
@@ -30,17 +32,19 @@ adminRoutesRouter.get("/", async (_req, res, next) => {
   }
 });
 
-adminRoutesRouter.post("/", requireRole("ADMIN"), async (req, res, next) => {
+adminRoutesRouter.post("/", requireRole("ADMIN"), requireRoutePlanLimit, async (req, res, next) => {
   try {
     const input = createRouteSchema.parse(req.body);
+    const tenantId = req.tenant?.id;
     const [from, to] = await Promise.all([
-      prisma.stop.findUnique({ where: { id: input.fromStopId } }),
-      prisma.stop.findUnique({ where: { id: input.toStopId } }),
+      prisma.stop.findFirst({ where: { id: input.fromStopId, tenantId } }),
+      prisma.stop.findFirst({ where: { id: input.toStopId, tenantId } }),
     ]);
     if (!from || !to) throw new AppError(ErrorCode.NOT_FOUND, "Stop not found", 404);
     const slug = slugify(from.city, to.city);
     const existing = await prisma.route.findFirst({
       where: {
+        tenantId,
         OR: [
           { fromStopId: input.fromStopId, toStopId: input.toStopId },
           { slug },
@@ -51,7 +55,7 @@ adminRoutesRouter.post("/", requireRole("ADMIN"), async (req, res, next) => {
       throw new AppError(ErrorCode.CONFLICT, "Route already exists", 409);
     }
     const route = await prisma.route.create({
-      data: { ...input, slug },
+      data: { ...input, slug, tenantId },
       include: { fromStop: true, toStop: true },
     });
     res.status(201).json(successResponse(route));

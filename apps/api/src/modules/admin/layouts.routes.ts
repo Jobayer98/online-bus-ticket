@@ -6,9 +6,10 @@ import { authenticateRequired, requireRole } from "../../middleware/auth.js";
 export const adminLayoutsRouter = Router();
 adminLayoutsRouter.use(authenticateRequired, requireRole("ADMIN"));
 
-adminLayoutsRouter.get("/", async (_req, res, next) => {
+adminLayoutsRouter.get("/", async (req, res, next) => {
   try {
     const layouts = await prisma.seatLayout.findMany({
+      where: { tenantId: req.tenant?.id },
       include: { templates: true },
     });
     res.json(successResponse(layouts));
@@ -25,6 +26,7 @@ adminLayoutsRouter.post("/", async (req, res, next) => {
         name: input.name,
         rows: input.rows,
         cols: input.cols,
+        tenantId: req.tenant?.id,
         templates: { create: input.templates },
       },
       include: { templates: true },

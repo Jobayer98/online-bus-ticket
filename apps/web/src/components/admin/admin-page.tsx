@@ -14,6 +14,8 @@ import { AdminLayoutsPanel } from "./admin-layouts-panel";
 import { AdminCoachesPanel } from "./admin-coaches-panel";
 import { AdminSchedulesPanel } from "./admin-schedules-panel";
 import { AdminReportsPanel } from "./admin-reports-panel";
+import { AdminCmsPanel } from "./cms/admin-cms-panel";
+import { AdminTenantSettingsPanel } from "./admin-tenant-settings-panel";
 import "../../app/home.css";
 import "../../app/search/search.css";
 import "../../app/counter/counter.css";
@@ -26,7 +28,9 @@ type Tab =
   | "layouts"
   | "coaches"
   | "schedules"
-  | "reports";
+  | "reports"
+  | "content"
+  | "settings";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "dashboard", label: "Dashboard" },
@@ -36,6 +40,8 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "coaches", label: "Coaches" },
   { id: "schedules", label: "Schedules" },
   { id: "reports", label: "Reports" },
+  { id: "content", label: "Content" },
+  { id: "settings", label: "Settings" },
 ];
 
 export function AdminPage() {
@@ -132,6 +138,8 @@ export function AdminPage() {
       {tab === "coaches" && <AdminCoachesPanel />}
       {tab === "schedules" && <AdminSchedulesPanel />}
       {tab === "reports" && <AdminReportsPanel />}
+      {tab === "content" && <AdminCmsPanel />}
+      {tab === "settings" && <AdminTenantSettingsPanel />}
     </div>
   );
 }

@@ -9,6 +9,7 @@ import {
   priceForScheduleSeat,
 } from "@repo/shared";
 import { authenticateRequired, requireRole } from "../../middleware/auth.js";
+import { requireSchedulePlanLimit } from "../../middleware/plan-limits.middleware.js";
 
 async function initScheduleSeats(
   scheduleId: string,
@@ -43,9 +44,10 @@ adminSchedulesRouter.use(authenticateRequired);
 adminSchedulesRouter.get(
   "/",
   requireRole("ADMIN", "COUNTER_SELLER"),
-  async (_req, res, next) => {
+  async (req, res, next) => {
     try {
       const schedules = await prisma.schedule.findMany({
+        where: { tenantId: req.tenant?.id },
         include: { route: true, coach: true },
         orderBy: { departureAt: "asc" },
       });
@@ -59,6 +61,7 @@ adminSchedulesRouter.get(
 adminSchedulesRouter.post(
   "/",
   requireRole("ADMIN"),
+  requireSchedulePlanLimit,
   async (req, res, next) => {
     try {
       const input = createScheduleSchema.parse(req.body);
@@ -69,6 +72,7 @@ adminSchedulesRouter.post(
           departureAt: new Date(input.departureAt),
           estimatedArrivalAt: new Date(input.estimatedArrivalAt),
           baseFare: input.baseFare,
+          tenantId: req.tenant?.id,
         },
       });
       await initScheduleSeats(schedule.id, schedule.coachId, schedule.baseFare);
@@ -85,8 +89,8 @@ adminSchedulesRouter.patch(
   async (req, res, next) => {
     try {
       const input = rescheduleSchema.parse(req.body);
-      const existing = await prisma.schedule.findUnique({
-        where: { id: String(req.params.id) },
+      const existing = await prisma.schedule.findFirst({
+        where: { id: String(req.params.id), tenantId: req.tenant?.id },
       });
       if (!existing)
         throw new AppError(ErrorCode.NOT_FOUND, "Schedule not found", 404);
@@ -119,6 +123,11 @@ adminSchedulesRouter.patch(
   requireRole("ADMIN"),
   async (req, res, next) => {
     try {
+      const existing = await prisma.schedule.findFirst({
+        where: { id: String(req.params.id), tenantId: req.tenant?.id },
+      });
+      if (!existing)
+        throw new AppError(ErrorCode.NOT_FOUND, "Schedule not found", 404);
       const schedule = await prisma.schedule.update({
         where: { id: String(req.params.id) },
         data: { status: "CANCELLED" },

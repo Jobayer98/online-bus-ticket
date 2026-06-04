@@ -1,5 +1,4 @@
-// SaaS-ready: add tenantId to tenant-scoped models when enabling multi-tenancy
-// tenantId String? @map("tenant_id")
+// Multi-tenancy: tenantId added to all scoped models in E16-02
 
 generator client {
   provider = "prisma-client-js"
@@ -17,6 +16,25 @@ enum Role {
   USER
   COUNTER_SELLER
   ADMIN
+  SUPER_ADMIN
+}
+
+enum PlanTier {
+  FREE
+  PRO
+  ENTERPRISE
+}
+
+enum PlanStatus {
+  TRIAL
+  ACTIVE
+  SUSPENDED
+  CANCELLED
+}
+
+enum TenantMemberRole {
+  ADMIN
+  COUNTER_SELLER
 }
 
 enum BusType {
@@ -104,27 +122,32 @@ model User {
 
   bookings            Booking[]
   counterTransactions CounterTransaction[] @relation("SellerTransactions")
+  tenantMemberships   TenantMembership[]
 
   @@map("users")
 }
 
 model Stop {
   id        String   @id @default(cuid())
+  tenantId  String?  @map("tenant_id")
   name      String
   city      String
   code      String   @unique
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  tenant     Tenant? @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   routesFrom Route[] @relation("RouteFrom")
   routesTo   Route[] @relation("RouteTo")
 
+  @@index([tenantId])
   @@index([city])
   @@map("stops")
 }
 
 model Route {
   id         String   @id @default(cuid())
+  tenantId   String?  @map("tenant_id")
   fromStopId String   @map("from_stop_id")
   toStopId   String   @map("to_stop_id")
   slug       String   @unique
@@ -132,6 +155,7 @@ model Route {
   createdAt  DateTime @default(now()) @map("created_at")
   updatedAt  DateTime @updatedAt @map("updated_at")
 
+  tenant         Tenant?         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   fromStop       Stop            @relation("RouteFrom", fields: [fromStopId], references: [id])
   toStop         Stop            @relation("RouteTo", fields: [toStopId], references: [id])
   schedules      Schedule[]
@@ -139,35 +163,42 @@ model Route {
   featuredRoutes FeaturedRoute[]
 
   @@unique([fromStopId, toStopId])
+  @@index([tenantId])
   @@index([slug])
   @@map("routes")
 }
 
 model Coach {
   id           String   @id @default(cuid())
+  tenantId     String?  @map("tenant_id")
   coachNumber  String   @unique @map("coach_number")
   busType      BusType  @map("bus_type")
   seatLayoutId String?  @map("seat_layout_id")
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
+  tenant     Tenant?     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   seatLayout SeatLayout? @relation(fields: [seatLayoutId], references: [id])
   schedules  Schedule[]
 
+  @@index([tenantId])
   @@map("coaches")
 }
 
 model SeatLayout {
   id        String   @id @default(cuid())
+  tenantId  String?  @map("tenant_id")
   name      String
   rows      Int
   cols      Int
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  tenant    Tenant?        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   templates SeatTemplate[]
   coaches   Coach[]
 
+  @@index([tenantId])
   @@map("seat_layouts")
 }
 
@@ -200,6 +231,7 @@ model BoardingPoint {
 
 model Schedule {
   id                 String         @id @default(cuid())
+  tenantId           String?        @map("tenant_id")
   routeId            String         @map("route_id")
   coachId            String         @map("coach_id")
   departureAt        DateTime       @map("departure_at")
@@ -209,12 +241,14 @@ model Schedule {
   createdAt          DateTime       @default(now()) @map("created_at")
   updatedAt          DateTime       @updatedAt @map("updated_at")
 
+  tenant         Tenant?         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   route          Route           @relation(fields: [routeId], references: [id])
   coach          Coach           @relation(fields: [coachId], references: [id])
   scheduleSeats  ScheduleSeat[]
   bookings       Booking[]
   rescheduleLogs RescheduleLog[]
 
+  @@index([tenantId])
   @@index([routeId, departureAt])
   @@index([routeId, status, departureAt])
   @@map("schedules")
@@ -278,6 +312,7 @@ model SeatHoldItem {
 
 model Booking {
   id              String        @id @default(cuid())
+  tenantId        String?       @map("tenant_id")
   scheduleId      String        @map("schedule_id")
   userId          String?       @map("user_id")
   holdId          String?       @unique @map("hold_id")
@@ -292,16 +327,18 @@ model Booking {
   createdAt       DateTime      @default(now()) @map("created_at")
   updatedAt       DateTime      @updatedAt @map("updated_at")
 
+  tenant        Tenant?              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   schedule      Schedule             @relation(fields: [scheduleId], references: [id])
   user          User?                @relation(fields: [userId], references: [id])
   hold          SeatHold?            @relation(fields: [holdId], references: [id])
   boardingPoint BoardingPoint        @relation(fields: [boardingPointId], references: [id])
   seats         BookingSeat[]
-  payment        Payment?
-  ticket         Ticket?
-  counterTxns    CounterTransaction[]
-  notifications  NotificationLog[]
+  payment       Payment?
+  ticket        Ticket?
+  counterTxns   CounterTransaction[]
+  notifications NotificationLog[]
 
+  @@index([tenantId])
   @@index([passengerPhone])
   @@index([userId])
   @@index([status, createdAt])
@@ -351,6 +388,7 @@ model Ticket {
 
 model CounterTransaction {
   id        String                 @id @default(cuid())
+  tenantId  String?                @map("tenant_id")
   type      CounterTransactionType
   sellerId  String                 @map("seller_id")
   bookingId String                 @map("booking_id")
@@ -358,15 +396,18 @@ model CounterTransaction {
   note      String?
   createdAt DateTime               @default(now()) @map("created_at")
 
+  tenant  Tenant? @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   seller  User    @relation("SellerTransactions", fields: [sellerId], references: [id])
   booking Booking @relation(fields: [bookingId], references: [id])
 
+  @@index([tenantId])
   @@index([sellerId, createdAt])
   @@map("counter_transactions")
 }
 
 model NotificationLog {
   id        String              @id @default(cuid())
+  tenantId  String?             @map("tenant_id")
   bookingId String              @map("booking_id")
   channel   NotificationChannel
   status    NotificationStatus  @default(PENDING)
@@ -376,15 +417,65 @@ model NotificationLog {
   createdAt DateTime            @default(now()) @map("created_at")
   updatedAt DateTime            @updatedAt @map("updated_at")
 
+  tenant  Tenant? @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
 
   @@unique([bookingId, channel])
+  @@index([tenantId])
   @@index([status, createdAt])
   @@map("notification_logs")
 }
 
+model Tenant {
+  id              String     @id @default(cuid())
+  name            String
+  slug            String     @unique
+  subdomainPrefix String     @unique @map("subdomain_prefix")
+  customDomain    String?    @unique @map("custom_domain")
+  planTier        PlanTier   @default(FREE) @map("plan_tier")
+  planStatus      PlanStatus @default(TRIAL) @map("plan_status")
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
+
+  members          TenantMembership[]
+  stops            Stop[]
+  routes           Route[]
+  coaches          Coach[]
+  seatLayouts      SeatLayout[]
+  schedules        Schedule[]
+  bookings         Booking[]
+  counterTxns      CounterTransaction[]
+  notificationLogs NotificationLog[]
+  siteProfiles     SiteProfile[]
+  siteThemes       SiteTheme[]
+  contentPages     ContentPage[]
+  siteMedia        SiteMedia[]
+  featuredRoutes   FeaturedRoute[]
+  footerSettings   FooterSettings[]
+
+  @@index([slug])
+  @@index([subdomainPrefix])
+  @@map("tenants")
+}
+
+model TenantMembership {
+  id       String           @id @default(cuid())
+  tenantId String           @map("tenant_id")
+  userId   String           @map("user_id")
+  role     TenantMemberRole
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, userId])
+  @@index([tenantId])
+  @@index([userId])
+  @@map("tenant_memberships")
+}
+
 model SiteProfile {
-  id             String        @id @default("default")
+  id             String        @id @default(cuid())
+  tenantId       String?       @map("tenant_id")
   companyName    String        @map("company_name")
   tagline        String?
   logoUrl        String?       @map("logo_url")
@@ -394,11 +485,15 @@ model SiteProfile {
   createdAt      DateTime      @default(now()) @map("created_at")
   updatedAt      DateTime      @updatedAt @map("updated_at")
 
+  tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
   @@map("site_profiles")
 }
 
 model SiteTheme {
-  id           String        @id @default("default")
+  id           String        @id @default(cuid())
+  tenantId     String?       @map("tenant_id")
   primaryColor String        @map("primary_color")
   fontFamily   String        @default("Inter") @map("font_family")
   paletteJson  Json          @map("palette_json")
@@ -406,11 +501,15 @@ model SiteTheme {
   createdAt    DateTime      @default(now()) @map("created_at")
   updatedAt    DateTime      @updatedAt @map("updated_at")
 
+  tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
   @@map("site_themes")
 }
 
 model ContentPage {
   id           String        @id @default(cuid())
+  tenantId     String?       @map("tenant_id")
   slug         String
   title        String
   bodyMarkdown String        @map("body_markdown") @db.Text
@@ -418,13 +517,17 @@ model ContentPage {
   createdAt    DateTime      @default(now()) @map("created_at")
   updatedAt    DateTime      @updatedAt @map("updated_at")
 
-  @@unique([slug, status])
-  @@index([slug])
+  tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, slug, status])
+  @@index([tenantId])
+  @@index([tenantId, slug])
   @@map("content_pages")
 }
 
 model SiteMedia {
   id        String        @id @default(cuid())
+  tenantId  String?       @map("tenant_id")
   kind      SiteMediaKind
   url       String
   alt       String        @default("")
@@ -433,13 +536,17 @@ model SiteMedia {
   createdAt DateTime      @default(now()) @map("created_at")
   updatedAt DateTime      @updatedAt @map("updated_at")
 
-  @@unique([kind, sortOrder, status])
-  @@index([kind, status])
+  tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, kind, sortOrder, status])
+  @@index([tenantId])
+  @@index([tenantId, kind, status])
   @@map("site_media")
 }
 
 model FeaturedRoute {
   id        String        @id @default(cuid())
+  tenantId  String?       @map("tenant_id")
   routeId   String        @map("route_id")
   sortOrder Int           @map("sort_order")
   isVisible Boolean       @default(true) @map("is_visible")
@@ -447,15 +554,18 @@ model FeaturedRoute {
   createdAt DateTime      @default(now()) @map("created_at")
   updatedAt DateTime      @updatedAt @map("updated_at")
 
-  route Route @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  route  Route   @relation(fields: [routeId], references: [id], onDelete: Cascade)
 
-  @@unique([routeId, status])
-  @@index([status, sortOrder])
+  @@unique([tenantId, routeId, status])
+  @@index([tenantId])
+  @@index([tenantId, status, sortOrder])
   @@map("featured_routes")
 }
 
 model FooterSettings {
-  id               String        @id @default("default")
+  id               String        @id @default(cuid())
+  tenantId         String?       @map("tenant_id")
   contactLines     Json          @map("contact_lines")
   email            String
   paymentBannerUrl String?       @map("payment_banner_url")
@@ -465,5 +575,8 @@ model FooterSettings {
   createdAt        DateTime      @default(now()) @map("created_at")
   updatedAt        DateTime      @updatedAt @map("updated_at")
 
+  tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
   @@map("footer_settings")
 }

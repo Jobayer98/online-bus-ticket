@@ -15,6 +15,9 @@ type AuthResponse = {
 function homeForRole(role: string): string {
   if (role === "ADMIN") return "/admin";
   if (role === "COUNTER_SELLER") return "/counter";
+  if (role === "SUPER_ADMIN") {
+    throw new Error("Use platform admin login at /platform/login");
+  }
   return "/dashboard";
 }
 
@@ -157,8 +160,8 @@ export function LoginForm() {
       </p>
 
       <p className="auth-card__demo" aria-label="Demo accounts">
-        Demo: customer any phone + register · staff 01700000001 (admin) or
-        01700000002 (counter) · password123
+        Staff: 01700000001 (admin) or 01700000002 (counter) · password123.
+        Customers can register here.
       </p>
     </div>
   );

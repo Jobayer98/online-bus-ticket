@@ -6,9 +6,12 @@ import { authenticateRequired, requireRole } from "../../middleware/auth.js";
 export const adminStopsRouter = Router();
 adminStopsRouter.use(authenticateRequired, requireRole("ADMIN", "COUNTER_SELLER"));
 
-adminStopsRouter.get("/", async (_req, res, next) => {
+adminStopsRouter.get("/", async (req, res, next) => {
   try {
-    const stops = await prisma.stop.findMany({ orderBy: { name: "asc" } });
+    const stops = await prisma.stop.findMany({
+      where: { tenantId: req.tenant?.id },
+      orderBy: { name: "asc" },
+    });
     res.json(successResponse(stops));
   } catch (e) {
     next(e);
@@ -18,7 +21,9 @@ adminStopsRouter.get("/", async (_req, res, next) => {
 adminStopsRouter.post("/", requireRole("ADMIN"), async (req, res, next) => {
   try {
     const input = createStopSchema.parse(req.body);
-    const stop = await prisma.stop.create({ data: input });
+    const stop = await prisma.stop.create({
+      data: { ...input, tenantId: req.tenant?.id },
+    });
     res.status(201).json(successResponse(stop));
   } catch (e) {
     next(e);
@@ -29,7 +34,7 @@ adminStopsRouter.patch("/:id", requireRole("ADMIN"), async (req, res, next) => {
   try {
     const input = updateStopSchema.parse(req.body);
     const stop = await prisma.stop.update({
-      where: { id: String(req.params.id) },
+      where: { id: String(req.params.id), tenantId: req.tenant?.id },
       data: input,
     });
     res.json(successResponse(stop));
@@ -40,7 +45,9 @@ adminStopsRouter.patch("/:id", requireRole("ADMIN"), async (req, res, next) => {
 
 adminStopsRouter.delete("/:id", requireRole("ADMIN"), async (req, res, next) => {
   try {
-    await prisma.stop.delete({ where: { id: String(req.params.id) } });
+    await prisma.stop.delete({
+      where: { id: String(req.params.id), tenantId: req.tenant?.id },
+    });
     res.json(successResponse({ deleted: true }));
   } catch (e) {
     next(e);

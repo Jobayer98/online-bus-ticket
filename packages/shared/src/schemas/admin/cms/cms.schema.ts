@@ -10,6 +10,15 @@ export const hexColorSchema = z
   .string()
   .regex(/^#[0-9a-fA-F]{6}$/, "Invalid hex color (use #RRGGBB)");
 
+/** Absolute URL or app-relative path (CMS assets, static images). */
+export const cmsAssetUrlSchema = z
+  .string()
+  .min(1)
+  .max(500)
+  .refine((v) => v.startsWith("/") || /^https?:\/\//i.test(v), {
+    message: "Must be an absolute URL or a path starting with /",
+  });
+
 export const cmsPageSlugParamSchema = z.object({
   slug: cmsPageSlugSchema,
 });
@@ -22,8 +31,8 @@ export const patchSiteProfileSchema = z
   .object({
     companyName: z.string().min(1).max(120),
     tagline: z.string().max(200).nullable().optional(),
-    logoUrl: z.string().url().nullable().optional(),
-    faviconUrl: z.string().url().nullable().optional(),
+    logoUrl: cmsAssetUrlSchema.nullable().optional(),
+    faviconUrl: cmsAssetUrlSchema.nullable().optional(),
     tradeLicenseNo: z.string().max(80).nullable().optional(),
   })
   .strict();

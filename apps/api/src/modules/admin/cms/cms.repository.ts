@@ -12,42 +12,62 @@ import type {
   UpdateSiteMediaInput,
 } from "@repo/shared";
 
-const SINGLETON_ID = "default";
-
 const featuredRouteInclude = {
   route: { include: { fromStop: true, toStop: true } },
 } satisfies Prisma.FeaturedRouteInclude;
 
-export async function findSiteProfile() {
-  return prisma.siteProfile.findUnique({ where: { id: SINGLETON_ID } });
+// ---------------------------------------------------------------------------
+// Site Profile
+// ---------------------------------------------------------------------------
+
+export async function findSiteProfile(tenantId?: string) {
+  return prisma.siteProfile.findFirst({ where: { tenantId } });
 }
 
-export async function upsertSiteProfileDraft(input: PatchSiteProfileInput) {
-  return prisma.siteProfile.upsert({
-    where: { id: SINGLETON_ID },
-    create: { id: SINGLETON_ID, ...input, status: "DRAFT" },
-    update: { ...input, status: "DRAFT" },
+export async function upsertSiteProfileDraft(
+  input: PatchSiteProfileInput,
+  tenantId?: string,
+) {
+  const existing = await prisma.siteProfile.findFirst({ where: { tenantId } });
+  if (existing) {
+    return prisma.siteProfile.update({
+      where: { id: existing.id },
+      data: { ...input, status: "DRAFT" },
+    });
+  }
+  return prisma.siteProfile.create({
+    data: { ...input, tenantId, status: "DRAFT" },
   });
 }
 
-export async function findSiteTheme() {
-  return prisma.siteTheme.findUnique({ where: { id: SINGLETON_ID } });
+// ---------------------------------------------------------------------------
+// Site Theme
+// ---------------------------------------------------------------------------
+
+export async function findSiteTheme(tenantId?: string) {
+  return prisma.siteTheme.findFirst({ where: { tenantId } });
 }
 
 export async function upsertSiteThemeDraft(
   input: PatchSiteThemeInput,
   paletteJson: Prisma.InputJsonValue,
+  tenantId?: string,
 ) {
-  return prisma.siteTheme.upsert({
-    where: { id: SINGLETON_ID },
-    create: {
-      id: SINGLETON_ID,
-      primaryColor: input.primaryColor,
-      fontFamily: input.fontFamily,
-      paletteJson,
-      status: "DRAFT",
-    },
-    update: {
+  const existing = await prisma.siteTheme.findFirst({ where: { tenantId } });
+  if (existing) {
+    return prisma.siteTheme.update({
+      where: { id: existing.id },
+      data: {
+        primaryColor: input.primaryColor,
+        fontFamily: input.fontFamily,
+        paletteJson,
+        status: "DRAFT",
+      },
+    });
+  }
+  return prisma.siteTheme.create({
+    data: {
+      tenantId,
       primaryColor: input.primaryColor,
       fontFamily: input.fontFamily,
       paletteJson,
@@ -56,8 +76,12 @@ export async function upsertSiteThemeDraft(
   });
 }
 
-export async function findFooterSettings() {
-  return prisma.footerSettings.findUnique({ where: { id: SINGLETON_ID } });
+// ---------------------------------------------------------------------------
+// Footer Settings
+// ---------------------------------------------------------------------------
+
+export async function findFooterSettings(tenantId?: string) {
+  return prisma.footerSettings.findFirst({ where: { tenantId } });
 }
 
 export async function upsertFooterSettingsDraft(
@@ -68,11 +92,18 @@ export async function upsertFooterSettingsDraft(
     paymentBannerUrl?: string | null;
     poweredByText?: string | null;
   },
+  tenantId?: string,
 ) {
-  return prisma.footerSettings.upsert({
-    where: { id: SINGLETON_ID },
-    create: {
-      id: SINGLETON_ID,
+  const existing = await prisma.footerSettings.findFirst({ where: { tenantId } });
+  if (existing) {
+    return prisma.footerSettings.update({
+      where: { id: existing.id },
+      data: { ...data, status: "DRAFT" },
+    });
+  }
+  return prisma.footerSettings.create({
+    data: {
+      tenantId,
       contactLines: (data.contactLines as Prisma.InputJsonValue) ?? [],
       email: (data.email as string) ?? "",
       paymentBannerUrl: (data.paymentBannerUrl as string | null) ?? null,
@@ -80,13 +111,19 @@ export async function upsertFooterSettingsDraft(
       poweredByText: (data.poweredByText as string | null) ?? null,
       status: "DRAFT",
     },
-    update: { ...data, status: "DRAFT" },
   });
 }
 
-export async function listContentPages(status: ContentStatus) {
+// ---------------------------------------------------------------------------
+// Content Pages
+// ---------------------------------------------------------------------------
+
+export async function listContentPages(
+  status: ContentStatus,
+  tenantId?: string,
+) {
   return prisma.contentPage.findMany({
-    where: { status },
+    where: { status, tenantId },
     orderBy: { slug: "asc" },
   });
 }
@@ -94,50 +131,87 @@ export async function listContentPages(status: ContentStatus) {
 export async function findContentPageBySlug(
   slug: string,
   status: ContentStatus,
+  tenantId?: string,
 ) {
-  return prisma.contentPage.findFirst({ where: { slug, status } });
+  return prisma.contentPage.findFirst({ where: { slug, status, tenantId } });
 }
 
-export async function createContentPage(input: CreateContentPageInput) {
+export async function createContentPage(
+  input: CreateContentPageInput,
+  tenantId?: string,
+) {
   return prisma.contentPage.create({
-    data: { ...input, status: "DRAFT" },
+    data: { ...input, tenantId, status: "DRAFT" },
   });
 }
 
-export async function updateContentPage(id: string, input: UpdateContentPageInput) {
+export async function updateContentPage(
+  id: string,
+  input: UpdateContentPageInput,
+  tenantId?: string,
+) {
+  const page = await prisma.contentPage.findFirst({ where: { id, tenantId } });
+  if (!page) throw new Error("Content page not found");
   return prisma.contentPage.update({ where: { id }, data: input });
 }
 
-export async function deleteContentPage(id: string) {
+export async function deleteContentPage(id: string, tenantId?: string) {
+  const page = await prisma.contentPage.findFirst({ where: { id, tenantId } });
+  if (!page) throw new Error("Content page not found");
   return prisma.contentPage.delete({ where: { id } });
 }
 
-export async function listSiteMedia(status: ContentStatus) {
+// ---------------------------------------------------------------------------
+// Site Media
+// ---------------------------------------------------------------------------
+
+export async function listSiteMedia(
+  status: ContentStatus,
+  tenantId?: string,
+) {
   return prisma.siteMedia.findMany({
-    where: { status },
+    where: { status, tenantId },
     orderBy: [{ kind: "asc" }, { sortOrder: "asc" }],
   });
 }
 
-export async function findSiteMediaById(id: string, status: ContentStatus) {
-  return prisma.siteMedia.findFirst({ where: { id, status } });
+export async function findSiteMediaById(
+  id: string,
+  status: ContentStatus,
+  tenantId?: string,
+) {
+  return prisma.siteMedia.findFirst({ where: { id, status, tenantId } });
 }
 
-export async function createSiteMedia(input: CreateSiteMediaInput) {
+export async function createSiteMedia(
+  input: CreateSiteMediaInput,
+  tenantId?: string,
+) {
   return prisma.siteMedia.create({
-    data: { ...input, status: "DRAFT" },
+    data: { ...input, tenantId, status: "DRAFT" },
   });
 }
 
-export async function updateSiteMedia(id: string, input: UpdateSiteMediaInput) {
+export async function updateSiteMedia(
+  id: string,
+  input: UpdateSiteMediaInput,
+  tenantId?: string,
+) {
+  const media = await prisma.siteMedia.findFirst({ where: { id, tenantId } });
+  if (!media) throw new Error("Site media not found");
   return prisma.siteMedia.update({ where: { id }, data: input });
 }
 
-export async function deleteSiteMedia(id: string) {
+export async function deleteSiteMedia(id: string, tenantId?: string) {
+  const media = await prisma.siteMedia.findFirst({ where: { id, tenantId } });
+  if (!media) throw new Error("Site media not found");
   return prisma.siteMedia.delete({ where: { id } });
 }
 
-export async function reorderSiteMediaItems(input: ReorderSiteMediaInput) {
+export async function reorderSiteMediaItems(
+  input: ReorderSiteMediaInput,
+  _tenantId?: string,
+) {
   return prisma.$transaction(
     input.items.map((item) =>
       prisma.siteMedia.update({
@@ -148,17 +222,28 @@ export async function reorderSiteMediaItems(input: ReorderSiteMediaInput) {
   );
 }
 
-export async function listFeaturedRoutes(status: ContentStatus) {
+// ---------------------------------------------------------------------------
+// Featured Routes
+// ---------------------------------------------------------------------------
+
+export async function listFeaturedRoutes(
+  status: ContentStatus,
+  tenantId?: string,
+) {
   return prisma.featuredRoute.findMany({
-    where: { status },
+    where: { status, tenantId },
     orderBy: { sortOrder: "asc" },
     include: featuredRouteInclude,
   });
 }
 
-export async function findFeaturedRouteById(id: string, status: ContentStatus) {
+export async function findFeaturedRouteById(
+  id: string,
+  status: ContentStatus,
+  tenantId?: string,
+) {
   return prisma.featuredRoute.findFirst({
-    where: { id, status },
+    where: { id, status, tenantId },
     include: featuredRouteInclude,
   });
 }
@@ -166,15 +251,19 @@ export async function findFeaturedRouteById(id: string, status: ContentStatus) {
 export async function findFeaturedRouteByRouteId(
   routeId: string,
   status: ContentStatus,
+  tenantId?: string,
 ) {
   return prisma.featuredRoute.findFirst({
-    where: { routeId, status },
+    where: { routeId, status, tenantId },
   });
 }
 
-export async function createFeaturedRoute(input: CreateFeaturedRouteInput) {
+export async function createFeaturedRoute(
+  input: CreateFeaturedRouteInput,
+  tenantId?: string,
+) {
   return prisma.featuredRoute.create({
-    data: { ...input, status: "DRAFT" },
+    data: { ...input, tenantId, status: "DRAFT" },
     include: featuredRouteInclude,
   });
 }
@@ -182,7 +271,12 @@ export async function createFeaturedRoute(input: CreateFeaturedRouteInput) {
 export async function updateFeaturedRoute(
   id: string,
   input: UpdateFeaturedRouteInput,
+  tenantId?: string,
 ) {
+  const route = await prisma.featuredRoute.findFirst({
+    where: { id, tenantId },
+  });
+  if (!route) throw new Error("Featured route not found");
   return prisma.featuredRoute.update({
     where: { id },
     data: input,
@@ -190,12 +284,17 @@ export async function updateFeaturedRoute(
   });
 }
 
-export async function deleteFeaturedRoute(id: string) {
+export async function deleteFeaturedRoute(id: string, tenantId?: string) {
+  const route = await prisma.featuredRoute.findFirst({
+    where: { id, tenantId },
+  });
+  if (!route) throw new Error("Featured route not found");
   return prisma.featuredRoute.delete({ where: { id } });
 }
 
 export async function reorderFeaturedRouteItems(
   input: ReorderFeaturedRoutesInput,
+  _tenantId?: string,
 ) {
   return prisma.$transaction(
     input.items.map((item) =>
@@ -207,44 +306,48 @@ export async function reorderFeaturedRouteItems(
   );
 }
 
-export async function findRouteById(routeId: string) {
-  return prisma.route.findUnique({ where: { id: routeId } });
+export async function findRouteById(routeId: string, tenantId?: string) {
+  return prisma.route.findFirst({ where: { id: routeId, tenantId } });
 }
 
-export async function publishCmsContent() {
+// ---------------------------------------------------------------------------
+// Publish
+// ---------------------------------------------------------------------------
+
+export async function publishCmsContent(tenantId?: string) {
   const publishedAt = new Date();
 
   return prisma.$transaction(async (tx) => {
-    await tx.contentPage.deleteMany({ where: { status: "PUBLISHED" } });
+    await tx.contentPage.deleteMany({ where: { status: "PUBLISHED", tenantId } });
     const pages = await tx.contentPage.updateMany({
-      where: { status: "DRAFT" },
+      where: { status: "DRAFT", tenantId },
       data: { status: "PUBLISHED" },
     });
 
-    await tx.siteMedia.deleteMany({ where: { status: "PUBLISHED" } });
+    await tx.siteMedia.deleteMany({ where: { status: "PUBLISHED", tenantId } });
     const media = await tx.siteMedia.updateMany({
-      where: { status: "DRAFT" },
+      where: { status: "DRAFT", tenantId },
       data: { status: "PUBLISHED" },
     });
 
-    await tx.featuredRoute.deleteMany({ where: { status: "PUBLISHED" } });
+    await tx.featuredRoute.deleteMany({ where: { status: "PUBLISHED", tenantId } });
     const featuredRoutes = await tx.featuredRoute.updateMany({
-      where: { status: "DRAFT" },
+      where: { status: "DRAFT", tenantId },
       data: { status: "PUBLISHED" },
     });
 
     const profile = await tx.siteProfile.updateMany({
-      where: { status: "DRAFT" },
+      where: { status: "DRAFT", tenantId },
       data: { status: "PUBLISHED" },
     });
 
     const theme = await tx.siteTheme.updateMany({
-      where: { status: "DRAFT" },
+      where: { status: "DRAFT", tenantId },
       data: { status: "PUBLISHED" },
     });
 
     const footer = await tx.footerSettings.updateMany({
-      where: { status: "DRAFT" },
+      where: { status: "DRAFT", tenantId },
       data: { status: "PUBLISHED" },
     });
 

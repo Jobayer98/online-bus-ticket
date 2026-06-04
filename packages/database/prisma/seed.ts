@@ -9,7 +9,38 @@ const prisma = new PrismaClient();
 async function main() {
   const passwordHash = await bcrypt.hash("password123", 10);
 
+  // ── SaaS: Create demo tenant ─────────────────────────────────────────────
+  let demoTenant = await prisma.tenant.findFirst({
+    where: { slug: "demo" },
+  });
+  if (!demoTenant) {
+    demoTenant = await prisma.tenant.create({
+      data: {
+        name: "Demo Bus Company",
+        slug: "demo",
+        subdomainPrefix: "demo",
+        planTier: "PRO",
+        planStatus: "ACTIVE",
+      },
+    });
+  }
+  const tenantId = demoTenant.id;
+
+  // ── SUPER_ADMIN user (platform-level, no tenantId) ───────────────────────
   await prisma.user.upsert({
+    where: { phone: "01700000000" },
+    update: {},
+    create: {
+      phone: "01700000000",
+      email: "superadmin@platform.local",
+      name: "Super Admin",
+      passwordHash,
+      role: "SUPER_ADMIN",
+    },
+  });
+
+  // ── Tenant ADMIN user ────────────────────────────────────────────────────
+  const adminUser = await prisma.user.upsert({
     where: { phone: "01700000001" },
     update: {},
     create: {
@@ -20,8 +51,14 @@ async function main() {
       role: "ADMIN",
     },
   });
+  await prisma.tenantMembership.upsert({
+    where: { tenantId_userId: { tenantId, userId: adminUser.id } },
+    update: {},
+    create: { tenantId, userId: adminUser.id, role: "ADMIN" },
+  });
 
-  await prisma.user.upsert({
+  // ── Counter Seller user ──────────────────────────────────────────────────
+  const counterUser = await prisma.user.upsert({
     where: { phone: "01700000002" },
     update: {},
     create: {
@@ -32,27 +69,34 @@ async function main() {
       role: "COUNTER_SELLER",
     },
   });
+  await prisma.tenantMembership.upsert({
+    where: { tenantId_userId: { tenantId, userId: counterUser.id } },
+    update: {},
+    create: { tenantId, userId: counterUser.id, role: "COUNTER_SELLER" },
+  });
 
+  // ── Stops (scoped to demo tenant) ────────────────────────────────────────
   const dhaka = await prisma.stop.upsert({
     where: { code: "DHK" },
-    update: {},
-    create: { name: "Gabtoli", city: "Dhaka", code: "DHK" },
+    update: { tenantId },
+    create: { name: "Gabtoli", city: "Dhaka", code: "DHK", tenantId },
   });
 
   const pabna = await prisma.stop.upsert({
     where: { code: "PAB" },
-    update: {},
-    create: { name: "Pabna Central", city: "Pabna", code: "PAB" },
+    update: { tenantId },
+    create: { name: "Pabna Central", city: "Pabna", code: "PAB", tenantId },
   });
 
   const route = await prisma.route.upsert({
     where: { slug: "dhaka-pabna" },
-    update: {},
+    update: { tenantId },
     create: {
       fromStopId: dhaka.id,
       toStopId: pabna.id,
       slug: "dhaka-pabna",
       distanceKm: 180,
+      tenantId,
     },
   });
 
@@ -78,7 +122,7 @@ async function main() {
   }
 
   let layout = await prisma.seatLayout.findFirst({
-    where: { name: "40 Seat Standard" },
+    where: { name: "40 Seat Standard", tenantId },
   });
   if (!layout) {
     layout = await prisma.seatLayout.create({
@@ -86,6 +130,7 @@ async function main() {
       name: "40 Seat Standard",
       rows: 10,
       cols: 4,
+      tenantId,
       templates: {
         create: Array.from({ length: 40 }, (_, i) => {
           const row = Math.floor(i / 4) + 1;
@@ -119,20 +164,22 @@ async function main() {
 
   const coach = await prisma.coach.upsert({
     where: { coachNumber: "DH-1001" },
-    update: { seatLayoutId: layout.id },
+    update: { seatLayoutId: layout.id, tenantId },
     create: {
       coachNumber: "DH-1001",
       busType: "AC",
       seatLayoutId: layout.id,
+      tenantId,
     },
   });
 
   const coach2 = await prisma.coach.upsert({
     where: { coachNumber: "DH-1002" },
-    update: {},
+    update: { tenantId },
     create: {
       coachNumber: "DH-1002",
       busType: "NON_AC",
+      tenantId,
     },
   });
 
@@ -141,7 +188,7 @@ async function main() {
   tomorrow.setHours(6, 0, 0, 0);
 
   const existingSchedule = await prisma.schedule.findFirst({
-    where: { coachId: coach.id, routeId: route.id },
+    where: { coachId: coach.id, routeId: route.id, tenantId },
   });
 
   if (!existingSchedule) {
@@ -155,6 +202,7 @@ async function main() {
         departureAt: dep,
         estimatedArrivalAt: arr,
         baseFare: 85000,
+        tenantId,
       },
     });
     const templates = await prisma.seatTemplate.findMany({
@@ -181,15 +229,26 @@ async function main() {
         departureAt: dep2,
         estimatedArrivalAt: arr2,
         baseFare: 55000,
+        tenantId,
       },
     });
   }
 
-  await seedCms(prisma);
+  await seedCms(prisma, tenantId);
+
+  // Remove legacy orphan CMS rows (tenantId=null) — the seed has now created tenant-scoped versions
+  await prisma.siteProfile.deleteMany({ where: { tenantId: null } });
+  await prisma.siteTheme.deleteMany({ where: { tenantId: null } });
+  await prisma.contentPage.deleteMany({ where: { tenantId: null } });
+  await prisma.siteMedia.deleteMany({ where: { tenantId: null } });
+  await prisma.featuredRoute.deleteMany({ where: { tenantId: null } });
+  await prisma.footerSettings.deleteMany({ where: { tenantId: null } });
 
   console.log("Seed complete:");
-  console.log("  Admin: 01700000001 / password123");
-  console.log("  Counter: 01700000002 / password123");
+  console.log("  Super Admin: 01700000000 / password123 (platform-level)");
+  console.log("  Admin: 01700000001 / password123 (demo tenant)");
+  console.log("  Counter: 01700000002 / password123 (demo tenant)");
+  console.log("  Demo tenant subdomain: demo.lvh.me:3000");
 }
 
 main()

@@ -401,13 +401,13 @@ P4 (E14-24 … E14-28)  →  ops polish
 
 | ID | Task | Layer | Acceptance |
 |----|------|-------|------------|
-| [ ] E15-19 | Admin CMS nav + **Profile** panel (name, logo upload) | web | Saves draft |
-| [ ] E15-20 | Admin **Theme** panel: color picker, font select, generated palette swatches + mini preview | web | Shows E15-04 tokens live |
-| [ ] E15-21 | Admin **Pages** panel: markdown editor per slug with preview | web | All 5 pages editable |
-| [ ] E15-22 | Admin **Media** panel: hero upload, featured gallery drag-reorder | web | Image preview |
-| [ ] E15-23 | Admin **Featured routes** panel: route picker + reorder | web | Uses existing routes list |
-| [ ] E15-24 | Admin **Footer** panel: contact lines, email, links, payment banner | web | Matches public footer |
-| [ ] E15-25 | Admin **Preview & Publish**: iframe/tab preview of draft site + Publish button | web | Preview uses admin preview API |
+| [x] E15-19 | Admin CMS nav + **Profile** panel (name, logo upload) | web | Saves draft |
+| [x] E15-20 | Admin **Theme** panel: color picker, font select, generated palette swatches + mini preview | web | Shows E15-04 tokens live |
+| [x] E15-21 | Admin **Pages** panel: markdown editor per slug with preview | web | All 5 pages editable |
+| [x] E15-22 | Admin **Media** panel: hero upload, featured gallery drag-reorder | web | Image preview |
+| [x] E15-23 | Admin **Featured routes** panel: route picker + reorder | web | Uses existing routes list |
+| [x] E15-24 | Admin **Footer** panel: contact lines, email, links, payment banner | web | Matches public footer |
+| [x] E15-25 | Admin **Preview & Publish**: iframe/tab preview of draft site + Publish button | web | Preview uses admin preview API |
 
 ### E15 dependency order
 
@@ -424,6 +424,54 @@ Recommended PR sequence: **01 → 03 → 04 → 05 → 06 → 07 → 08 → 09�
 
 ---
 
+## Epic E16 — SaaS Multi-Tenancy
+
+**Goal:** Convert the single-tenant platform into a multi-tenant SaaS. Each bus company (tenant) is isolated by `tenantId`, identified via subdomain. Custom domain support is deferred but the resolver is built as a pluggable strategy. Plan tiers (FREE/PRO/ENTERPRISE) with status are stored on the Tenant record.  
+**Depends on:** E00–E15 (all prior epics).
+
+### Phase 1 — Database
+
+| ID | Task | Layer | Acceptance |
+|----|------|-------|------------|
+| [x] E16-01 | Prisma: `Tenant` model (slug unique, subdomainPrefix unique, customDomain nullable+unique, planTier, planStatus); add `SUPER_ADMIN` to `Role` enum; migrate | db | `pnpm db:migrate` succeeds |
+| [x] E16-02 | Prisma: `TenantMembership` (tenantId, userId, role ADMIN\|COUNTER_SELLER, @@unique); add nullable `tenantId` + `@@index([tenantId])` to all 16 scoped models; migrate | db | No cross-tenant leaks |
+
+### Phase 2 — Shared Contracts
+
+| ID | Task | Layer | Acceptance |
+|----|------|-------|------------|
+| [x] E16-03 | `packages/shared`: `PlanTier`/`PlanStatus` enums; `createTenantSchema`, `updateTenantSchema`, `TenantDto`, `TenantListDto` | shared | Zod validates |
+| [x] E16-04 | `packages/shared`: `inviteMemberSchema`, `TenantMemberDto`; contract docs `docs/contracts/platform/tenant.md` + `member.md` | shared/docs | Contract docs written |
+
+### Phase 3 — API
+
+| ID | Task | Layer | Acceptance |
+|----|------|-------|------------|
+| [x] E16-05 | `ITenantResolver` port + `SubdomainTenantResolver` (LRU cache, 60 s TTL); `TenantResolverMiddleware`; 404 on unknown slug; skip `/api/v1/platform/*` + `/api/v1/auth/*` | api | Returns 404 for unknown slug |
+| [x] E16-06 | Scope all existing repository/service queries with `tenantId` (Stop, Route, Coach, Schedule, Booking, Ticket, CounterTransaction, CMS — 8 modules) | api | No cross-tenant data |
+| [x] E16-07 | New `platform/` module: `GET/POST/PATCH /api/v1/platform/tenants`; requires `SUPER_ADMIN` | api | RBAC enforced |
+| [x] E16-08 | `POST /api/v1/platform/register` (no auth; creates Tenant + ADMIN User in `$transaction`; auto-sets TRIAL plan; returns JWT) | api | Transaction atomic |
+| [x] E16-09 | `GET /api/v1/admin/members`, `POST /api/v1/admin/members` (tenant ADMIN invites COUNTER_SELLER via TenantMembership) | api | Tenant-scoped |
+| [x] E16-10 | Plan limit middleware: FREE ≤ 5 routes + 50 schedules/mo; PRO/ENTERPRISE unlimited; `PLAN_LIMIT_EXCEEDED` error code | api | 403 on cap breach |
+
+### Phase 4 — Web
+
+| ID | Task | Layer | Acceptance |
+|----|------|-------|------------|
+| [x] E16-11 | `apps/web/src/middleware.ts`: parse Host → extract subdomain → set `X-Tenant-Slug` on all API requests; main domain routes to platform/onboarding only | web | Subdomain resolved |
+| [x] E16-12 | `/onboarding` page: company sign-up form → `POST /api/v1/platform/register` → redirect to `{slug}.domain/admin` | web | Creates tenant |
+| [x] E16-13 | `/platform` page (SUPER_ADMIN): tenant list table with plan/status badges; status toggle | web | SUPER_ADMIN only |
+| [x] E16-14 | Tenant settings in `/admin` panel: plan display, member list, invite member form | web | Tenant-scoped ADMIN |
+| [x] E16-15 | Update seed: demo tenant + SUPER_ADMIN user; Docker Compose `MAIN_DOMAIN` env; README: lvh.me dev tip | db/infra | Dev setup works |
+
+### E16 dependency order
+
+```
+E16-01 → E16-02 → E16-03 → E16-04 → E16-05 → E16-06 → E16-07 → E16-08 → E16-09 → E16-10 → E16-11 → E16-12 → E16-13 → E16-14 → E16-15
+```
+
+---
+
 ## Suggested Implementation Order
 
 ```
@@ -434,6 +482,7 @@ E08 + E10 → E11
 E12 last
 E14 (P0→P1→P2→P3→P4) — after E08/E10/E11; P0 before production
 E15 — after E02 + E01; start E15-01 after MVP or parallel with E14 P4
+E16 — after E15; SaaS multi-tenancy
 ```
 
 ---

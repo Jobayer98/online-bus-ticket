@@ -15,9 +15,10 @@ adminCoachesRouter.use(authenticateRequired, requireRole("ADMIN", "COUNTER_SELLE
 
 const coachInclude = { seatLayout: true } as const;
 
-adminCoachesRouter.get("/", async (_req, res, next) => {
+adminCoachesRouter.get("/", async (req, res, next) => {
   try {
     const coaches = await prisma.coach.findMany({
+      where: { tenantId: req.tenant?.id },
       include: coachInclude,
       orderBy: { coachNumber: "asc" },
     });
@@ -35,6 +36,7 @@ adminCoachesRouter.post("/", requireRole("ADMIN"), async (req, res, next) => {
         coachNumber: input.coachNumber,
         busType: input.busType,
         seatLayoutId: input.seatLayoutId ?? null,
+        tenantId: req.tenant?.id,
       },
       include: coachInclude,
     });
@@ -49,7 +51,7 @@ adminCoachesRouter.patch("/:id", requireRole("ADMIN"), async (req, res, next) =>
     const { id } = coachIdParamsSchema.parse(req.params);
     const input = updateCoachSchema.parse(req.body);
     const coach = await prisma.coach.update({
-      where: { id },
+      where: { id, tenantId: req.tenant?.id },
       data: {
         ...(input.coachNumber !== undefined && { coachNumber: input.coachNumber }),
         ...(input.busType !== undefined && { busType: input.busType }),
@@ -68,7 +70,9 @@ adminCoachesRouter.patch("/:id", requireRole("ADMIN"), async (req, res, next) =>
 adminCoachesRouter.delete("/:id", requireRole("ADMIN"), async (req, res, next) => {
   try {
     const { id } = coachIdParamsSchema.parse(req.params);
-    const scheduleCount = await prisma.schedule.count({ where: { coachId: id } });
+    const scheduleCount = await prisma.schedule.count({
+      where: { coachId: id, tenantId: req.tenant?.id },
+    });
     if (scheduleCount > 0) {
       throw new AppError(
         ErrorCode.CONFLICT,
@@ -76,7 +80,7 @@ adminCoachesRouter.delete("/:id", requireRole("ADMIN"), async (req, res, next) =
         409,
       );
     }
-    await prisma.coach.delete({ where: { id } });
+    await prisma.coach.delete({ where: { id, tenantId: req.tenant?.id } });
     res.json(successResponse({ deleted: true }));
   } catch (e) {
     next(e);
