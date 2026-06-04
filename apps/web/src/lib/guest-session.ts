@@ -1,9 +1,11 @@
+import { randomId } from "@/lib/random-id";
+
 /** Stable browser session id for guest seat holds (localStorage). */
 export function getGuestSessionId(): string {
   if (typeof window === "undefined") return "";
   let sessionId = localStorage.getItem("sessionId");
   if (!sessionId) {
-    sessionId = crypto.randomUUID();
+    sessionId = randomId();
     localStorage.setItem("sessionId", sessionId);
   }
   return sessionId;

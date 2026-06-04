@@ -1,5 +1,6 @@
 import { apiDelete } from "@/lib/api-client";
 import { holdReleaseQuery } from "@/lib/guest-session";
+import { randomId } from "@/lib/random-id";
 
 const HOLD_ID_KEY = "activeSeatHoldId";
 const SEARCH_PAGE_LOAD_TOKEN_KEY = "searchPageLoadToken";
@@ -20,7 +21,7 @@ function shouldSkipHoldRelease(): boolean {
 function getOrCreateSearchPageLoadToken(): string {
   let token = sessionStorage.getItem(SEARCH_PAGE_LOAD_TOKEN_KEY);
   if (!token) {
-    token = crypto.randomUUID();
+    token = randomId();
     sessionStorage.setItem(SEARCH_PAGE_LOAD_TOKEN_KEY, token);
   }
   return token;

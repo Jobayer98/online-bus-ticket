@@ -27,6 +27,12 @@ export function extractTenantSlugFromHost(
     return slug || null;
   }
 
+  // Dev: *.lvh.me (README default) — avoids mis-parsing when env still says "localhost"
+  if (hostWithoutPort.endsWith(".lvh.me")) {
+    const slug = hostWithoutPort.slice(0, -".lvh.me".length);
+    return slug || null;
+  }
+
   const parts = hostWithoutPort.split(".");
   if (parts.length < 2) return null;
 
