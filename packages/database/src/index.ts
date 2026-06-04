@@ -18,3 +18,4 @@ if (process.env.NODE_ENV !== "production") {
 
 export { PrismaClient };
 export * from "../generated/client/index.js";
+export { seedTenantCmsDefaults } from "./seed-tenant-cms-defaults.js";

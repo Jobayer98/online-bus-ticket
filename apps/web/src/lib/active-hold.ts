@@ -1,4 +1,5 @@
 import { apiDelete } from "@/lib/api-client";
+import { buildApiHeaders } from "@/lib/build-api-headers";
 import { holdReleaseQuery } from "@/lib/guest-session";
 import { randomId } from "@/lib/random-id";
 
@@ -83,6 +84,7 @@ export function releaseActiveHoldKeepalive(): void {
     method: "DELETE",
     credentials: "include",
     keepalive: true,
+    headers: buildApiHeaders(),
   }).catch(() => {
     /* hold may already be released or expired */
   });

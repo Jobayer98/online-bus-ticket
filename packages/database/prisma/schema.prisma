@@ -150,7 +150,7 @@ model Route {
   tenantId   String?  @map("tenant_id")
   fromStopId String   @map("from_stop_id")
   toStopId   String   @map("to_stop_id")
-  slug       String   @unique
+  slug       String
   distanceKm Int?     @map("distance_km")
   createdAt  DateTime @default(now()) @map("created_at")
   updatedAt  DateTime @updatedAt @map("updated_at")
@@ -162,7 +162,8 @@ model Route {
   boardingPoints BoardingPoint[]
   featuredRoutes FeaturedRoute[]
 
-  @@unique([fromStopId, toStopId])
+  @@unique([tenantId, slug])
+  @@unique([tenantId, fromStopId, toStopId])
   @@index([tenantId])
   @@index([slug])
   @@map("routes")

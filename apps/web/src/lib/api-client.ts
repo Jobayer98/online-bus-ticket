@@ -1,33 +1,7 @@
-import { extractTenantSlugFromHost } from "@repo/shared";
-import { clearAuthSession, getAuthToken } from "./auth-session";
+import { clearAuthSession } from "./auth-session";
+import { buildApiHeaders } from "./build-api-headers";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
-
-function getTenantSlug(): string | null {
-  if (typeof window === "undefined") return null;
-  const mainDomain =
-    process.env.NEXT_PUBLIC_MAIN_DOMAIN ?? "lvh.me:3000";
-  return extractTenantSlugFromHost(window.location.host, mainDomain);
-}
-
-function authHeaders(extra?: HeadersInit): HeadersInit {
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
-  const token = getAuthToken();
-  if (token) headers.Authorization = `Bearer ${token}`;
-
-  const slug = getTenantSlug();
-  if (slug) headers["x-tenant-slug"] = slug;
-
-  if (extra) {
-    const h = new Headers(extra);
-    h.forEach((v, k) => {
-      headers[k] = v;
-    });
-  }
-  return headers;
-}
 
 export async function api<T, M = undefined>(
   path: string,
@@ -36,7 +10,7 @@ export async function api<T, M = undefined>(
   const res = await fetch(`${API_URL}/api/v1${path}`, {
     ...options,
     credentials: "include",
-    headers: authHeaders(options?.headers),
+    headers: buildApiHeaders(options?.headers),
   });
   const json = await res.json();
   if (res.status === 401) clearAuthSession();
@@ -74,10 +48,9 @@ export function apiDelete<T>(path: string) {
 }
 
 export async function apiDownload(path: string, filename: string): Promise<void> {
-  const token = getAuthToken();
   const res = await fetch(`${API_URL}/api/v1${path}`, {
     credentials: "include",
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    headers: buildApiHeaders(undefined, { json: false }),
   });
   if (!res.ok) {
     const json = await res.json().catch(() => ({}));
