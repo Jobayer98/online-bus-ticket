@@ -24,3 +24,7 @@ export function useSiteTheme(): CmsSiteBundleDto {
   }
   return ctx;
 }
+
+export function useSiteThemeOptional(): CmsSiteBundleDto | null {
+  return useContext(SiteThemeContext);
+}

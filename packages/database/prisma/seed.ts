@@ -10,6 +10,7 @@ async function main() {
   const passwordHash = await bcrypt.hash("password123", 10);
 
   // ── SaaS: Create demo tenant ─────────────────────────────────────────────
+  const bootstrap = process.env.BOOTSTRAP === "1";
   let demoTenant = await prisma.tenant.findFirst({
     where: { slug: "demo" },
   });
@@ -22,6 +23,11 @@ async function main() {
         planTier: "PRO",
         planStatus: "ACTIVE",
       },
+    });
+  } else {
+    demoTenant = await prisma.tenant.update({
+      where: { id: demoTenant.id },
+      data: { name: "Demo Bus Company", subdomainPrefix: "demo" },
     });
   }
   const tenantId = demoTenant.id;
@@ -89,8 +95,12 @@ async function main() {
   });
 
   const route = await prisma.route.upsert({
-    where: { slug: "dhaka-pabna" },
-    update: { tenantId },
+    where: { tenantId_slug: { tenantId, slug: "dhaka-pabna" } },
+    update: {
+      fromStopId: dhaka.id,
+      toStopId: pabna.id,
+      distanceKm: 180,
+    },
     create: {
       fromStopId: dhaka.id,
       toStopId: pabna.id,
@@ -234,7 +244,7 @@ async function main() {
     });
   }
 
-  await seedCms(prisma, tenantId);
+  await seedCms(prisma, tenantId, { replace: bootstrap });
 
   // Remove legacy orphan CMS rows (tenantId=null) — the seed has now created tenant-scoped versions
   await prisma.siteProfile.deleteMany({ where: { tenantId: null } });

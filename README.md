@@ -115,6 +115,9 @@ pnpm db:up
 pnpm db:migrate
 pnpm db:seed
 
+# Dev-only: wipe DB + CMS uploads and reseed fresh demo tenant
+pnpm db:bootstrap
+
 # Run API + web (Turborepo)
 pnpm dev
 ```
@@ -241,7 +244,8 @@ Run from the repository root:
 | `pnpm test:api` | API unit/integration tests (Vitest) |
 | `pnpm db:up` / `pnpm db:down` | Start/stop PostgreSQL + Redis containers |
 | `pnpm db:migrate` | Apply Prisma migrations |
-| `pnpm db:seed` | Load demo users, route, schedules |
+| `pnpm db:seed` | Load demo users, route, schedules (upsert-friendly) |
+| `pnpm db:bootstrap` | **Dev only:** reset DB, clear CMS uploads, reseed demo tenant |
 | `pnpm db:studio` | Open Prisma Studio |
 | `pnpm smoke` | Curl API health check |
 

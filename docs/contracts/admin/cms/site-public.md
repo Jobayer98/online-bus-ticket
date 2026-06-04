@@ -13,6 +13,8 @@
 
 Public read-only endpoints returning **PUBLISHED** CMS content only. Used by the web app for theme, footer, home media, featured routes, and policy pages.
 
+**Tenant:** Requires `x-tenant-slug` header (subdomain or dev cookie). Without it the API returns **404**. The Next.js app forwards this header on server-side `fetch` via `resolveRequestTenantSlug()` (middleware header or `tenant-slug` cookie).
+
 ## GET /api/v1/cms/site
 
 Returns bundled published profile, theme (with palette), footer, media (hero/featured/footerPayment), and featured routes.
@@ -41,7 +43,7 @@ Returns published page markdown. **404** if slug not published (generic message 
 {
   "data": {
     "slug": "about",
-    "title": "About Shahzadpur Travels",
+    "title": "About Demo Bus Company",
     "bodyMarkdown": "Founded in 1985…",
     "updatedAt": "2026-05-31T12:00:00.000Z"
   }
@@ -51,6 +53,6 @@ Returns published page markdown. **404** if slug not published (generic message 
 ## Example
 
 ```bash
-curl http://localhost:4000/api/v1/cms/site
-curl http://localhost:4000/api/v1/cms/pages/about
+curl -H "x-tenant-slug: demo" http://localhost:4000/api/v1/cms/site
+curl -H "x-tenant-slug: demo" http://localhost:4000/api/v1/cms/pages/about
 ```

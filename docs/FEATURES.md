@@ -489,6 +489,32 @@ E16-01 → E16-02 → E16-03 → E16-04 → E16-05 → E16-06 → E16-07 → E16
 
 ---
 
+## Epic E18 — CMS Professional Overhaul
+
+**Goal:** Remove hardcoded Shahzadpur fallbacks, fix tenant-aware public CMS SSR, dev bootstrap, demo seed branding, generic loader, upload previews, and admin CMS polish.  
+**Depends on:** E15, E16, E17.
+
+| ID | Task | Layer | Acceptance |
+|----|------|-------|------------|
+| [x] E18-01 | Server CMS fetch forwards `x-tenant-slug`; contract doc updated | web/docs | `demo.lvh.me` shows DB content |
+| [x] E18-02 | Minimal neutral `cms-defaults`; BrandLogo/metadata/notifications generic | web/api | API down → no Shahzadpur bundle |
+| [x] E18-03 | `cms-seed-data` → Demo Bus Company rich generic content | db | Seed matches tenant name |
+| [x] E18-04 | `pnpm db:bootstrap` dev-only (migrate reset + wipe uploads + seed) | db/infra | Blocked in production |
+| [x] E18-05 | Preview panel: tenant live URL iframe + full draft preview route | web | Published iframe ≠ admin host |
+| [x] E18-06 | `CmsImageUploadField` with Object URL preview on upload panels | web | Thumbnail before upload completes |
+| [x] E18-07 | Generic loading overlay (CSS vars, optional tenant logo) | web | No hardcoded `/images/logo` |
+| [x] E18-08 | Search/booking/admin use `--primary` instead of fixed `--sp-green` | web | Theme picker affects flows |
+| [x] E18-09 | CMS admin UI polish + `cms-ui-specialist` subagent | web | Professional admin CMS layout |
+| [x] E18-10 | Tenant-scoped CMS assets `uploads/cms/{tenantId}/` + URL path | api | Assets isolated per tenant |
+
+### E18 dependency order
+
+```
+E18-02 → E18-01 → E18-03 → E18-04 → E18-05 → E18-07 → E18-08 → E18-06 → E18-09 → E18-10
+```
+
+---
+
 ## Suggested Implementation Order
 
 ```
@@ -501,6 +527,7 @@ E14 (P0→P1→P2→P3→P4) — after E08/E10/E11; P0 before production
 E15 — after E02 + E01; start E15-01 after MVP or parallel with E14 P4
 E16 — after E15; SaaS multi-tenancy
 E17 — after E16; post-migration fixes (routes, headers, CMS defaults)
+E18 — after E17; CMS professional overhaul
 ```
 
 ---

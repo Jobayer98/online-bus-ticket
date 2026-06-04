@@ -7,7 +7,7 @@ import "../home.css";
 import "./ticket.css";
 
 export const metadata: Metadata = {
-  title: "Download Ticket — Shahzadpur Travels",
+  title: "Download Ticket — Bus Booking",
   description: "Download your bus ticket using PNR number and mobile number.",
 };
 

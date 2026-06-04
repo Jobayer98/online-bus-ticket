@@ -68,7 +68,7 @@ describe("CMS Zod contracts", () => {
 
   it("siteProfileDtoSchema parses response envelope field", () => {
     const dto = siteProfileDtoSchema.parse({
-      companyName: "Shahzadpur Travels",
+      companyName: "Demo Bus Company",
       tagline: null,
       logoUrl: "/images/logo/logo.png",
       faviconUrl: null,

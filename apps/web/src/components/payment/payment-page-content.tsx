@@ -16,6 +16,7 @@ import {
 } from "@/lib/booking-access";
 import { formatMoneyBdt } from "@/lib/format";
 import { storeTicketLookup } from "@/lib/ticket-lookup-session";
+import { useSiteTheme } from "@/components/site-theme-provider";
 import { HomeHeader } from "@/components/home-header";
 import { SearchFooter } from "@/components/search/search-footer";
 import { SeatHoldTimer } from "@/components/search/seat-hold-timer";
@@ -24,6 +25,7 @@ import type { PaymentMethodId } from "./sslcommerz-payment-strip";
 import type { BookingDto } from "@repo/shared";
 
 export function PaymentPageContent() {
+  const { profile } = useSiteTheme();
   const { scheduleId } = useParams<{ scheduleId: string }>();
   const searchParams = useSearchParams();
   const bookingId = searchParams.get("bookingId");
@@ -164,6 +166,7 @@ export function PaymentPageContent() {
         {booking ? (
           <SslCommerzMockGateway
             amountMinor={booking.totalAmount}
+            merchantName={profile.companyName}
             orderLabel={`Booking #${booking.id.slice(-8).toUpperCase()}`}
             disabled={holdExpired}
             onPay={handlePay}

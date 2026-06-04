@@ -6,7 +6,7 @@ import "../home.css";
 import "./dashboard.css";
 
 export const metadata: Metadata = {
-  title: "My bookings — Shahzadpur Travels",
+  title: "My bookings — Bus Booking",
   description: "View your bus ticket bookings and account.",
 };
 

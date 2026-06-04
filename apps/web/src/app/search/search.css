@@ -1,9 +1,9 @@
 /* Shahzadpur-style search results page */
 
 .search-page {
-  --sp-green: #2e7d32;
-  --sp-green-dark: #1b5e20;
-  --sp-green-light: #43a047;
+  --sp-green: var(--primary, #2e7d32);
+  --sp-green-dark: var(--primary-hover, #1b5e20);
+  --sp-green-light: var(--primary-light, #43a047);
   --sp-red: #c62828;
   --sp-border: #d5d5d5;
   --sp-bg: #f3f3f3;

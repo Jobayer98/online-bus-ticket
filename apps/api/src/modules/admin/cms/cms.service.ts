@@ -264,17 +264,20 @@ function conflict(message: string): never {
   throw new AppError(ErrorCode.CONFLICT, message, 409);
 }
 
-export async function uploadAsset(file: {
-  originalname: string;
-  mimetype: string;
-  size: number;
-  buffer: Buffer;
-}): Promise<CmsAssetUploadDto> {
+export async function uploadAsset(
+  tenantId: string,
+  file: {
+    originalname: string;
+    mimetype: string;
+    size: number;
+    buffer: Buffer;
+  },
+): Promise<CmsAssetUploadDto> {
   const key = buildAssetKey(file.originalname);
-  await saveAsset(key, file.buffer);
+  await saveAsset(tenantId, key, file.buffer);
   return {
     key,
-    url: assetPublicUrl(key),
+    url: assetPublicUrl(tenantId, key),
     mimeType: file.mimetype,
     sizeBytes: file.size,
   };

@@ -1,6 +1,6 @@
 import type { RequestHandler } from "express";
 import {
-  cmsAssetKeyParamSchema,
+  cmsAssetPathParamSchema,
   cmsFeaturedRouteIdParamSchema,
   cmsMediaIdParamSchema,
   cmsPageSlugParamSchema,
@@ -33,13 +33,17 @@ export const uploadAsset: RequestHandler = nextify(async (req, res) => {
   if (!file) {
     throw new AppError(ErrorCode.VALIDATION_ERROR, "File is required", 400);
   }
-  const data = await cmsService.uploadAsset(file);
+  const tenantId = req.tenant?.id;
+  if (!tenantId) {
+    throw new AppError(ErrorCode.VALIDATION_ERROR, "Tenant context required", 400);
+  }
+  const data = await cmsService.uploadAsset(tenantId, file);
   res.status(201).json(successResponse(data));
 });
 
 export const getAsset: RequestHandler = nextify(async (req, res) => {
-  const { key } = cmsAssetKeyParamSchema.parse(req.params);
-  const asset = await readAsset(key);
+  const { tenantId, fileKey } = cmsAssetPathParamSchema.parse(req.params);
+  const asset = await readAsset(tenantId, fileKey);
   if (!asset) {
     throw new AppError(ErrorCode.NOT_FOUND, "Asset not found", 404);
   }

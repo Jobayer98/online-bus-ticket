@@ -29,17 +29,21 @@ function assetsBaseDir(): string {
   return path.resolve(CMS_ASSETS_DIR);
 }
 
-function resolveAssetPath(key: string): string {
+function resolveAssetPath(tenantId: string | null, key: string): string {
   const base = assetsBaseDir();
-  const resolved = path.resolve(base, key);
+  const segments = tenantId ? [tenantId, key] : [key];
+  const resolved = path.resolve(base, ...segments);
   if (resolved !== base && !resolved.startsWith(`${base}${path.sep}`)) {
     throw new AppError(ErrorCode.VALIDATION_ERROR, "Invalid asset key", 400);
   }
   return resolved;
 }
 
-export async function ensureAssetsDir(): Promise<void> {
-  await fs.mkdir(assetsBaseDir(), { recursive: true });
+export async function ensureAssetsDir(tenantId?: string): Promise<void> {
+  const dir = tenantId
+    ? path.join(assetsBaseDir(), tenantId)
+    : assetsBaseDir();
+  await fs.mkdir(dir, { recursive: true });
 }
 
 export function sanitizeFilename(name: string): string {
@@ -50,27 +54,57 @@ export function buildAssetKey(originalName: string): string {
   return `${uuidv4().slice(0, 8)}-${sanitizeFilename(originalName)}`;
 }
 
-export function assetPublicUrl(key: string): string {
-  return `/api/v1/cms/assets/${key}`;
+export function assetPublicUrl(tenantId: string, key: string): string {
+  return `/api/v1/cms/assets/${tenantId}/${key}`;
 }
 
-export async function saveAsset(key: string, buffer: Buffer): Promise<void> {
-  await ensureAssetsDir();
-  await fs.writeFile(resolveAssetPath(key), buffer);
+/** Parse stored URL or legacy single-segment key. */
+export function parseAssetUrl(url: string): { tenantId: string | null; key: string } | null {
+  const prefix = "/api/v1/cms/assets/";
+  if (!url.startsWith(prefix)) return null;
+  const rest = url.slice(prefix.length);
+  const slash = rest.indexOf("/");
+  if (slash === -1) {
+    return { tenantId: null, key: rest };
+  }
+  return {
+    tenantId: rest.slice(0, slash),
+    key: rest.slice(slash + 1),
+  };
+}
+
+export async function saveAsset(
+  tenantId: string,
+  key: string,
+  buffer: Buffer,
+): Promise<void> {
+  await ensureAssetsDir(tenantId);
+  await fs.writeFile(resolveAssetPath(tenantId, key), buffer);
 }
 
 export async function readAsset(
+  tenantId: string | null,
   key: string,
 ): Promise<{ buffer: Buffer; mimeType: string } | null> {
-  try {
-    const filePath = resolveAssetPath(key);
-    const buffer = await fs.readFile(filePath);
-    const ext = path.extname(key).toLowerCase();
-    return {
-      buffer,
-      mimeType: MIME_BY_EXT[ext] ?? "application/octet-stream",
-    };
-  } catch {
-    return null;
+  const attempts: { tenantId: string | null; key: string }[] = [
+    { tenantId, key },
+  ];
+  if (tenantId) {
+    attempts.push({ tenantId: null, key });
   }
+
+  for (const attempt of attempts) {
+    try {
+      const filePath = resolveAssetPath(attempt.tenantId, attempt.key);
+      const buffer = await fs.readFile(filePath);
+      const ext = path.extname(attempt.key).toLowerCase();
+      return {
+        buffer,
+        mimeType: MIME_BY_EXT[ext] ?? "application/octet-stream",
+      };
+    } catch {
+      /* try next */
+    }
+  }
+  return null;
 }

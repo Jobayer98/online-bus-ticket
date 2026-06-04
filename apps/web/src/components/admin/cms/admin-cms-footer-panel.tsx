@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { ContactLineInput, FooterBarLinkInput, FooterSettingsDto } from "@repo/shared";
+import { CmsImageUploadField } from "@/components/admin/cms/cms-image-upload-field";
 import { CounterToast } from "@/components/counter/counter-toast";
 import { useGlobalLoading } from "@/components/global-loading-provider";
 import { apiGet, apiPatch } from "@/lib/api-client";
@@ -23,7 +24,6 @@ export function AdminCmsFooterPanel() {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
   const [toast, setToast] = useState<string | null>(null);
-  const bannerRef = useRef<HTMLInputElement>(null);
   useGlobalLoading(loading || saving || uploading);
 
   const load = useCallback(() => {
@@ -58,7 +58,6 @@ export function AdminCmsFooterPanel() {
       setToast(err instanceof Error ? err.message : "Upload failed");
     } finally {
       setUploading(false);
-      if (bannerRef.current) bannerRef.current.value = "";
     }
   }
 
@@ -244,21 +243,13 @@ export function AdminCmsFooterPanel() {
           />
         </div>
 
-        <h3 style={{ marginTop: "1.25rem" }}>Payment banner</h3>
-        {paymentBannerUrl ? (
-          <div className="adm-cms-media-thumb adm-cms-media-thumb--wide">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={resolveCmsAssetUrl(paymentBannerUrl)} alt="Payment banner" />
-          </div>
-        ) : (
-          <p className="adm-muted">No banner set</p>
-        )}
-        <input
-          ref={bannerRef}
-          type="file"
-          accept="image/jpeg,image/png,image/webp,image/gif"
-          className="adm-cms-file-input"
-          onChange={(e) => onBannerSelected(e.target.files?.[0])}
+        <CmsImageUploadField
+          label="Payment banner"
+          wide
+          currentUrl={paymentBannerUrl}
+          resolveUrl={resolveCmsAssetUrl}
+          disabled={uploading}
+          onFileSelected={(file) => onBannerSelected(file)}
         />
 
         <div className="adm-form-actions adm-form-actions--with-label" style={{ marginTop: "1rem" }}>

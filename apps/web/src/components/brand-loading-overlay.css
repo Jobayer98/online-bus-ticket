@@ -26,9 +26,9 @@
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  border: 3px solid #e8f5e9;
-  border-top-color: #2e7d32;
-  border-right-color: #1b5e20;
+  border: 3px solid var(--primary-muted, #e8f5e9);
+  border-top-color: var(--primary, #2e7d32);
+  border-right-color: var(--primary-hover, #1b5e20);
   animation: brand-loading-spin 0.85s linear infinite;
 }
 
@@ -36,6 +36,16 @@
   width: 52px;
   height: 52px;
   object-fit: contain;
+  position: relative;
+  z-index: 1;
+  animation: brand-loading-pulse 1.2s ease-in-out infinite;
+}
+
+.brand-loading-overlay__dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--primary, #2e7d32);
   position: relative;
   z-index: 1;
   animation: brand-loading-pulse 1.2s ease-in-out infinite;
@@ -68,7 +78,6 @@
   }
 }
 
-/* Button busy state — instant click feedback */
 .btn-is-busy {
   position: relative;
   pointer-events: none;

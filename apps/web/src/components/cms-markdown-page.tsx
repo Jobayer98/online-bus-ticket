@@ -3,10 +3,10 @@ import { notFound } from "next/navigation";
 import type { CmsPageSlug } from "@repo/shared";
 import { HomeHeader } from "@/components/home-header";
 import { SiteFooter } from "@/components/site-footer";
-import { fetchCmsPage, fetchCmsSiteBundle } from "@/lib/cms-client";
+import { fetchCmsPage, fetchCmsSiteBundle } from "@/lib/cms-server";
 import { renderCmsMarkdown } from "@/lib/cms-markdown";
-import "../home.css";
-import "../policy-page.css";
+import "../app/home.css";
+import "../app/policy-page.css";
 import "./cms-markdown.css";
 
 type LayoutVariant = "policy" | "about";

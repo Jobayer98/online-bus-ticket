@@ -9,7 +9,7 @@ import { brandPaletteToCssVars, type CmsFontFamily } from "@repo/shared";
 import { GlobalLoadingProvider } from "@/components/global-loading-provider";
 import { SiteThemeProvider } from "@/components/site-theme-provider";
 import { SiteShell } from "@/components/site-shell";
-import { fetchCmsSiteBundle } from "@/lib/cms-client";
+import { fetchCmsSiteBundle } from "@/lib/cms-server";
 import "./globals.css";
 import "./responsive.css";
 

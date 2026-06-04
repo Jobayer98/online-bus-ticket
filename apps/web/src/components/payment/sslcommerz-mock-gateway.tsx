@@ -27,7 +27,7 @@ function formatBdt(minor: number): string {
 
 export function SslCommerzMockGateway({
   amountMinor,
-  merchantName = "Shahzadpur Travels",
+  merchantName = "Your bus operator",
   orderLabel = "Bus ticket booking",
   disabled = false,
   onPay,

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { SiteMediaDto, SiteMediaKind } from "@repo/shared";
+import { CmsImageUploadField } from "@/components/admin/cms/cms-image-upload-field";
 import { CounterToast } from "@/components/counter/counter-toast";
 import { useGlobalLoading } from "@/components/global-loading-provider";
 import { apiDelete, apiGet, apiPatch, apiPost } from "@/lib/api-client";
@@ -34,11 +35,10 @@ export function AdminCmsMediaPanel() {
   }, [load]);
 
   async function uploadForKind(
-    file: File | undefined,
+    file: File,
     kind: SiteMediaKind,
     existing?: SiteMediaDto,
   ) {
-    if (!file) return;
     setBusy(true);
     try {
       const uploaded = await apiUploadCmsAsset(file);
@@ -46,10 +46,7 @@ export function AdminCmsMediaPanel() {
         await apiPatch(`/admin/cms/media/${existing.id}`, { url: uploaded.url });
         setToast("Image updated");
       } else {
-        const sortOrder =
-          kind === "FEATURED"
-            ? featured.length
-            : 0;
+        const sortOrder = kind === "FEATURED" ? featured.length : 0;
         await apiPost("/admin/cms/media", {
           kind,
           url: uploaded.url,
@@ -109,7 +106,7 @@ export function AdminCmsMediaPanel() {
   }
 
   return (
-    <div className="cp-section">
+    <div className="cp-section adm-cms-media-panel">
       <CounterToast message={toast} onDismiss={() => setToast(null)} />
       <h3 className="adm-page-title">SITE MEDIA</h3>
       {error ? (
@@ -119,16 +116,12 @@ export function AdminCmsMediaPanel() {
       ) : null}
 
       <section className="adm-form-card">
-        <h3>Hero image</h3>
-        <MediaThumb url={hero?.url} alt={hero?.alt ?? "Hero"} />
-        <input
-          type="file"
-          accept="image/jpeg,image/png,image/webp,image/gif"
-          className="adm-cms-file-input"
-          onChange={(e) => {
-            uploadForKind(e.target.files?.[0], "HERO", hero);
-            e.target.value = "";
-          }}
+        <CmsImageUploadField
+          label="Hero image"
+          currentUrl={hero?.url}
+          resolveUrl={resolveCmsAssetUrl}
+          disabled={busy}
+          onFileSelected={(file) => uploadForKind(file, "HERO", hero)}
         />
         {hero ? (
           <button
@@ -147,7 +140,10 @@ export function AdminCmsMediaPanel() {
         <ul className="adm-cms-gallery-list">
           {featured.map((m, index) => (
             <li key={m.id} className="adm-cms-gallery-item">
-              <MediaThumb url={m.url} alt={m.alt} />
+              <div className="adm-cms-media-thumb">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={resolveCmsAssetUrl(m.url) ?? ""} alt={m.alt} />
+              </div>
               <div className="adm-cms-gallery-item__actions">
                 <button
                   type="button"
@@ -167,43 +163,30 @@ export function AdminCmsMediaPanel() {
                 >
                   ↓
                 </button>
-                <button
-                  type="button"
-                  className="sp-btn-back"
-                  onClick={() => removeMedia(m.id)}
-                >
+                <button type="button" className="sp-btn-back" onClick={() => removeMedia(m.id)}>
                   Remove
                 </button>
               </div>
             </li>
           ))}
         </ul>
-        <input
-          type="file"
-          accept="image/jpeg,image/png,image/webp,image/gif"
-          className="adm-cms-file-input"
-          onChange={(e) => {
-            uploadForKind(e.target.files?.[0], "FEATURED");
-            e.target.value = "";
-          }}
+        <CmsImageUploadField
+          label="Add gallery image"
+          currentUrl={null}
+          resolveUrl={resolveCmsAssetUrl}
+          disabled={busy}
+          onFileSelected={(file) => uploadForKind(file, "FEATURED")}
         />
       </section>
 
       <section className="adm-form-card">
-        <h3>Footer payment banner</h3>
-        <MediaThumb
-          url={footerPayment?.url}
-          alt={footerPayment?.alt ?? "Payment methods"}
+        <CmsImageUploadField
+          label="Footer payment banner"
           wide
-        />
-        <input
-          type="file"
-          accept="image/jpeg,image/png,image/webp,image/gif"
-          className="adm-cms-file-input"
-          onChange={(e) => {
-            uploadForKind(e.target.files?.[0], "FOOTER_PAYMENT", footerPayment);
-            e.target.value = "";
-          }}
+          currentUrl={footerPayment?.url}
+          resolveUrl={resolveCmsAssetUrl}
+          disabled={busy}
+          onFileSelected={(file) => uploadForKind(file, "FOOTER_PAYMENT", footerPayment)}
         />
         {footerPayment ? (
           <button
@@ -215,26 +198,6 @@ export function AdminCmsMediaPanel() {
           </button>
         ) : null}
       </section>
-    </div>
-  );
-}
-
-function MediaThumb({
-  url,
-  alt,
-  wide,
-}: {
-  url?: string;
-  alt: string;
-  wide?: boolean;
-}) {
-  if (!url) {
-    return <p className="adm-muted">No image set</p>;
-  }
-  return (
-    <div className={wide ? "adm-cms-media-thumb adm-cms-media-thumb--wide" : "adm-cms-media-thumb"}>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={resolveCmsAssetUrl(url)} alt={alt} />
     </div>
   );
 }

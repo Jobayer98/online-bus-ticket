@@ -17,6 +17,7 @@
     "migrate:dev": "dotenv -e ../../.env -- prisma migrate dev",
     "migrate:init": "dotenv -e ../../.env -- prisma migrate dev --name init",
     "seed": "dotenv -e ../../.env -- tsx prisma/seed.ts",
+    "bootstrap": "dotenv -e ../../.env -- tsx prisma/bootstrap.ts",
     "migrate:deploy": "prisma migrate deploy",
     "studio": "prisma studio",
     "typecheck": "tsc --noEmit"

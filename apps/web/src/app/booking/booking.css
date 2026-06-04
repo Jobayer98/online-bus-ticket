@@ -1,6 +1,6 @@
 .booking-page {
-  --sp-green: #2e7d32;
-  --sp-green-dark: #1b5e20;
+  --sp-green: var(--primary, #2e7d32);
+  --sp-green-dark: var(--primary-hover, #1b5e20);
   background: #f3f3f3;
   min-height: calc(100vh - 57px);
   padding: 1.5rem 1rem 2rem;

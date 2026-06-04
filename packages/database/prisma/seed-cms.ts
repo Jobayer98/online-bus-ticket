@@ -11,7 +11,25 @@ import {
 
 const PUBLISHED = "PUBLISHED" as const;
 
-export async function seedCms(prisma: PrismaClient, tenantId: string) {
+/** Remove all CMS rows for a tenant (used by db:bootstrap). */
+export async function clearCmsForTenant(prisma: PrismaClient, tenantId: string) {
+  await prisma.featuredRoute.deleteMany({ where: { tenantId } });
+  await prisma.siteMedia.deleteMany({ where: { tenantId } });
+  await prisma.contentPage.deleteMany({ where: { tenantId } });
+  await prisma.footerSettings.deleteMany({ where: { tenantId } });
+  await prisma.siteTheme.deleteMany({ where: { tenantId } });
+  await prisma.siteProfile.deleteMany({ where: { tenantId } });
+}
+
+export async function seedCms(
+  prisma: PrismaClient,
+  tenantId: string,
+  options?: { replace?: boolean },
+) {
+  if (options?.replace) {
+    await clearCmsForTenant(prisma, tenantId);
+  }
+
   const palette = generateBrandPalette(CMS_THEME.primaryColor);
 
   const existingProfile = await prisma.siteProfile.findFirst({
@@ -129,5 +147,7 @@ export async function seedCms(prisma: PrismaClient, tenantId: string) {
   }
 
   console.log("  CMS: profile, theme, footer, pages, media seeded (PUBLISHED)");
-  console.log(`  CMS: ${featuredCount} featured route(s) linked (of ${CMS_FEATURED_ROUTE_SLUGS.length} desired slugs)`);
+  console.log(
+    `  CMS: ${featuredCount} featured route(s) linked (of ${CMS_FEATURED_ROUTE_SLUGS.length} desired slugs)`,
+  );
 }
