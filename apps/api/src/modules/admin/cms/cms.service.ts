@@ -162,14 +162,15 @@ function buildMediaBundle(items: SiteMediaDto[]): CmsMediaBundleDto {
 
 async function resolveSingletonForMode(
   mode: "preview" | "published",
+  tenantId?: string,
 ): Promise<{
   profile: SiteProfileDto | null;
   theme: SiteThemeDto | null;
   footer: FooterSettingsDto | null;
 }> {
-  const profileRow = await repo.findSiteProfile();
-  const themeRow = await repo.findSiteTheme();
-  const footerRow = await repo.findFooterSettings();
+  const profileRow = await repo.findSiteProfile(tenantId);
+  const themeRow = await repo.findSiteTheme(tenantId);
+  const footerRow = await repo.findFooterSettings(tenantId);
 
   const pick = <T extends { status: ContentStatus }>(
     row: T | null,
@@ -193,9 +194,12 @@ async function resolveSingletonForMode(
   };
 }
 
-async function buildSiteBundle(mode: "preview" | "published"): Promise<CmsSiteBundleDto> {
+async function buildSiteBundle(
+  mode: "preview" | "published",
+  tenantId?: string,
+): Promise<CmsSiteBundleDto> {
   const status: ContentStatus = mode === "published" ? "PUBLISHED" : "DRAFT";
-  const singletons = await resolveSingletonForMode(mode);
+  const singletons = await resolveSingletonForMode(mode, tenantId);
 
   if (!singletons.profile || !singletons.theme || !singletons.footer) {
     throw new AppError(
@@ -205,15 +209,15 @@ async function buildSiteBundle(mode: "preview" | "published"): Promise<CmsSiteBu
     );
   }
 
-  let mediaRows = await repo.listSiteMedia(status);
+  let mediaRows = await repo.listSiteMedia(status, tenantId);
   if (mode === "preview" && mediaRows.length === 0) {
-    mediaRows = await repo.listSiteMedia("PUBLISHED");
+    mediaRows = await repo.listSiteMedia("PUBLISHED", tenantId);
   }
   const media = buildMediaBundle(mediaRows.map(mapMedia));
 
-  let featuredRows = await repo.listFeaturedRoutes(status);
+  let featuredRows = await repo.listFeaturedRoutes(status, tenantId);
   if (mode === "preview" && featuredRows.length === 0) {
-    featuredRows = await repo.listFeaturedRoutes("PUBLISHED");
+    featuredRows = await repo.listFeaturedRoutes("PUBLISHED", tenantId);
   }
   const featuredRoutes = featuredRows.map(mapFeaturedRoute);
 
@@ -250,49 +254,61 @@ export async function uploadAsset(file: {
   };
 }
 
-export async function getProfile(): Promise<SiteProfileDto> {
-  const row = await repo.findSiteProfile();
+export async function getProfile(tenantId?: string): Promise<SiteProfileDto> {
+  const row = await repo.findSiteProfile(tenantId);
   if (!row) notFound("Site profile");
   return mapProfile(row);
 }
 
 export async function patchProfile(
   input: PatchSiteProfileInput,
+  tenantId?: string,
 ): Promise<SiteProfileDto> {
-  const row = await repo.upsertSiteProfileDraft(input);
+  const row = await repo.upsertSiteProfileDraft(input, tenantId);
   return mapProfile(row);
 }
 
-export async function getTheme(): Promise<SiteThemeDto> {
-  const row = await repo.findSiteTheme();
+export async function getTheme(tenantId?: string): Promise<SiteThemeDto> {
+  const row = await repo.findSiteTheme(tenantId);
   if (!row) notFound("Site theme");
   return mapTheme(row);
 }
 
-export async function patchTheme(input: PatchSiteThemeInput): Promise<SiteThemeDto> {
+export async function patchTheme(
+  input: PatchSiteThemeInput,
+  tenantId?: string,
+): Promise<SiteThemeDto> {
   const palette = generateBrandPalette(input.primaryColor);
-  const row = await repo.upsertSiteThemeDraft(input, palette);
+  const row = await repo.upsertSiteThemeDraft(input, palette, tenantId);
   return mapTheme(row);
 }
 
-export async function listPages(): Promise<ContentPageDto[]> {
-  const rows = await repo.listContentPages("DRAFT");
+export async function listPages(tenantId?: string): Promise<ContentPageDto[]> {
+  const rows = await repo.listContentPages("DRAFT", tenantId);
   return rows.map(mapPage);
 }
 
-export async function getPage(slug: string): Promise<ContentPageDto> {
-  const row = await repo.findContentPageBySlug(slug, "DRAFT");
+export async function getPage(
+  slug: string,
+  tenantId?: string,
+): Promise<ContentPageDto> {
+  const row = await repo.findContentPageBySlug(slug, "DRAFT", tenantId);
   if (!row) notFound("Content page");
   return mapPage(row);
 }
 
 export async function createPage(
   input: CreateContentPageInput,
+  tenantId?: string,
 ): Promise<ContentPageDto> {
-  const existing = await repo.findContentPageBySlug(input.slug, "DRAFT");
+  const existing = await repo.findContentPageBySlug(
+    input.slug,
+    "DRAFT",
+    tenantId,
+  );
   if (existing) conflict("Draft page already exists for this slug");
   try {
-    const row = await repo.createContentPage(input);
+    const row = await repo.createContentPage(input, tenantId);
     return mapPage(row);
   } catch (err) {
     if (
@@ -308,38 +324,50 @@ export async function createPage(
 export async function updatePage(
   slug: string,
   input: UpdateContentPageInput,
+  tenantId?: string,
 ): Promise<ContentPageDto> {
-  let row = await repo.findContentPageBySlug(slug, "DRAFT");
+  let row = await repo.findContentPageBySlug(slug, "DRAFT", tenantId);
   if (!row) {
-    const published = await repo.findContentPageBySlug(slug, "PUBLISHED");
+    const published = await repo.findContentPageBySlug(
+      slug,
+      "PUBLISHED",
+      tenantId,
+    );
     if (!published) notFound("Content page");
-    row = await repo.createContentPage({
-      slug: published.slug as CreateContentPageInput["slug"],
-      title: published.title,
-      bodyMarkdown: published.bodyMarkdown,
-    });
+    row = await repo.createContentPage(
+      {
+        slug: published.slug as CreateContentPageInput["slug"],
+        title: published.title,
+        bodyMarkdown: published.bodyMarkdown,
+      },
+      tenantId,
+    );
   }
-  const updated = await repo.updateContentPage(row.id, input);
+  const updated = await repo.updateContentPage(row.id, input, tenantId);
   return mapPage(updated);
 }
 
-export async function deletePage(slug: string): Promise<{ deleted: true }> {
-  const row = await repo.findContentPageBySlug(slug, "DRAFT");
+export async function deletePage(
+  slug: string,
+  tenantId?: string,
+): Promise<{ deleted: true }> {
+  const row = await repo.findContentPageBySlug(slug, "DRAFT", tenantId);
   if (!row) notFound("Content page");
-  await repo.deleteContentPage(row.id);
+  await repo.deleteContentPage(row.id, tenantId);
   return { deleted: true };
 }
 
-export async function listMedia(): Promise<SiteMediaDto[]> {
-  const rows = await repo.listSiteMedia("DRAFT");
+export async function listMedia(tenantId?: string): Promise<SiteMediaDto[]> {
+  const rows = await repo.listSiteMedia("DRAFT", tenantId);
   return rows.map(mapMedia);
 }
 
 export async function createMedia(
   input: CreateSiteMediaInput,
+  tenantId?: string,
 ): Promise<SiteMediaDto> {
   try {
-    const row = await repo.createSiteMedia(input);
+    const row = await repo.createSiteMedia(input, tenantId);
     return mapMedia(row);
   } catch (err) {
     if (
@@ -355,11 +383,12 @@ export async function createMedia(
 export async function updateMedia(
   id: string,
   input: UpdateSiteMediaInput,
+  tenantId?: string,
 ): Promise<SiteMediaDto> {
-  const row = await repo.findSiteMediaById(id, "DRAFT");
+  const row = await repo.findSiteMediaById(id, "DRAFT", tenantId);
   if (!row) notFound("Site media");
   try {
-    const updated = await repo.updateSiteMedia(id, input);
+    const updated = await repo.updateSiteMedia(id, input, tenantId);
     return mapMedia(updated);
   } catch (err) {
     if (
@@ -372,39 +401,47 @@ export async function updateMedia(
   }
 }
 
-export async function deleteMedia(id: string): Promise<{ deleted: true }> {
-  const row = await repo.findSiteMediaById(id, "DRAFT");
+export async function deleteMedia(
+  id: string,
+  tenantId?: string,
+): Promise<{ deleted: true }> {
+  const row = await repo.findSiteMediaById(id, "DRAFT", tenantId);
   if (!row) notFound("Site media");
-  await repo.deleteSiteMedia(id);
+  await repo.deleteSiteMedia(id, tenantId);
   return { deleted: true };
 }
 
 export async function reorderMedia(
   input: ReorderSiteMediaInput,
+  tenantId?: string,
 ): Promise<SiteMediaDto[]> {
-  await repo.reorderSiteMediaItems(input);
-  return listMedia();
+  await repo.reorderSiteMediaItems(input, tenantId);
+  return listMedia(tenantId);
 }
 
-export async function listFeaturedRoutes(): Promise<FeaturedRouteDto[]> {
-  const rows = await repo.listFeaturedRoutes("DRAFT");
+export async function listFeaturedRoutes(
+  tenantId?: string,
+): Promise<FeaturedRouteDto[]> {
+  const rows = await repo.listFeaturedRoutes("DRAFT", tenantId);
   return rows.map(mapFeaturedRoute);
 }
 
 export async function createFeaturedRoute(
   input: CreateFeaturedRouteInput,
+  tenantId?: string,
 ): Promise<FeaturedRouteDto> {
-  const route = await repo.findRouteById(input.routeId);
+  const route = await repo.findRouteById(input.routeId, tenantId);
   if (!route) {
     throw new AppError(ErrorCode.ROUTE_NOT_FOUND, "Route not found", 404);
   }
   const duplicate = await repo.findFeaturedRouteByRouteId(
     input.routeId,
     "DRAFT",
+    tenantId,
   );
   if (duplicate) conflict("Route is already featured");
   try {
-    const row = await repo.createFeaturedRoute(input);
+    const row = await repo.createFeaturedRoute(input, tenantId);
     return mapFeaturedRoute(row);
   } catch (err) {
     if (
@@ -420,39 +457,43 @@ export async function createFeaturedRoute(
 export async function updateFeaturedRoute(
   id: string,
   input: UpdateFeaturedRouteInput,
+  tenantId?: string,
 ): Promise<FeaturedRouteDto> {
-  const row = await repo.findFeaturedRouteById(id, "DRAFT");
+  const row = await repo.findFeaturedRouteById(id, "DRAFT", tenantId);
   if (!row) notFound("Featured route");
-  const updated = await repo.updateFeaturedRoute(id, input);
+  const updated = await repo.updateFeaturedRoute(id, input, tenantId);
   return mapFeaturedRoute(updated);
 }
 
 export async function deleteFeaturedRoute(
   id: string,
+  tenantId?: string,
 ): Promise<{ deleted: true }> {
-  const row = await repo.findFeaturedRouteById(id, "DRAFT");
+  const row = await repo.findFeaturedRouteById(id, "DRAFT", tenantId);
   if (!row) notFound("Featured route");
-  await repo.deleteFeaturedRoute(id);
+  await repo.deleteFeaturedRoute(id, tenantId);
   return { deleted: true };
 }
 
 export async function reorderFeaturedRoutes(
   input: ReorderFeaturedRoutesInput,
+  tenantId?: string,
 ): Promise<FeaturedRouteDto[]> {
-  await repo.reorderFeaturedRouteItems(input);
-  return listFeaturedRoutes();
+  await repo.reorderFeaturedRouteItems(input, tenantId);
+  return listFeaturedRoutes(tenantId);
 }
 
-export async function getFooter(): Promise<FooterSettingsDto> {
-  const row = await repo.findFooterSettings();
+export async function getFooter(tenantId?: string): Promise<FooterSettingsDto> {
+  const row = await repo.findFooterSettings(tenantId);
   if (!row) notFound("Footer settings");
   return mapFooter(row);
 }
 
 export async function patchFooter(
   input: PatchFooterSettingsInput,
+  tenantId?: string,
 ): Promise<FooterSettingsDto> {
-  const existing = await repo.findFooterSettings();
+  const existing = await repo.findFooterSettings(tenantId);
   const merged = {
     contactLines: input.contactLines ?? existing?.contactLines ?? [],
     email: input.email ?? existing?.email ?? "",
@@ -466,20 +507,27 @@ export async function patchFooter(
         ? input.poweredByText
         : (existing?.poweredByText ?? null),
   };
-  const row = await repo.upsertFooterSettingsDraft(merged);
+  const row = await repo.upsertFooterSettingsDraft(merged, tenantId);
   return mapFooter(row);
 }
 
-export async function getPublicSite(): Promise<CmsSiteBundleDto> {
-  return buildSiteBundle("published");
+export async function getPublicSite(
+  tenantId?: string,
+): Promise<CmsSiteBundleDto> {
+  return buildSiteBundle("published", tenantId);
 }
 
-export async function getPreviewSite(): Promise<CmsSiteBundleDto> {
-  return buildSiteBundle("preview");
+export async function getPreviewSite(
+  tenantId?: string,
+): Promise<CmsSiteBundleDto> {
+  return buildSiteBundle("preview", tenantId);
 }
 
-export async function getPublicPage(slug: string): Promise<CmsPublicPageDto> {
-  const row = await repo.findContentPageBySlug(slug, "PUBLISHED");
+export async function getPublicPage(
+  slug: string,
+  tenantId?: string,
+): Promise<CmsPublicPageDto> {
+  const row = await repo.findContentPageBySlug(slug, "PUBLISHED", tenantId);
   if (!row) notFound("Page");
   return {
     slug: row.slug as CmsPublicPageDto["slug"],
@@ -489,13 +537,11 @@ export async function getPublicPage(slug: string): Promise<CmsPublicPageDto> {
   };
 }
 
-export async function publishSite(): Promise<CmsPublishResultDto> {
-  return repo.publishCmsContent();
+export async function publishSite(
+  tenantId?: string,
+): Promise<CmsPublishResultDto> {
+  return repo.publishCmsContent(tenantId);
 }
 
 // Exported for unit tests
-export const __test__ = {
-  mapTheme,
-  buildMediaBundle,
-  buildSiteBundle,
-};
+export const __test__ = { mapTheme, buildMediaBundle, buildSiteBundle };

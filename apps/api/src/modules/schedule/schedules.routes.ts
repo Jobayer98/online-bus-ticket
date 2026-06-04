@@ -10,9 +10,10 @@ import * as scheduleService from "./schedules.service.js";
 
 export const schedulesRouter = Router();
 
-schedulesRouter.get("/stops", async (_req, res, next) => {
+schedulesRouter.get("/stops", async (req, res, next) => {
   try {
     const stops = await prisma.stop.findMany({
+      where: { tenantId: req.tenant?.id },
       orderBy: [{ city: "asc" }, { name: "asc" }],
     });
     res.json(successResponse(uniqueStopsByCity(stops)));
@@ -24,7 +25,10 @@ schedulesRouter.get("/stops", async (_req, res, next) => {
 schedulesRouter.get("/search", async (req, res, next) => {
   try {
     const query = searchSchedulesQuerySchema.parse(req.query);
-    const { schedules, facets } = await scheduleService.searchSchedules(query);
+    const { schedules, facets } = await scheduleService.searchSchedules(
+      query,
+      req.tenant?.id,
+    );
     const payload = { data: schedules, meta: { facets } };
     res.json(searchSchedulesResponseSchema.parse(payload));
   } catch (e) {
@@ -34,7 +38,10 @@ schedulesRouter.get("/search", async (req, res, next) => {
 
 schedulesRouter.get("/by-route/:slug", async (req, res, next) => {
   try {
-    const route = await scheduleService.getRouteBySlug(req.params.slug);
+    const route = await scheduleService.getRouteBySlug(
+      req.params.slug,
+      req.tenant?.id,
+    );
     res.json(successResponse(route));
   } catch (e) {
     next(e);
@@ -43,7 +50,10 @@ schedulesRouter.get("/by-route/:slug", async (req, res, next) => {
 
 schedulesRouter.get("/:id/seat-map", async (req, res, next) => {
   try {
-    const data = await scheduleService.getSeatMap(req.params.id);
+    const data = await scheduleService.getSeatMap(
+      req.params.id,
+      req.tenant?.id,
+    );
     res.json(successResponse(data));
   } catch (e) {
     next(e);

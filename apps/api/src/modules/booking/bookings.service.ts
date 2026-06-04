@@ -17,9 +17,10 @@ import type { DbClient } from "../../lib/db-client.js";
 export async function createHoldWithClient(
   db: DbClient,
   input: CreateHoldInput,
+  tenantId?: string,
 ) {
-  const schedule = await db.schedule.findUnique({
-    where: { id: input.scheduleId },
+  const schedule = await db.schedule.findFirst({
+    where: { id: input.scheduleId, tenantId },
     select: { id: true, status: true },
   });
   if (!schedule || schedule.status !== "SCHEDULED") {
@@ -65,9 +66,9 @@ export async function createHoldWithClient(
   return hold;
 }
 
-export async function createHold(input: CreateHoldInput) {
+export async function createHold(input: CreateHoldInput, tenantId?: string) {
   const hold = await prisma.$transaction(async (tx) =>
-    createHoldWithClient(tx, input),
+    createHoldWithClient(tx, input, tenantId),
   );
 
   const seats = hold.items.map((i) => i.scheduleSeat);
@@ -121,7 +122,11 @@ function isHoldReleaseAuthorized(
   return false;
 }
 
-export async function releaseHold(holdId: string, auth: ReleaseHoldAuth) {
+export async function releaseHold(
+  holdId: string,
+  auth: ReleaseHoldAuth,
+  _tenantId?: string,
+) {
   const hold = await prisma.seatHold.findUnique({
     where: { id: holdId },
     include: { items: true, booking: true },
@@ -172,6 +177,7 @@ export async function createBookingWithClient(
   db: DbClient,
   input: CreateBookingInput,
   resolvedUserId?: string,
+  tenantId?: string,
 ) {
   const paymentExpiresAt = new Date(Date.now() + SEAT_HOLD_PAYMENT_TTL_MS);
 
@@ -278,6 +284,7 @@ export async function createBookingWithClient(
           price: i.scheduleSeat.price,
         })),
       },
+      ...(tenantId ? { tenantId } : {}),
     },
     include: {
       seats: { include: { scheduleSeat: true } },
@@ -290,6 +297,7 @@ export async function createBookingWithClient(
 export async function createBooking(
   input: CreateBookingInput,
   userId?: string,
+  tenantId?: string,
 ) {
   let resolvedUserId: string | undefined;
   if (userId) {
@@ -301,7 +309,7 @@ export async function createBooking(
   }
 
   const { booking, paymentExpiresAt } = await prisma.$transaction(async (tx) =>
-    createBookingWithClient(tx, input, resolvedUserId),
+    createBookingWithClient(tx, input, resolvedUserId, tenantId),
   );
 
   return {
