@@ -1,4 +1,4 @@
-import { Prisma } from "@repo/database";
+import { prisma, Prisma, seedTenantCmsDefaults } from "@repo/database";
 import {
   AppError,
   ErrorCode,
@@ -37,6 +37,31 @@ import {
 import * as repo from "./cms.repository.js";
 
 type ContentStatus = "DRAFT" | "PUBLISHED";
+
+/** Backfill DRAFT CMS singletons for tenants created before E17-11 auto-seed. */
+async function ensureTenantCmsDefaults(
+  tenantId: string,
+  companyName?: string,
+): Promise<void> {
+  const [profile, theme, footer] = await Promise.all([
+    repo.findSiteProfile(tenantId),
+    repo.findSiteTheme(tenantId),
+    repo.findFooterSettings(tenantId),
+  ]);
+  if (profile && theme && footer) return;
+
+  const name =
+    companyName ??
+    (
+      await prisma.tenant.findUnique({
+        where: { id: tenantId },
+        select: { name: true },
+      })
+    )?.name ??
+    "My Company";
+
+  await seedTenantCmsDefaults(prisma, tenantId, name);
+}
 
 function toIso(date: Date): string {
   return date.toISOString();
@@ -198,6 +223,7 @@ async function buildSiteBundle(
   mode: "preview" | "published",
   tenantId?: string,
 ): Promise<CmsSiteBundleDto> {
+  if (tenantId) await ensureTenantCmsDefaults(tenantId);
   const status: ContentStatus = mode === "published" ? "PUBLISHED" : "DRAFT";
   const singletons = await resolveSingletonForMode(mode, tenantId);
 
@@ -255,6 +281,7 @@ export async function uploadAsset(file: {
 }
 
 export async function getProfile(tenantId?: string): Promise<SiteProfileDto> {
+  if (tenantId) await ensureTenantCmsDefaults(tenantId);
   const row = await repo.findSiteProfile(tenantId);
   if (!row) notFound("Site profile");
   return mapProfile(row);
@@ -269,6 +296,7 @@ export async function patchProfile(
 }
 
 export async function getTheme(tenantId?: string): Promise<SiteThemeDto> {
+  if (tenantId) await ensureTenantCmsDefaults(tenantId);
   const row = await repo.findSiteTheme(tenantId);
   if (!row) notFound("Site theme");
   return mapTheme(row);
@@ -484,6 +512,7 @@ export async function reorderFeaturedRoutes(
 }
 
 export async function getFooter(tenantId?: string): Promise<FooterSettingsDto> {
+  if (tenantId) await ensureTenantCmsDefaults(tenantId);
   const row = await repo.findFooterSettings(tenantId);
   if (!row) notFound("Footer settings");
   return mapFooter(row);

@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import { prisma } from "@repo/database";
+import { prisma, seedTenantCmsDefaults } from "@repo/database";
 import {
   AppError,
   ErrorCode,
@@ -147,6 +147,8 @@ export async function registerTenant(input: RegisterTenantInput) {
         role: "ADMIN",
       },
     });
+
+    await seedTenantCmsDefaults(tx, newTenant.id, input.companyName);
 
     return { tenant: newTenant, user: newUser };
   });

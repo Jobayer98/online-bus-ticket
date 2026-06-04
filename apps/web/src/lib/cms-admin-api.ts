@@ -1,5 +1,6 @@
 import type { CmsAssetUploadDto } from "@repo/shared";
-import { clearAuthSession, getAuthToken } from "./auth-session";
+import { clearAuthSession } from "./auth-session";
+import { buildApiHeaders } from "./build-api-headers";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
@@ -14,12 +15,11 @@ export function resolveCmsAssetUrl(url: string | null | undefined): string {
 export async function apiUploadCmsAsset(file: File): Promise<CmsAssetUploadDto> {
   const form = new FormData();
   form.append("file", file);
-  const token = getAuthToken();
   const res = await fetch(`${API_URL}/api/v1/admin/cms/assets`, {
     method: "POST",
     body: form,
     credentials: "include",
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    headers: buildApiHeaders(undefined, { json: false }),
   });
   const json = await res.json();
   if (res.status === 401) clearAuthSession();

@@ -52,7 +52,16 @@ adminRoutesRouter.post("/", requireRole("ADMIN"), requireRoutePlanLimit, async (
       },
     });
     if (existing) {
-      throw new AppError(ErrorCode.CONFLICT, "Route already exists", 409);
+      const sameStops =
+        existing.fromStopId === input.fromStopId &&
+        existing.toStopId === input.toStopId;
+      throw new AppError(
+        ErrorCode.CONFLICT,
+        sameStops
+          ? "A route between these stops already exists"
+          : "A route with this slug already exists",
+        409,
+      );
     }
     const route = await prisma.route.create({
       data: { ...input, slug, tenantId },

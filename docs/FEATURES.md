@@ -472,6 +472,23 @@ E16-01 → E16-02 → E16-03 → E16-04 → E16-05 → E16-06 → E16-07 → E16
 
 ---
 
+## Epic E17 — SaaS Post-Migration Fixes
+
+**Goal:** Fix tenant isolation gaps and misleading errors after E16 multi-tenancy rollout.  
+**Depends on:** E16.
+
+| ID | Task | Layer | Acceptance |
+|----|------|-------|------------|
+| [x] E17-01 | Route `@@unique([tenantId, slug])` and `@@unique([tenantId, fromStopId, toStopId])`; migration drops global uniques | db | Two tenants can share slug |
+| [x] E17-04 | P2002 error handler maps `meta.target` / model to route, stop, coach, booking, CMS, generic messages | api | Route create no longer says "hold" |
+| [x] E17-05 | Admin route create pre-check uses tenant-scoped slug + stop pair; distinct 409 messages | api | Same-tenant duplicate is clear |
+| [x] E17-07 | Shared `buildApiHeaders()` / `resolveTenantSlug()` for web API calls | web | Single header builder |
+| [x] E17-08 | CMS upload + `apiDownload` send `x-tenant-slug`; dev localhost reads `tenant-slug` cookie | web | CMS assets work on demo subdomain |
+| [x] E17-10 | `seedTenantCmsDefaults(tenantId, companyName)` in `@repo/database` | db | Reusable DRAFT CMS seed |
+| [x] E17-11 | `registerTenant` transaction seeds DRAFT profile/theme/footer | api | New tenant CMS preview works |
+
+---
+
 ## Suggested Implementation Order
 
 ```
@@ -483,6 +500,7 @@ E12 last
 E14 (P0→P1→P2→P3→P4) — after E08/E10/E11; P0 before production
 E15 — after E02 + E01; start E15-01 after MVP or parallel with E14 P4
 E16 — after E15; SaaS multi-tenancy
+E17 — after E16; post-migration fixes (routes, headers, CMS defaults)
 ```
 
 ---

@@ -167,6 +167,15 @@ curl -X POST http://localhost:4000/api/v1/platform/register \
 
 Then visit `http://mybusco.lvh.me:3000` to see the tenant's public site.
 
+### Troubleshooting (multi-tenant)
+
+| Symptom | Likely cause | Fix |
+|---------|----------------|-----|
+| Route create returns "Booking already exists for this hold" | Stale API build or pre-E17 DB (global route slug unique) | Run `pnpm db:migrate` (E17-01), restart API |
+| CMS upload: "Tenant not identified" | Browser request missing `x-tenant-slug` | Use tenant subdomain (`demo.lvh.me:3000`), not bare `localhost` without cookie |
+| CMS preview: "Site content not configured" | Tenant registered before CMS auto-seed | Re-register a test tenant, or seed CMS in admin; E17-11 seeds DRAFT CMS on new sign-ups |
+| Admin on `localhost:3000` | No subdomain slug in host | Middleware sets `tenant-slug` cookie in dev; ensure `NEXT_PUBLIC_MAIN_DOMAIN=lvh.me:3000` and use subdomain when possible |
+
 ---
 
 ## Environment variables
