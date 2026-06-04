@@ -996,3 +996,199 @@
   border-radius: 4px;
   background: #fff;
 }
+
+/* Tenant Settings Panel */
+.tenant-settings {
+  padding: 1.5rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  max-width: 700px;
+}
+
+.ts-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ts-section-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.ts-plan-info {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ts-plan-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.ts-plan-label {
+  font-size: 0.8rem;
+  color: #6b7280;
+  width: 100px;
+  flex-shrink: 0;
+}
+
+.ts-plan-value {
+  font-size: 0.9rem;
+  color: #111827;
+}
+
+.ts-plan-hint {
+  font-size: 0.875rem;
+  color: #9ca3af;
+  margin: 0;
+}
+
+.ts-error {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fca5a5;
+  border-radius: 4px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+}
+
+.ts-loading,
+.ts-empty {
+  font-size: 0.875rem;
+  color: #9ca3af;
+  margin: 0;
+}
+
+.ts-members-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ts-member-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 0.625rem 1rem;
+}
+
+.ts-member-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.ts-member-name {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #111827;
+}
+
+.ts-member-phone {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.ts-role-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+}
+
+.ts-role-admin {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.ts-role-counter_seller {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.ts-remove-btn {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  line-height: 1;
+  border-radius: 4px;
+  transition: color 0.15s;
+}
+
+.ts-remove-btn:hover {
+  color: #b91c1c;
+}
+
+.ts-invite-section {
+  margin-top: 0.5rem;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ts-invite-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  margin: 0;
+}
+
+.ts-invite-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr auto;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.ts-input {
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  padding: 0.5rem 0.625rem;
+  font-size: 0.875rem;
+  outline: none;
+  background: #fff;
+}
+
+.ts-input:focus {
+  border-color: var(--color-primary, #1a56db);
+}
+
+.ts-invite-btn {
+  background: var(--color-primary, #1a56db);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.ts-invite-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
