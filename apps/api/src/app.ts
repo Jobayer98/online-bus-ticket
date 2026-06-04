@@ -10,6 +10,10 @@ import { requestIdMiddleware } from "./middleware/request-id.js";
 
 import { authenticateOptional } from "./middleware/auth.js";
 
+import { tenantResolverMiddleware } from "./middleware/tenant-resolver.middleware.js";
+
+import { createCorsOptions } from "./lib/cors-config.js";
+
 import { logger } from "./lib/logger.js";
 
 import { setupSwagger } from "./swagger/setup.js";
@@ -32,7 +36,15 @@ import { adminSchedulesRouter } from "./modules/admin/schedules.routes.js";
 
 import { adminReportsRouter } from "./modules/admin/reports.routes.js";
 
+import { adminMembersRouter } from "./modules/admin/members.routes.js";
+
 import { adminCmsRouter, publicCmsRouter } from "./modules/admin/cms/cms.routes.js";
+
+import {
+  platformRouter,
+  platformRegisterRouter,
+  platformAuthRouter,
+} from "./modules/platform/platform.routes.js";
 
 import { schedulesRouter } from "./modules/schedule/schedules.routes.js";
 
@@ -52,17 +64,7 @@ export async function createApp() {
 
 
 
-  app.use(
-
-    cors({
-
-      origin: process.env.WEB_URL ?? "http://localhost:3000",
-
-      credentials: true,
-
-    }),
-
-  );
+  app.use(cors(createCorsOptions()));
 
   app.use(express.json());
 
@@ -84,7 +86,7 @@ export async function createApp() {
 
   app.use(authenticateOptional);
 
-
+  app.use(tenantResolverMiddleware);
 
   if (process.env.ENABLE_SWAGGER !== "false") {
 
@@ -97,6 +99,10 @@ export async function createApp() {
   const v1 = express.Router();
 
   v1.use(healthRouter);
+
+  v1.use("/platform/register", platformRegisterRouter);
+  v1.use("/platform/auth", platformAuthRouter);
+  v1.use("/platform", platformRouter);
 
   v1.use("/auth", authRouter);
 
@@ -123,6 +129,8 @@ export async function createApp() {
   v1.use("/admin/schedules", adminSchedulesRouter);
 
   v1.use("/admin/reports", adminReportsRouter);
+
+  v1.use("/admin/members", adminMembersRouter);
 
   v1.use("/admin/cms", adminCmsRouter);
 
