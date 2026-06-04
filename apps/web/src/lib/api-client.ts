@@ -6,7 +6,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 function getTenantSlug(): string | null {
   if (typeof window === "undefined") return null;
   const mainDomain =
-    process.env.NEXT_PUBLIC_MAIN_DOMAIN ?? "localhost";
+    process.env.NEXT_PUBLIC_MAIN_DOMAIN ?? "lvh.me:3000";
   return extractTenantSlugFromHost(window.location.host, mainDomain);
 }
 

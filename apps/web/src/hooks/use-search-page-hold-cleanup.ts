@@ -7,6 +7,7 @@ import {
   releaseActiveHold,
   releaseActiveHoldKeepalive,
 } from "@/lib/active-hold";
+import { randomId } from "@/lib/random-id";
 
 function isPageReload(): boolean {
   const nav = performance.getEntriesByType(
@@ -41,7 +42,7 @@ export function useSearchPageHoldCleanup() {
     }
 
     if (!sessionStorage.getItem("searchPageLoadToken")) {
-      sessionStorage.setItem("searchPageLoadToken", crypto.randomUUID());
+      sessionStorage.setItem("searchPageLoadToken", randomId());
     }
 
     const onPageHide = (event: PageTransitionEvent) => {

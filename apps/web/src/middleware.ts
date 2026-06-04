@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 const MAIN_DOMAIN =
-  process.env.NEXT_PUBLIC_MAIN_DOMAIN ?? "localhost";
+  process.env.NEXT_PUBLIC_MAIN_DOMAIN ?? "lvh.me:3000";
 
 const PLATFORM_ONLY_PATHS = ["/onboarding", "/platform"];
 
