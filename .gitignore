@@ -10,3 +10,4 @@ packages/database/generated
 .DS_Store
 *.tsbuildinfo
 .cursor/plans
+Action.md

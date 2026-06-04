@@ -41,6 +41,16 @@ Default timezone for trip dates is **Asia/Dhaka**. Payment uses a **mock provide
 - CRUD for stops, routes, coaches, seat layouts, and boarding points
 - Schedule management
 - Sales reports, KPI overview, and CSV export
+- Team member management (invite counter sellers)
+- Tenant settings panel (plan info, member list)
+
+### SaaS Platform
+
+- Multi-tenant: each bus company is isolated by `tenantId`, served via subdomain (`company.yourdomain.com`)
+- Self-service onboarding at `/onboarding` — creates tenant + admin account in one step
+- Plan tiers: **FREE** (5 routes, 50 schedules/month) | **PRO** | **ENTERPRISE**
+- Platform super admin UI at `/platform` for managing all tenants (plan, status)
+- Pluggable tenant resolver: subdomain now, custom domain later (no refactor needed)
 
 ### API & quality
 
@@ -117,14 +127,45 @@ pnpm dev
 
 ### Seed accounts
 
-Password for both users: `password123`
+Password for all users: `password123`
 
 | Role | Phone | Use |
 |------|-------|-----|
-| Admin | `01700000001` | `/admin`, full API access |
-| Counter seller | `01700000002` | `/counter`, POS and scheduling |
+| Super Admin | `01700000000` | `/platform/login` then `/platform` (main domain only) |
+| Admin | `01700000001` | `/admin` — demo tenant admin |
+| Counter seller | `01700000002` | `/counter` — demo tenant counter |
 
 Sample route in seed data: **Dhaka (Gabtoli) → Pabna** (`dhaka-pabna`).
+
+---
+
+## Multi-Tenant Local Development (SaaS)
+
+The platform uses **subdomain routing** (`company.yourdomain.com`). For local dev, use **[lvh.me](http://lvh.me)** — all `*.lvh.me` subdomains automatically resolve to `127.0.0.1` without any DNS or hosts file changes.
+
+**Setup:**
+
+1. Ensure `.env` has `NEXT_PUBLIC_MAIN_DOMAIN=lvh.me:3000` (already set by default)
+2. Run `pnpm dev` as usual
+3. Access the demo tenant at: **http://demo.lvh.me:3000**
+4. Access the platform onboarding at: **http://lvh.me:3000/onboarding**
+5. Platform admin: **http://lvh.me:3000/platform/login** → then **/platform** (Super Admin `01700000000`)
+
+**Creating a new tenant:**
+
+```bash
+curl -X POST http://localhost:4000/api/v1/platform/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "companyName": "My Bus Co",
+    "slug": "mybusco",
+    "ownerName": "Rahim",
+    "ownerPhone": "01800000001",
+    "ownerPassword": "password123"
+  }'
+```
+
+Then visit `http://mybusco.lvh.me:3000` to see the tenant's public site.
 
 ---
 

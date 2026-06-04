@@ -1,3 +1,10 @@
+# SaaS Multi-Tenancy: set MAIN_DOMAIN to your base domain (e.g. yourdomain.com)
+# For local dev, use lvh.me — all *.lvh.me subdomains resolve to 127.0.0.1 without any DNS setup.
+# Example: tenant "demo" is accessible at http://demo.lvh.me:3000
+x-main-domain: &main-domain
+  MAIN_DOMAIN: ${MAIN_DOMAIN:-lvh.me:3000}
+  NEXT_PUBLIC_MAIN_DOMAIN: ${NEXT_PUBLIC_MAIN_DOMAIN:-lvh.me:3000}
+
 services:
   redis:
     image: redis:7-alpine
