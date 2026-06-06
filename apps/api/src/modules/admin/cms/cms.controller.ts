@@ -19,7 +19,7 @@ import {
   AppError,
   ErrorCode,
 } from "@repo/shared";
-import { readAsset } from "./cms-assets.js";
+import { getLocalAssetReader } from "./cms-storage.providers.js";
 import * as cmsService from "./cms.service.js";
 
 function nextify(fn: RequestHandler): RequestHandler {
@@ -43,7 +43,7 @@ export const uploadAsset: RequestHandler = nextify(async (req, res) => {
 
 export const getAsset: RequestHandler = nextify(async (req, res) => {
   const { tenantId, fileKey } = cmsAssetPathParamSchema.parse(req.params);
-  const asset = await readAsset(tenantId, fileKey);
+  const asset = await getLocalAssetReader().read(tenantId, fileKey);
   if (!asset) {
     throw new AppError(ErrorCode.NOT_FOUND, "Asset not found", 404);
   }

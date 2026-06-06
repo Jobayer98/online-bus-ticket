@@ -359,7 +359,7 @@ P4 (E14-24 … E14-28)  →  ops polish
 ### Product notes
 
 - **Draft / publish:** CMS entities carry `ContentStatus` (`DRAFT` \| `PUBLISHED`). Public API returns published only; admin preview returns drafts.
-- **Assets (MVP):** local filesystem via `CMS_ASSETS_DIR`; served at `GET /api/v1/cms/assets/:key`.
+- **Assets (MVP):** storage driver (`local` filesystem or `cloudinary` CDN); local assets served at `GET /api/v1/cms/assets/:tenantId/:fileKey`.
 - **Content format:** Markdown stored in DB; sanitized HTML on web.
 - **Featured routes:** curate from existing `Route` records — not duplicate route CRUD.
 - **Brand palette:** admin picks primary hex + font; `generateBrandPalette()` in `@repo/shared` produces semantic CSS tokens with WCAG AA on primary buttons.
@@ -408,6 +408,7 @@ P4 (E14-24 … E14-28)  →  ops polish
 | [x] E15-23 | Admin **Featured routes** panel: route picker + reorder | web | Uses existing routes list |
 | [x] E15-24 | Admin **Footer** panel: contact lines, email, links, payment banner | web | Matches public footer |
 | [x] E15-25 | Admin **Preview & Publish**: iframe/tab preview of draft site + Publish button | web | Preview uses admin preview API |
+| [x] E15-26 | CMS asset storage port + Cloudinary adapter; local fallback; GET proxy for legacy assets | api | Driver swappable; Cloudinary when creds set |
 
 ### E15 dependency order
 
