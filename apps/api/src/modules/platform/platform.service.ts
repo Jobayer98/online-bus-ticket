@@ -9,6 +9,7 @@ import {
   type RegisterTenantInput,
   type ListPlatformTenantsQuery,
   type PlanTier,
+  type PlanStatus,
   todayInDhaka,
   dhakaStartOfDay,
   dhakaEndOfDay,
@@ -21,6 +22,10 @@ import {
   resolveAuditActor,
   type PlatformAuditActor,
 } from "./platform-audit.service.js";
+import {
+  createSubscriptionForTenant,
+  syncSubscriptionFromTenant,
+} from "./platform-subscription.service.js";
 
 function toTenantDto(tenant: {
   id: string;
@@ -267,6 +272,12 @@ export async function createTenant(
     },
   });
 
+  await createSubscriptionForTenant(
+    tenant.id,
+    tenant.planTier as PlanTier,
+    tenant.planStatus as PlanStatus,
+  );
+
   if (audit) {
     await logPlatformAudit({
       action: "CREATE",
@@ -309,6 +320,12 @@ export async function updateTenant(
   });
 
   invalidateTenantCache(updated.slug);
+
+  await syncSubscriptionFromTenant(
+    updated.id,
+    updated.planTier as PlanTier,
+    updated.planStatus as PlanStatus,
+  );
 
   if (audit) {
     const after = {
@@ -386,6 +403,8 @@ export async function registerTenant(input: RegisterTenantInput) {
 
     return { tenant: newTenant, user: newUser };
   });
+
+  await createSubscriptionForTenant(tenant.id, "FREE", "TRIAL");
 
   const token = signToken({ userId: user.id, role: user.role });
 

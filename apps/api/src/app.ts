@@ -10,6 +10,7 @@ import { requestIdMiddleware } from "./middleware/request-id.js";
 
 import { authenticateOptional } from "./middleware/auth.js";
 
+import { platformApiTelemetryMiddleware } from "./middleware/platform-api-telemetry.middleware.js";
 import { tenantResolverMiddleware } from "./middleware/tenant-resolver.middleware.js";
 
 import { createCorsOptions } from "./lib/cors-config.js";
@@ -97,6 +98,8 @@ export async function createApp() {
 
 
   const v1 = express.Router();
+
+  v1.use(platformApiTelemetryMiddleware);
 
   v1.use(healthRouter);
 

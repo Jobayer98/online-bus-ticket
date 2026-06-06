@@ -491,6 +491,25 @@ E16-01 → E16-02 → E16-03 → E16-04 → E16-05 → E16-06 → E16-07 → E16
 
 ---
 
+## Epic E22–E24 — Platform Admin Phase 2
+
+**Goal:** Usage analytics, billing/subscriptions, basic system health.  
+**Depends on:** E20.
+
+| ID | Task | Layer | Acceptance |
+|----|------|-------|------------|
+| [x] E22-01 | `PlatformApiLog` model + telemetry middleware on `/api/v1` | db/api | Logs tenant, endpoint, status, latency |
+| [x] E22-02 | `GET /platform/usage`, `/usage/:tenantId`, `/usage/export` | shared/api | Aggregates bookings + API logs |
+| [x] E22-03 | Analytics tab: KPIs, tenant table, bookings trend bars | web | Period filter 7/30/90d |
+| [x] E23-01 | `Subscription` model + backfill migration; create on tenant register | db/api | One sub per tenant |
+| [x] E23-02 | Billing subscription list, upgrade, suspend, refund endpoints | shared/api | Audit logged |
+| [x] E23-03 | `GET /platform/billing/revenue` — MRR, churn, ARPU | shared/api | From subscriptions |
+| [x] E23-04 | Billing tab: revenue KPIs + subscription table | web | Upgrade/suspend actions |
+| [x] E24-02 | `GET /platform/health`, `/health/metrics` | shared/api | DB ping + log aggregates |
+| [x] E24-03 | System tab: service status, uptime bars, recent errors | web | No external APM required |
+
+---
+
 ## Epic E17 — SaaS Post-Migration Fixes
 
 **Goal:** Fix tenant isolation gaps and misleading errors after E16 multi-tenancy rollout.  
