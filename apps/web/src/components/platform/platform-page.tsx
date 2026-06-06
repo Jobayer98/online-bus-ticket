@@ -11,17 +11,25 @@ import {
 } from "@/lib/platform-auth-session";
 import { PlatformOverviewPanel } from "./platform-overview-panel";
 import { PlatformTenantsPanel } from "./platform-tenants-panel";
+import { PlatformAnalyticsPanel } from "./platform-analytics-panel";
+import { PlatformBillingPanel } from "./platform-billing-panel";
+import { PlatformSystemPanel } from "./platform-system-panel";
 import { PlatformAuditPanel } from "./platform-audit-panel";
+import { PlatformSupportPanel } from "./platform-support-panel";
 import "../../app/home.css";
 import "../../app/search/search.css";
 import "../../app/admin/admin.css";
 import "../../app/platform/platform.css";
 
-type Tab = "overview" | "tenants" | "audit";
+type Tab = "overview" | "tenants" | "analytics" | "billing" | "system" | "support" | "audit";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "overview", label: "Overview" },
   { id: "tenants", label: "Tenants" },
+  { id: "analytics", label: "Analytics" },
+  { id: "billing", label: "Billing" },
+  { id: "system", label: "System" },
+  { id: "support", label: "Support" },
   { id: "audit", label: "Audit" },
 ];
 
@@ -111,6 +119,10 @@ export function PlatformPage() {
 
       {tab === "overview" && <PlatformOverviewPanel />}
       {tab === "tenants" && <PlatformTenantsPanel />}
+      {tab === "analytics" && <PlatformAnalyticsPanel />}
+      {tab === "billing" && <PlatformBillingPanel />}
+      {tab === "system" && <PlatformSystemPanel />}
+      {tab === "support" && <PlatformSupportPanel />}
       {tab === "audit" && <PlatformAuditPanel />}
     </div>
   );

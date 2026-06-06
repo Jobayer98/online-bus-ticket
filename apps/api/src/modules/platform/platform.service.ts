@@ -9,6 +9,7 @@ import {
   type RegisterTenantInput,
   type ListPlatformTenantsQuery,
   type PlanTier,
+  type PlanStatus,
   todayInDhaka,
   dhakaStartOfDay,
   dhakaEndOfDay,
@@ -21,6 +22,10 @@ import {
   resolveAuditActor,
   type PlatformAuditActor,
 } from "./platform-audit.service.js";
+import {
+  createSubscriptionForTenant,
+  syncSubscriptionFromTenant,
+} from "./platform-subscription.service.js";
 
 function toTenantDto(tenant: {
   id: string;
@@ -267,6 +272,12 @@ export async function createTenant(
     },
   });
 
+  await createSubscriptionForTenant(
+    tenant.id,
+    tenant.planTier as PlanTier,
+    tenant.planStatus as PlanStatus,
+  );
+
   if (audit) {
     await logPlatformAudit({
       action: "CREATE",
@@ -309,6 +320,12 @@ export async function updateTenant(
   });
 
   invalidateTenantCache(updated.slug);
+
+  await syncSubscriptionFromTenant(
+    updated.id,
+    updated.planTier as PlanTier,
+    updated.planStatus as PlanStatus,
+  );
 
   if (audit) {
     const after = {
@@ -387,6 +404,8 @@ export async function registerTenant(input: RegisterTenantInput) {
     return { tenant: newTenant, user: newUser };
   });
 
+  await createSubscriptionForTenant(tenant.id, "FREE", "TRIAL");
+
   const token = signToken({ userId: user.id, role: user.role });
 
   return {
@@ -402,3 +421,64 @@ export async function registerTenant(input: RegisterTenantInput) {
 }
 
 export { resolveAuditActor };
+
+export async function bulkSuspendTenants(
+  tenantIds: string[],
+  audit: { actor: PlatformAuditActor; ipAddress?: string | null },
+) {
+  const results: { id: string; name: string; planStatus: string }[] = [];
+
+  for (const id of tenantIds) {
+    const updated = await updateTenant(
+      id,
+      { planStatus: "SUSPENDED" },
+      audit,
+    );
+    results.push({
+      id: updated.id,
+      name: updated.name,
+      planStatus: updated.planStatus,
+    });
+  }
+
+  return { suspended: results.length, tenants: results };
+}
+
+export async function exportTenantsCsv(tenantIds?: string[]): Promise<string> {
+  const where: Prisma.TenantWhereInput = tenantIds?.length
+    ? { id: { in: tenantIds } }
+    : {};
+
+  const tenants = await prisma.tenant.findMany({
+    where,
+    orderBy: { name: "asc" },
+    include: { _count: { select: { members: true } } },
+  });
+
+  const stats = await bookingStatsForTenants(tenants.map((t) => t.id));
+
+  function escapeCsv(value: string): string {
+    if (/[",\n]/.test(value)) return `"${value.replace(/"/g, '""')}"`;
+    return value;
+  }
+
+  const header =
+    "name,slug,planTier,planStatus,memberCount,bookingsThisMonth,revenueThisMonth,mrrMinor,createdAt";
+  const rows = tenants.map((t) => {
+    const month = stats.get(t.id) ?? { bookings: 0, revenue: 0 };
+    const mrr = planMonthlyPriceMinor(t.planTier as PlanTier);
+    return [
+      escapeCsv(t.name),
+      t.slug,
+      t.planTier,
+      t.planStatus,
+      t._count.members,
+      month.bookings,
+      month.revenue,
+      mrr,
+      t.createdAt.toISOString(),
+    ].join(",");
+  });
+
+  return [header, ...rows].join("\n");
+}

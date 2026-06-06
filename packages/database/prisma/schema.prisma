@@ -32,6 +32,51 @@ enum PlanStatus {
   CANCELLED
 }
 
+enum SubscriptionStatus {
+  TRIAL
+  ACTIVE
+  PAST_DUE
+  SUSPENDED
+  CANCELLED
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum PlatformAlertStatus {
+  OPEN
+  ACKNOWLEDGED
+  RESOLVED
+}
+
+enum PlatformAlertSeverity {
+  INFO
+  WARNING
+  CRITICAL
+}
+
+enum InvoiceStatus {
+  PENDING
+  PAID
+  FAILED
+}
+
+enum AnnouncementType {
+  MAINTENANCE
+  FEATURE
+  POLICY
+}
+
 enum TenantMemberRole {
   ADMIN
   COUNTER_SELLER
@@ -453,6 +498,11 @@ model Tenant {
   siteMedia        SiteMedia[]
   featuredRoutes   FeaturedRoute[]
   footerSettings   FooterSettings[]
+  subscription     Subscription?
+  apiLogs          PlatformApiLog[]
+  supportTickets   SupportTicket[]
+  platformAlerts   PlatformAlert[]
+  invoices         PlatformInvoice[]
 
   @@index([slug])
   @@index([subdomainPrefix])
@@ -474,6 +524,136 @@ model PlatformAuditLog {
   @@index([createdAt])
   @@index([resourceType, resourceId])
   @@map("platform_audit_logs")
+}
+
+model PlatformApiLog {
+  id             String   @id @default(cuid())
+  tenantId       String?  @map("tenant_id")
+  userId         String?  @map("user_id")
+  method         String
+  endpoint       String
+  statusCode     Int      @map("status_code")
+  responseTimeMs Int      @map("response_time_ms")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, createdAt])
+  @@index([createdAt])
+  @@index([endpoint])
+  @@map("platform_api_logs")
+}
+
+model Subscription {
+  id                String             @id @default(cuid())
+  tenantId          String             @unique @map("tenant_id")
+  planTier          PlanTier           @map("plan_tier")
+  status            SubscriptionStatus @default(TRIAL)
+  monthlyPriceMinor Int                @map("monthly_price_minor")
+  billingCycleStart DateTime           @map("billing_cycle_start")
+  billingCycleEnd   DateTime           @map("billing_cycle_end")
+  nextBillDate      DateTime?          @map("next_bill_date")
+  autoRenew         Boolean            @default(true) @map("auto_renew")
+  usageMetrics      Json?              @map("usage_metrics")
+  createdAt         DateTime           @default(now()) @map("created_at")
+  updatedAt         DateTime           @updatedAt @map("updated_at")
+
+  tenant   Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  invoices PlatformInvoice[]
+
+  @@index([status])
+  @@index([nextBillDate])
+  @@map("subscriptions")
+}
+
+model SupportTicket {
+  id           String         @id @default(cuid())
+  tenantId     String         @map("tenant_id")
+  subject      String
+  status       TicketStatus   @default(OPEN)
+  priority     TicketPriority @default(MEDIUM)
+  assignedToId String?        @map("assigned_to_id")
+  createdByName String        @map("created_by_name")
+  createdAt    DateTime       @default(now()) @map("created_at")
+  resolvedAt   DateTime?      @map("resolved_at")
+  updatedAt    DateTime       @updatedAt @map("updated_at")
+
+  tenant   Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  messages TicketMessage[]
+
+  @@index([tenantId])
+  @@index([status, priority])
+  @@map("support_tickets")
+}
+
+model TicketMessage {
+  id         String   @id @default(cuid())
+  ticketId   String   @map("ticket_id")
+  authorName String   @map("author_name")
+  authorType String   @map("author_type")
+  body       String
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  ticket SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId, createdAt])
+  @@map("ticket_messages")
+}
+
+model PlatformAlert {
+  id             String               @id @default(cuid())
+  severity       PlatformAlertSeverity
+  title          String
+  message        String
+  status         PlatformAlertStatus  @default(OPEN)
+  source         String               @default("SYSTEM")
+  ruleKey        String?              @map("rule_key")
+  tenantId       String?              @map("tenant_id")
+  acknowledgedAt DateTime?            @map("acknowledged_at")
+  resolvedAt     DateTime?            @map("resolved_at")
+  createdAt      DateTime             @default(now()) @map("created_at")
+
+  tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt])
+  @@index([tenantId])
+  @@map("platform_alerts")
+}
+
+model PlatformInvoice {
+  id             String        @id @default(cuid())
+  tenantId       String        @map("tenant_id")
+  subscriptionId String        @map("subscription_id")
+  invoiceNumber  String        @unique @map("invoice_number")
+  amountMinor    Int           @map("amount_minor")
+  periodStart    DateTime      @map("period_start")
+  periodEnd      DateTime      @map("period_end")
+  status         InvoiceStatus @default(PENDING)
+  paidAt         DateTime?     @map("paid_at")
+  createdAt      DateTime      @default(now()) @map("created_at")
+
+  tenant       Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, createdAt])
+  @@index([status])
+  @@map("platform_invoices")
+}
+
+model PlatformAnnouncement {
+  id          String           @id @default(cuid())
+  title       String
+  body        String
+  type        AnnouncementType
+  tenantIds   Json?            @map("tenant_ids")
+  sendToAll   Boolean          @default(true) @map("send_to_all")
+  scheduledAt DateTime?        @map("scheduled_at")
+  sentAt      DateTime?        @map("sent_at")
+  createdById String?          @map("created_by_id")
+  createdAt   DateTime         @default(now()) @map("created_at")
+
+  @@index([sentAt])
+  @@map("platform_announcements")
 }
 
 model TenantMembership {

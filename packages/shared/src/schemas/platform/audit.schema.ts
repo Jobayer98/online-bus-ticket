@@ -6,6 +6,7 @@ export const platformAuditActionSchema = z.enum([
   "SUSPEND",
   "ACTIVATE",
   "DELETE",
+  "EXPORT",
 ]);
 
 export const platformAuditResourceTypeSchema = z.enum(["TENANT"]);

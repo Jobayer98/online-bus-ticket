@@ -491,6 +491,43 @@ E16-01 → E16-02 → E16-03 → E16-04 → E16-05 → E16-06 → E16-07 → E16
 
 ---
 
+## Epic E22–E24 — Platform Admin Phase 2
+
+**Goal:** Usage analytics, billing/subscriptions, basic system health.  
+**Depends on:** E20.
+
+| ID | Task | Layer | Acceptance |
+|----|------|-------|------------|
+| [x] E22-01 | `PlatformApiLog` model + telemetry middleware on `/api/v1` | db/api | Logs tenant, endpoint, status, latency |
+| [x] E22-02 | `GET /platform/usage`, `/usage/:tenantId`, `/usage/export` | shared/api | Aggregates bookings + API logs |
+| [x] E22-03 | Analytics tab: KPIs, tenant table, bookings trend bars | web | Period filter 7/30/90d |
+| [x] E23-01 | `Subscription` model + backfill migration; create on tenant register | db/api | One sub per tenant |
+| [x] E23-02 | Billing subscription list, upgrade, suspend, refund endpoints | shared/api | Audit logged |
+| [x] E23-03 | `GET /platform/billing/revenue` — MRR, churn, ARPU | shared/api | From subscriptions |
+| [x] E23-04 | Billing tab: revenue KPIs + subscription table | web | Upgrade/suspend actions |
+| [x] E24-02 | `GET /platform/health`, `/health/metrics` | shared/api | DB ping + log aggregates |
+| [x] E24-03 | System tab: service status, uptime bars, recent errors | web | No external APM required |
+
+---
+
+## Epic E21/E23/E24/E25/E26 — Platform Admin Phase 3
+
+**Goal:** Support tickets, alerts, invoicing, announcements, bulk tenant ops, audit export.  
+**Depends on:** E20, E22–E24.
+
+| ID | Task | Layer | Acceptance |
+|----|------|-------|------------|
+| [x] E21-05 | Bulk tenant suspend, CSV export, announcement from tenant list | shared/api/web | Checkbox selection + confirm |
+| [x] E23-05 | `PlatformInvoice` model; list/download HTML invoice; mock payment retry | db/shared/api/web | Retry updates invoice status |
+| [x] E24-04 | `PlatformAlert` model + threshold rules; acknowledge/resolve in System tab | db/shared/api/web | Auto-evaluates from API logs |
+| [x] E25-01 | `SupportTicket` + `TicketMessage` models + migration | db | Relations to Tenant |
+| [x] E25-02 | Support ticket CRUD/reply API | shared/api | Paginated list + detail |
+| [x] E25-03 | Support tab: ticket list + thread modal | web | Reply, resolve, close |
+| [x] E25-04 | `PlatformAnnouncement` model + send to all/selected tenants | shared/api/web | Stored with sentAt |
+| [x] E26-04 | `GET /platform/audit-logs/export`; date range filters on Audit tab | shared/api/web | CSV download |
+
+---
+
 ## Epic E17 — SaaS Post-Migration Fixes
 
 **Goal:** Fix tenant isolation gaps and misleading errors after E16 multi-tenancy rollout.  

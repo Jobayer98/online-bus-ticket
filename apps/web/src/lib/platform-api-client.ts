@@ -54,3 +54,36 @@ export function platformApiPatch<T>(path: string, body: unknown) {
     body: JSON.stringify(body),
   });
 }
+
+export async function platformApiDownload(
+  path: string,
+  filename: string,
+): Promise<void> {
+  const token = getPlatformAuthToken();
+  const headers: Record<string, string> = {};
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  const res = await fetch(`${API_URL}/api/v1${path}`, {
+    credentials: "include",
+    headers,
+  });
+  if (res.status === 401) clearPlatformAuthSession();
+  if (!res.ok) {
+    let message = "Download failed";
+    try {
+      const json = await res.json();
+      message = json?.error?.message ?? message;
+    } catch {
+      /* non-JSON error body */
+    }
+    throw new Error(message);
+  }
+
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}

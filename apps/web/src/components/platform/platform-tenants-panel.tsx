@@ -8,6 +8,7 @@ import {
   platformApiGet,
   platformApiPatch,
   platformApiPost,
+  platformApiDownload,
 } from "@/lib/platform-api-client";
 import { formatMoneyBdt } from "@/lib/format";
 import type { PlatformTenantListItemDto } from "@repo/shared";
@@ -62,6 +63,14 @@ export function PlatformTenantsPanel() {
     "FREE",
   );
   const [creating, setCreating] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [showAnnounce, setShowAnnounce] = useState(false);
+  const [announceTitle, setAnnounceTitle] = useState("");
+  const [announceBody, setAnnounceBody] = useState("");
+  const [announceType, setAnnounceType] = useState<
+    "MAINTENANCE" | "FEATURE" | "POLICY"
+  >("MAINTENANCE");
+  const [bulkBusy, setBulkBusy] = useState(false);
   useGlobalLoading(loading && tenants.length === 0);
 
   const fetchTenants = useCallback(async () => {
@@ -161,6 +170,78 @@ export function PlatformTenantsPanel() {
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
+  function toggleSelect(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleSelectAll() {
+    if (selected.size === tenants.length) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(tenants.map((t) => t.id)));
+    }
+  }
+
+  async function exportCsv() {
+    setBulkBusy(true);
+    try {
+      const ids = [...selected];
+      const qs =
+        ids.length > 0
+          ? `?tenantIds=${encodeURIComponent(ids.join(","))}`
+          : "";
+      await platformApiDownload(`/platform/tenants/export${qs}`, "platform-tenants.csv");
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Export failed");
+    } finally {
+      setBulkBusy(false);
+    }
+  }
+
+  async function bulkSuspend() {
+    const ids = [...selected];
+    if (ids.length === 0) return;
+    if (!confirm(`Suspend ${ids.length} tenant(s)?`)) return;
+    setBulkBusy(true);
+    try {
+      await platformApiPost("/platform/tenants/bulk-suspend", { tenantIds: ids });
+      setSelected(new Set());
+      await fetchTenants();
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Bulk suspend failed");
+    } finally {
+      setBulkBusy(false);
+    }
+  }
+
+  async function sendAnnouncement(e: React.FormEvent) {
+    e.preventDefault();
+    const ids = [...selected];
+    setBulkBusy(true);
+    try {
+      await platformApiPost("/platform/announcements", {
+        title: announceTitle.trim(),
+        body: announceBody.trim(),
+        type: announceType,
+        sendToAll: ids.length === 0,
+        tenantIds: ids.length > 0 ? ids : undefined,
+      });
+      setShowAnnounce(false);
+      setAnnounceTitle("");
+      setAnnounceBody("");
+      alert("Announcement sent.");
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Send failed");
+    } finally {
+      setBulkBusy(false);
+    }
+  }
+
   return (
     <div className="cp-section">
       <div className="platform-panel-head">
@@ -216,10 +297,33 @@ export function PlatformTenantsPanel() {
 
       {!loading && !error && (
         <>
+          {selected.size > 0 && (
+            <div className="platform-bulk-bar">
+              <span>{selected.size} selected</span>
+              <button type="button" disabled={bulkBusy} onClick={() => setShowAnnounce(true)}>
+                Send announcement
+              </button>
+              <button type="button" disabled={bulkBusy} onClick={() => void exportCsv()}>
+                Export CSV
+              </button>
+              <button type="button" disabled={bulkBusy} onClick={() => void bulkSuspend()}>
+                Suspend
+              </button>
+            </div>
+          )}
+
           <div className="platform-table-wrapper">
             <table className="platform-table">
               <thead>
                 <tr>
+                  <th>
+                    <input
+                      type="checkbox"
+                      checked={tenants.length > 0 && selected.size === tenants.length}
+                      onChange={toggleSelectAll}
+                      aria-label="Select all tenants"
+                    />
+                  </th>
                   <th>Company</th>
                   <th>Slug</th>
                   <th>Plan</th>
@@ -238,6 +342,14 @@ export function PlatformTenantsPanel() {
                     className="platform-table-row-click"
                     onClick={() => router.push(`/platform/tenants/${t.id}`)}
                   >
+                    <td onClick={(e) => e.stopPropagation()}>
+                      <input
+                        type="checkbox"
+                        checked={selected.has(t.id)}
+                        onChange={() => toggleSelect(t.id)}
+                        aria-label={`Select ${t.name}`}
+                      />
+                    </td>
                     <td>
                       <strong>{t.name}</strong>
                     </td>
@@ -313,6 +425,71 @@ export function PlatformTenantsPanel() {
             </button>
           </div>
         </>
+      )}
+
+      {showAnnounce && (
+        <div
+          className="platform-modal-overlay"
+          onClick={() => !bulkBusy && setShowAnnounce(false)}
+          role="presentation"
+        >
+          <form
+            className="platform-modal"
+            onSubmit={sendAnnouncement}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3>Send announcement</h3>
+            <p className="platform-meta">
+              {selected.size > 0
+                ? `To ${selected.size} selected tenant(s)`
+                : "To all tenants"}
+            </p>
+            <label>
+              Title
+              <input
+                value={announceTitle}
+                onChange={(e) => setAnnounceTitle(e.target.value)}
+                required
+              />
+            </label>
+            <label>
+              Type
+              <select
+                value={announceType}
+                onChange={(e) =>
+                  setAnnounceType(
+                    e.target.value as "MAINTENANCE" | "FEATURE" | "POLICY",
+                  )
+                }
+              >
+                <option value="MAINTENANCE">Maintenance</option>
+                <option value="FEATURE">Feature</option>
+                <option value="POLICY">Policy</option>
+              </select>
+            </label>
+            <label>
+              Message
+              <textarea
+                value={announceBody}
+                onChange={(e) => setAnnounceBody(e.target.value)}
+                rows={4}
+                required
+              />
+            </label>
+            <div className="platform-modal-actions">
+              <button type="button" disabled={bulkBusy} onClick={() => setShowAnnounce(false)}>
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="platform-btn platform-btn--primary"
+                disabled={bulkBusy}
+              >
+                Send
+              </button>
+            </div>
+          </form>
+        </div>
       )}
 
       {showCreate && (
