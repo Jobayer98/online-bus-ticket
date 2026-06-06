@@ -8,9 +8,18 @@
 
 ## GET /api/v1/platform/tenants
 
-List all tenants with pagination.
+List all tenants with pagination and filters.
 
-**Query params:** `page` (default 1), `pageSize` (default 20)
+**Query params:** `listPlatformTenantsQuerySchema` from `@repo/shared`
+
+| Param | Default | Description |
+| ----- | ------- | ----------- |
+| `page` | 1 | Page number |
+| `pageSize` | 20 | Rows per page |
+| `planTier` | — | `FREE`, `PRO`, `ENTERPRISE` |
+| `planStatus` | — | `TRIAL`, `ACTIVE`, `SUSPENDED`, `CANCELLED` |
+| `search` | — | Match name or slug |
+| `createdWithinDays` | — | Created in last N days |
 
 **Response `200`:**
 ```json
@@ -25,12 +34,25 @@ List all tenants with pagination.
       "planTier": "FREE",
       "planStatus": "TRIAL",
       "createdAt": "2026-06-04T00:00:00.000Z",
-      "updatedAt": "2026-06-04T00:00:00.000Z"
+      "updatedAt": "2026-06-04T00:00:00.000Z",
+      "memberCount": 2,
+      "bookingsThisMonth": 25,
+      "revenueThisMonth": 625000
     }
   ],
   "meta": { "page": 1, "pageSize": 20, "total": 1 }
 }
 ```
+
+---
+
+## GET /api/v1/platform/tenants/:id
+
+Tenant detail with members and monthly stats.
+
+**Response `200`:** `platformTenantDetailDtoSchema` from `@repo/shared`
+
+**Errors:** `404 TENANT_NOT_FOUND`
 
 ---
 

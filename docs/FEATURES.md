@@ -473,6 +473,24 @@ E16-01 → E16-02 → E16-03 → E16-04 → E16-05 → E16-06 → E16-07 → E16
 
 ---
 
+## Epic E20 — Platform Admin Dashboard (Phase 1 MVP)
+
+**Goal:** Professional SaaS platform admin: tabbed dashboard, overview KPIs, enhanced tenant CRUD, audit trail.  
+**Depends on:** E16. See `docs/SAAS-PLATFORM-ADMIN-*.md`.
+
+| ID | Task | Layer | Acceptance |
+|----|------|-------|------------|
+| [x] E20-04 | Tabbed `/platform` shell (Overview, Tenants, Audit); reuse admin CSS patterns | web | SUPER_ADMIN nav + logout |
+| [x] E20-05 | `GET /api/v1/platform/dashboard/overview`; KPI cards, top tenants, plan bars | shared/api/web | Real MRR + booking aggregates |
+| [x] E21-01 | Tenant list filters/search/pagination + enriched list DTO (members, monthly stats) | shared/api/web | Filters work without reload |
+| [x] E21-03 | `GET /api/v1/platform/tenants/:id` detail DTO; `/platform/tenants/[id]` page | shared/api/web | Members + monthly stats shown |
+| [x] E21-04 | Create tenant modal → `POST /platform/tenants` | web | Redirects to detail on success |
+| [x] E26-01 | Prisma `PlatformAuditLog` model + migration | db | Append-only audit table |
+| [x] E26-02 | `logPlatformAudit()` on tenant create/update with actor/IP/changes | api | Sensitive fields excluded |
+| [x] E26-03 | `GET /api/v1/platform/audit-logs`; Audit tab with filters + JSON diff | shared/api/web | Paginated audit viewer |
+
+---
+
 ## Epic E17 — SaaS Post-Migration Fixes
 
 **Goal:** Fix tenant isolation gaps and misleading errors after E16 multi-tenancy rollout.  
@@ -527,6 +545,7 @@ E12 last
 E14 (P0→P1→P2→P3→P4) — after E08/E10/E11; P0 before production
 E15 — after E02 + E01; start E15-01 after MVP or parallel with E14 P4
 E16 — after E15; SaaS multi-tenancy
+E20 — after E16; platform admin dashboard Phase 1
 E17 — after E16; post-migration fixes (routes, headers, CMS defaults)
 E18 — after E17; CMS professional overhaul
 ```
