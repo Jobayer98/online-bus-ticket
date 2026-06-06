@@ -5,8 +5,6 @@ import Link from "next/link";
 import { useSiteTheme } from "@/components/site-theme-provider";
 import { resolveCmsAssetUrl } from "@/lib/cms-client";
 
-const FALLBACK_LOGO = "/images/logo/logo.png";
-
 type Props = {
   className?: string;
 };
@@ -29,21 +27,33 @@ function brandNameLines(companyName: string, tagline: string | null) {
 
 export function BrandLogo({ className = "brand-logo" }: Props) {
   const { profile } = useSiteTheme();
-  const logoSrc = resolveCmsAssetUrl(profile.logoUrl) ?? FALLBACK_LOGO;
-  const isExternal = logoSrc.startsWith("http");
+  const resolvedLogo = resolveCmsAssetUrl(profile.logoUrl);
+  const isExternal = resolvedLogo?.startsWith("http") ?? false;
   const { main, sub } = brandNameLines(profile.companyName, profile.tagline);
 
   return (
     <Link href="/" className={className}>
-      <Image
-        src={logoSrc}
-        alt=""
-        width={56}
-        height={56}
-        className="brand-logo__img"
-        priority
-        unoptimized={isExternal}
-      />
+      {resolvedLogo ? (
+        <Image
+          src={resolvedLogo}
+          alt=""
+          width={56}
+          height={56}
+          className="brand-logo__img"
+          priority
+          unoptimized={isExternal}
+        />
+      ) : (
+        <span className="brand-logo__placeholder" aria-hidden>
+          <svg viewBox="0 0 56 56" width={56} height={56} className="brand-logo__img">
+            <rect width="56" height="56" rx="8" fill="var(--primary-muted, #e8f5e9)" />
+            <path
+              d="M12 36h32l-4-12H16l-4 12zm6-16h20l3 8H15l3-8z"
+              fill="var(--primary, #2e7d32)"
+            />
+          </svg>
+        </span>
+      )}
       <span className="brand-logo__text">
         {main}
         {sub ? <small>{sub}</small> : null}

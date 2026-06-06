@@ -1,6 +1,6 @@
 import type { RequestHandler } from "express";
 import {
-  cmsAssetKeyParamSchema,
+  cmsAssetPathParamSchema,
   cmsFeaturedRouteIdParamSchema,
   cmsMediaIdParamSchema,
   cmsPageSlugParamSchema,
@@ -19,7 +19,7 @@ import {
   AppError,
   ErrorCode,
 } from "@repo/shared";
-import { readAsset } from "./cms-assets.js";
+import { getLocalAssetReader } from "./cms-storage.providers.js";
 import * as cmsService from "./cms.service.js";
 
 function nextify(fn: RequestHandler): RequestHandler {
@@ -33,13 +33,17 @@ export const uploadAsset: RequestHandler = nextify(async (req, res) => {
   if (!file) {
     throw new AppError(ErrorCode.VALIDATION_ERROR, "File is required", 400);
   }
-  const data = await cmsService.uploadAsset(file);
+  const tenantId = req.tenant?.id;
+  if (!tenantId) {
+    throw new AppError(ErrorCode.VALIDATION_ERROR, "Tenant context required", 400);
+  }
+  const data = await cmsService.uploadAsset(tenantId, file);
   res.status(201).json(successResponse(data));
 });
 
 export const getAsset: RequestHandler = nextify(async (req, res) => {
-  const { key } = cmsAssetKeyParamSchema.parse(req.params);
-  const asset = await readAsset(key);
+  const { tenantId, fileKey } = cmsAssetPathParamSchema.parse(req.params);
+  const asset = await getLocalAssetReader().read(tenantId, fileKey);
   if (!asset) {
     throw new AppError(ErrorCode.NOT_FOUND, "Asset not found", 404);
   }

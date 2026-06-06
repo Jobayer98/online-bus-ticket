@@ -6,7 +6,7 @@ import "../home.css";
 import "./login.css";
 
 export const metadata: Metadata = {
-  title: "Login — Shahzadpur Travels",
+  title: "Login — Bus Booking",
   description: "Sign in or create an account to manage your bus bookings.",
 };
 

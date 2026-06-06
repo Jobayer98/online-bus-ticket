@@ -7,7 +7,7 @@ const palette = generateBrandPalette("#2e7d32");
 
 const publishedProfile = {
   id: "default",
-  companyName: "Shahzadpur Travels",
+  companyName: "Demo Bus Company",
   tagline: "TRAVELS",
   logoUrl: "/images/logo/logo.png",
   faviconUrl: null,

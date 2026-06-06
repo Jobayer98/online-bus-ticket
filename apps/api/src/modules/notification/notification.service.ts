@@ -13,14 +13,18 @@ import { logger } from "../../lib/logger.js";
 import { getEmailProvider, getSmsProvider } from "./providers.js";
 import { generateTicketPng } from "./ticket-png.js";
 
-function buildSmsBody(ticket: BookingTicketNotificationDto): string {
+function buildSmsBody(
+  ticket: BookingTicketNotificationDto,
+  companyName: string,
+): string {
   const routeTitle = slugToRouteTitle(ticket.routeSlug);
   const date = formatDateDdMmYyyy(ticket.departureAt.slice(0, 10));
   const time = formatTime12h(ticket.departureAt);
   const seats = ticket.seatLabels.join(", ");
   const amount = formatMoneyBdt(ticket.totalAmount);
+  const brand = companyName.toUpperCase();
   return [
-    "SHAHZADPUR TRAVELS: Ticket confirmed!",
+    `${brand}: Ticket confirmed!`,
     `PNR: ${ticket.passengerNumber}`,
     `Route: ${routeTitle}`,
     `Date: ${date} ${time}`,
@@ -30,7 +34,10 @@ function buildSmsBody(ticket: BookingTicketNotificationDto): string {
   ].join("\n");
 }
 
-function buildEmailHtml(ticket: BookingTicketNotificationDto): string {
+function buildEmailHtml(
+  ticket: BookingTicketNotificationDto,
+  companyName: string,
+): string {
   const routeTitle = slugToRouteTitle(ticket.routeSlug);
   const date = formatDateDdMmYyyy(ticket.departureAt.slice(0, 10));
   const time = formatTime12h(ticket.departureAt);
@@ -40,7 +47,7 @@ function buildEmailHtml(ticket: BookingTicketNotificationDto): string {
 <html><body style="font-family:sans-serif;color:#0f172a">
   <h2>Your bus ticket is confirmed</h2>
   <p>Hello ${ticket.passengerName},</p>
-  <p>Thank you for booking with Shahzadpur Travels. Your e-ticket is attached as a PNG.</p>
+  <p>Thank you for booking with ${companyName}. Your e-ticket is attached as a PNG.</p>
   <table style="border-collapse:collapse">
     <tr><td style="padding:4px 12px 4px 0;color:#64748b">PNR</td><td><strong>${ticket.passengerNumber}</strong></td></tr>
     <tr><td style="padding:4px 12px 4px 0;color:#64748b">Route</td><td>${routeTitle}</td></tr>
@@ -53,9 +60,19 @@ function buildEmailHtml(ticket: BookingTicketNotificationDto): string {
 </body></html>`;
 }
 
+async function resolveTenantCompanyName(tenantId: string | null): Promise<string> {
+  if (!tenantId) return "Your bus operator";
+  const profile = await prisma.siteProfile.findFirst({
+    where: { tenantId, status: "PUBLISHED" },
+    orderBy: { updatedAt: "desc" },
+    select: { companyName: true },
+  });
+  return profile?.companyName?.trim() || "Your bus operator";
+}
+
 async function loadNotificationPayload(
   bookingId: string,
-): Promise<BookingTicketNotificationDto | null> {
+): Promise<{ ticket: BookingTicketNotificationDto; companyName: string } | null> {
   const booking = await prisma.booking.findUnique({
     where: { id: bookingId },
     include: {
@@ -67,8 +84,9 @@ async function loadNotificationPayload(
   });
   if (!booking?.ticket || booking.status !== "PAID") return null;
 
+  const companyName = await resolveTenantCompanyName(booking.tenantId);
   const email = booking.passengerEmail?.trim();
-  return {
+  const ticket = {
     bookingId: booking.id,
     passengerNumber: booking.ticket.passengerNumber,
     passengerName: booking.passengerName,
@@ -81,6 +99,7 @@ async function loadNotificationPayload(
     boardingPoint: booking.boardingPoint.name,
     ...(email ? { passengerEmail: email } : {}),
   };
+  return { ticket, companyName };
 }
 
 async function shouldSkip(
@@ -122,6 +141,7 @@ async function recordNotification(
 async function sendSmsNotification(
   bookingId: string,
   ticket: BookingTicketNotificationDto,
+  companyName: string,
 ): Promise<void> {
   if (await shouldSkip(bookingId, NotificationChannel.SMS)) return;
 
@@ -129,7 +149,7 @@ async function sendSmsNotification(
   try {
     await getSmsProvider().send({
       to: recipient,
-      body: buildSmsBody(ticket),
+      body: buildSmsBody(ticket, companyName),
     });
     await recordNotification(
       bookingId,
@@ -153,6 +173,7 @@ async function sendSmsNotification(
 async function sendEmailNotification(
   bookingId: string,
   ticket: BookingTicketNotificationDto,
+  companyName: string,
 ): Promise<void> {
   const email = ticket.passengerEmail?.trim();
   if (!email) {
@@ -173,7 +194,7 @@ async function sendEmailNotification(
     await getEmailProvider().send({
       to: email,
       subject: `Your bus ticket — ${ticket.passengerNumber}`,
-      html: buildEmailHtml(ticket),
+      html: buildEmailHtml(ticket, companyName),
       attachments: [
         {
           filename: `ticket-${ticket.passengerNumber}.png`,
@@ -203,12 +224,13 @@ async function sendEmailNotification(
 
 /** Sends SMS always; email with PNG only when passenger email is present. */
 export async function sendBookingNotifications(bookingId: string): Promise<void> {
-  const ticket = await loadNotificationPayload(bookingId);
-  if (!ticket) {
+  const payload = await loadNotificationPayload(bookingId);
+  if (!payload) {
     logger.warn({ bookingId }, "Skipping notifications: booking not paid or no ticket");
     return;
   }
 
-  await sendSmsNotification(bookingId, ticket);
-  await sendEmailNotification(bookingId, ticket);
+  const { ticket, companyName } = payload;
+  await sendSmsNotification(bookingId, ticket, companyName);
+  await sendEmailNotification(bookingId, ticket, companyName);
 }

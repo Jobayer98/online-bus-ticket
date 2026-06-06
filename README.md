@@ -115,6 +115,9 @@ pnpm db:up
 pnpm db:migrate
 pnpm db:seed
 
+# Dev-only: wipe DB + CMS uploads and reseed fresh demo tenant
+pnpm db:bootstrap
+
 # Run API + web (Turborepo)
 pnpm dev
 ```
@@ -193,8 +196,15 @@ Copy `.env.example` to `.env` at the repository root:
 | `REDIS_URL` | Redis for BullMQ notification jobs (default `redis://localhost:6379`) |
 | `TWILIO_*` | Twilio SMS credentials |
 | `SMTP_*` | Nodemailer SMTP settings |
+| `CMS_STORAGE_DRIVER` | `local` or `cloudinary` (optional; auto-selects Cloudinary when creds are set) |
+| `CMS_ASSETS_DIR` | Local CMS upload directory (default `uploads/cms`) |
+| `CMS_ASSET_MAX_BYTES` | Max CMS upload size in bytes (default 5 MB) |
+| `CLOUDINARY_*` | Cloudinary credentials for CMS media uploads |
+| `NEXT_PUBLIC_CLOUDINARY_HOSTNAME` | Optional Cloudinary delivery hostname for `next/image` (default `res.cloudinary.com`) |
 
 After payment, ticket SMS (Twilio) and email with PNG (Nodemailer) are sent via a **BullMQ** worker. See `.env.example` for all notification variables.
+
+**CMS media uploads:** without Cloudinary credentials, uploads are stored on the local filesystem and served by the API. Set `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and `CLOUDINARY_API_SECRET` to use Cloudinary automatically (or set `CMS_STORAGE_DRIVER=local` to force local storage). Existing local asset URLs keep working via the GET proxy after switching drivers.
 
 **Notifications not arriving?**
 
@@ -241,7 +251,8 @@ Run from the repository root:
 | `pnpm test:api` | API unit/integration tests (Vitest) |
 | `pnpm db:up` / `pnpm db:down` | Start/stop PostgreSQL + Redis containers |
 | `pnpm db:migrate` | Apply Prisma migrations |
-| `pnpm db:seed` | Load demo users, route, schedules |
+| `pnpm db:seed` | Load demo users, route, schedules (upsert-friendly) |
+| `pnpm db:bootstrap` | **Dev only:** reset DB, clear CMS uploads, reseed demo tenant |
 | `pnpm db:studio` | Open Prisma Studio |
 | `pnpm smoke` | Curl API health check |
 

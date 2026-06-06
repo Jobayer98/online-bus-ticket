@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { SiteProfileDto } from "@repo/shared";
+import { CmsImageUploadField } from "@/components/admin/cms/cms-image-upload-field";
 import { CounterToast } from "@/components/counter/counter-toast";
 import { useGlobalLoading } from "@/components/global-loading-provider";
 import { apiGet, apiPatch } from "@/lib/api-client";
@@ -18,7 +19,6 @@ export function AdminCmsProfilePanel() {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
   const [toast, setToast] = useState<string | null>(null);
-  const fileRef = useRef<HTMLInputElement>(null);
   useGlobalLoading(loading || saving || uploading);
 
   const load = useCallback(() => {
@@ -51,7 +51,6 @@ export function AdminCmsProfilePanel() {
       setToast(err instanceof Error ? err.message : "Upload failed");
     } finally {
       setUploading(false);
-      if (fileRef.current) fileRef.current.value = "";
     }
   }
 
@@ -126,29 +125,14 @@ export function AdminCmsProfilePanel() {
           </div>
         </div>
 
-        <div className="adm-cms-logo-block">
-          <div className="adm-cms-logo-preview">
-            {logoUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={resolveCmsAssetUrl(logoUrl)} alt="Logo preview" />
-            ) : (
-              <span className="adm-muted">No logo</span>
-            )}
-          </div>
-          <div>
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp,image/gif"
-              className="adm-cms-file-input"
-              onChange={(e) => onLogoSelected(e.target.files?.[0])}
-            />
-            <p className="adm-muted adm-cms-hint">
-              JPEG, PNG, WebP, or GIF — max 5 MB. Status:{" "}
-              <strong>{profile?.status ?? "—"}</strong>
-            </p>
-          </div>
-        </div>
+        <CmsImageUploadField
+          label="Company logo"
+          hint={`JPEG, PNG, WebP, or GIF — max 5 MB. Status: ${profile?.status ?? "—"}`}
+          currentUrl={logoUrl}
+          resolveUrl={resolveCmsAssetUrl}
+          disabled={uploading}
+          onFileSelected={(file) => onLogoSelected(file)}
+        />
 
         <div className="adm-form-actions adm-form-actions--with-label">
           <span className="adm-form-actions__label" aria-hidden="true">

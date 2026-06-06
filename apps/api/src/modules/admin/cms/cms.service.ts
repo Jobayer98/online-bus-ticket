@@ -29,11 +29,7 @@ import {
   type UpdateFeaturedRouteInput,
   type UpdateSiteMediaInput,
 } from "@repo/shared";
-import {
-  assetPublicUrl,
-  buildAssetKey,
-  saveAsset,
-} from "./cms-assets.js";
+import { getCmsAssetStorage } from "./cms-storage.providers.js";
 import * as repo from "./cms.repository.js";
 
 type ContentStatus = "DRAFT" | "PUBLISHED";
@@ -264,19 +260,21 @@ function conflict(message: string): never {
   throw new AppError(ErrorCode.CONFLICT, message, 409);
 }
 
-export async function uploadAsset(file: {
-  originalname: string;
-  mimetype: string;
-  size: number;
-  buffer: Buffer;
-}): Promise<CmsAssetUploadDto> {
-  const key = buildAssetKey(file.originalname);
-  await saveAsset(key, file.buffer);
+export async function uploadAsset(
+  tenantId: string,
+  file: {
+    originalname: string;
+    mimetype: string;
+    size: number;
+    buffer: Buffer;
+  },
+): Promise<CmsAssetUploadDto> {
+  const stored = await getCmsAssetStorage().upload({ tenantId, ...file });
   return {
-    key,
-    url: assetPublicUrl(key),
-    mimeType: file.mimetype,
-    sizeBytes: file.size,
+    key: stored.key,
+    url: stored.url,
+    mimeType: stored.mimeType,
+    sizeBytes: stored.sizeBytes,
   };
 }
 

@@ -90,6 +90,6 @@ adminCmsRouter.get("/preview", controller.getPreviewSite);
 adminCmsRouter.post("/publish", controller.publishSite);
 
 export const publicCmsRouter = Router();
-publicCmsRouter.get("/assets/:key", controller.getAsset);
+publicCmsRouter.get("/assets/:tenantId/:fileKey", controller.getAsset);
 publicCmsRouter.get("/site", controller.getPublicSite);
 publicCmsRouter.get("/pages/:slug", controller.getPublicPage);

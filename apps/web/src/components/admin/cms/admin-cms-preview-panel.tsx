@@ -1,15 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  brandPaletteToCssVars,
-  type CmsPublishResultDto,
-  type CmsSiteBundleDto,
-} from "@repo/shared";
+import type { CmsPublishResultDto, CmsSiteBundleDto } from "@repo/shared";
+import { AdminCmsDraftSitePreview } from "@/components/admin/cms/admin-cms-draft-site-preview";
 import { CounterToast } from "@/components/counter/counter-toast";
 import { useGlobalLoading } from "@/components/global-loading-provider";
 import { apiGet, apiPost } from "@/lib/api-client";
-import { resolveCmsAssetUrl } from "@/lib/cms-admin-api";
+import { buildTenantPublicSiteUrl } from "@/lib/tenant-public-url";
 
 export function AdminCmsPreviewPanel() {
   const [bundle, setBundle] = useState<CmsSiteBundleDto | null>(null);
@@ -18,12 +16,8 @@ export function AdminCmsPreviewPanel() {
   const [error, setError] = useState("");
   const [toast, setToast] = useState<string | null>(null);
   const [publishResult, setPublishResult] = useState<CmsPublishResultDto | null>(null);
+  const [liveSiteUrl, setLiveSiteUrl] = useState<string | null>(null);
   useGlobalLoading(loading || publishing);
-
-  const previewVars = useMemo(() => {
-    if (!bundle) return {};
-    return brandPaletteToCssVars(bundle.theme.palette);
-  }, [bundle]);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -36,6 +30,7 @@ export function AdminCmsPreviewPanel() {
 
   useEffect(() => {
     load();
+    setLiveSiteUrl(buildTenantPublicSiteUrl());
   }, [load]);
 
   async function publish() {
@@ -62,6 +57,11 @@ export function AdminCmsPreviewPanel() {
     }
   }
 
+  const iframeSrc = useMemo(() => {
+    if (liveSiteUrl) return liveSiteUrl;
+    return typeof window !== "undefined" ? `${window.location.origin}/` : "/";
+  }, [liveSiteUrl]);
+
   if (loading && !bundle) {
     return (
       <div className="cp-section">
@@ -70,11 +70,8 @@ export function AdminCmsPreviewPanel() {
     );
   }
 
-  const heroUrl = bundle?.media.hero?.url;
-  const featuredCount = bundle?.media.featured.length ?? 0;
-
   return (
-    <div className="cp-section">
+    <div className="cp-section adm-cms-preview-panel">
       <CounterToast message={toast} onDismiss={() => setToast(null)} />
       <h3 className="adm-page-title">PREVIEW &amp; PUBLISH</h3>
       {error ? (
@@ -85,21 +82,31 @@ export function AdminCmsPreviewPanel() {
 
       <div className="adm-form-card">
         <p className="adm-muted adm-cms-hint">
-          Draft preview below reflects unsaved API state. The public site shows published
-          content until you publish.
+          <strong>Draft preview</strong> shows unpublished CMS changes from the API.{" "}
+          <strong>Live site</strong> shows published content on your tenant subdomain (updates
+          after you publish).
         </p>
         <div className="adm-cms-preview-actions">
           <button type="button" className="sp-btn-back" onClick={load} disabled={loading}>
-            Refresh preview
+            Refresh draft
           </button>
-          <a
-            href="/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="sp-filter-search adm-cms-preview-link"
-          >
-            Open public site
-          </a>
+          <Link href="/admin/cms/full-preview" className="sp-filter-search adm-cms-preview-link">
+            Full draft preview
+          </Link>
+          {liveSiteUrl ? (
+            <a
+              href={liveSiteUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="sp-filter-search adm-cms-preview-link"
+            >
+              Open live site
+            </a>
+          ) : (
+            <span className="adm-muted adm-cms-hint">
+              Set tenant cookie or use demo.lvh.me for live link
+            </span>
+          )}
           <button
             type="button"
             className="sp-filter-search adm-cms-publish-btn"
@@ -120,59 +127,19 @@ export function AdminCmsPreviewPanel() {
 
       {bundle ? (
         <>
-          <div
-            className="adm-cms-draft-preview"
-            style={{
-              ...previewVars,
-              fontFamily: `"${bundle.theme.fontFamily}", system-ui, sans-serif`,
-            } as React.CSSProperties}
-          >
-            <header
-              className="adm-cms-draft-preview__header"
-              style={{
-                background: bundle.theme.palette.primary,
-                color: bundle.theme.palette.textOnPrimary,
-              }}
-            >
-              {bundle.profile.logoUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={resolveCmsAssetUrl(bundle.profile.logoUrl)}
-                  alt=""
-                  className="adm-cms-draft-preview__logo"
-                />
-              ) : null}
-              <div>
-                <strong>{bundle.profile.companyName}</strong>
-                {bundle.profile.tagline ? (
-                  <span className="adm-cms-draft-preview__tagline">
-                    {bundle.profile.tagline}
-                  </span>
-                ) : null}
-              </div>
-            </header>
-            {heroUrl ? (
-              <div
-                className="adm-cms-draft-preview__hero"
-                style={{
-                  backgroundImage: `url(${resolveCmsAssetUrl(heroUrl)})`,
-                }}
-              />
-            ) : null}
-            <div className="adm-cms-draft-preview__meta">
-              <span>{featuredCount} featured images</span>
-              <span>{bundle.featuredRoutes.filter((r) => r.isVisible).length} routes</span>
-              <span>{bundle.footer.barLinks.length} footer links</span>
-            </div>
-          </div>
+          <section className="adm-cms-preview-section">
+            <h4 className="adm-cms-preview-section__title">Draft (unpublished)</h4>
+            <AdminCmsDraftSitePreview bundle={bundle} />
+          </section>
 
           <div className="adm-cms-iframe-wrap">
+            <h4 className="adm-cms-preview-section__title">Live site (published)</h4>
             <p className="adm-muted adm-cms-hint">
-              Live site iframe (published content — updates after publish):
+              iframe loads your tenant public URL — not the admin host. Publish to refresh.
             </p>
             <iframe
-              title="Public site preview"
-              src="/"
+              title="Published public site"
+              src={iframeSrc}
               className="adm-cms-site-iframe"
             />
           </div>

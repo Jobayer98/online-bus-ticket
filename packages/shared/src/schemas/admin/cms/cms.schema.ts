@@ -27,6 +27,11 @@ export const cmsAssetKeyParamSchema = z.object({
   key: z.string().min(1).max(200),
 });
 
+export const cmsAssetPathParamSchema = z.object({
+  tenantId: z.string().uuid(),
+  fileKey: z.string().min(1).max(200),
+});
+
 export const patchSiteProfileSchema = z
   .object({
     companyName: z.string().min(1).max(120),

@@ -359,7 +359,7 @@ P4 (E14-24 … E14-28)  →  ops polish
 ### Product notes
 
 - **Draft / publish:** CMS entities carry `ContentStatus` (`DRAFT` \| `PUBLISHED`). Public API returns published only; admin preview returns drafts.
-- **Assets (MVP):** local filesystem via `CMS_ASSETS_DIR`; served at `GET /api/v1/cms/assets/:key`.
+- **Assets (MVP):** storage driver (`local` filesystem or `cloudinary` CDN); local assets served at `GET /api/v1/cms/assets/:tenantId/:fileKey`.
 - **Content format:** Markdown stored in DB; sanitized HTML on web.
 - **Featured routes:** curate from existing `Route` records — not duplicate route CRUD.
 - **Brand palette:** admin picks primary hex + font; `generateBrandPalette()` in `@repo/shared` produces semantic CSS tokens with WCAG AA on primary buttons.
@@ -408,6 +408,7 @@ P4 (E14-24 … E14-28)  →  ops polish
 | [x] E15-23 | Admin **Featured routes** panel: route picker + reorder | web | Uses existing routes list |
 | [x] E15-24 | Admin **Footer** panel: contact lines, email, links, payment banner | web | Matches public footer |
 | [x] E15-25 | Admin **Preview & Publish**: iframe/tab preview of draft site + Publish button | web | Preview uses admin preview API |
+| [x] E15-26 | CMS asset storage port + Cloudinary adapter; local fallback; GET proxy for legacy assets | api | Driver swappable; Cloudinary when creds set |
 
 ### E15 dependency order
 
@@ -489,6 +490,32 @@ E16-01 → E16-02 → E16-03 → E16-04 → E16-05 → E16-06 → E16-07 → E16
 
 ---
 
+## Epic E18 — CMS Professional Overhaul
+
+**Goal:** Remove hardcoded Shahzadpur fallbacks, fix tenant-aware public CMS SSR, dev bootstrap, demo seed branding, generic loader, upload previews, and admin CMS polish.  
+**Depends on:** E15, E16, E17.
+
+| ID | Task | Layer | Acceptance |
+|----|------|-------|------------|
+| [x] E18-01 | Server CMS fetch forwards `x-tenant-slug`; contract doc updated | web/docs | `demo.lvh.me` shows DB content |
+| [x] E18-02 | Minimal neutral `cms-defaults`; BrandLogo/metadata/notifications generic | web/api | API down → no Shahzadpur bundle |
+| [x] E18-03 | `cms-seed-data` → Demo Bus Company rich generic content | db | Seed matches tenant name |
+| [x] E18-04 | `pnpm db:bootstrap` dev-only (migrate reset + wipe uploads + seed) | db/infra | Blocked in production |
+| [x] E18-05 | Preview panel: tenant live URL iframe + full draft preview route | web | Published iframe ≠ admin host |
+| [x] E18-06 | `CmsImageUploadField` with Object URL preview on upload panels | web | Thumbnail before upload completes |
+| [x] E18-07 | Generic loading overlay (CSS vars, optional tenant logo) | web | No hardcoded `/images/logo` |
+| [x] E18-08 | Search/booking/admin use `--primary` instead of fixed `--sp-green` | web | Theme picker affects flows |
+| [x] E18-09 | CMS admin UI polish + `cms-ui-specialist` subagent | web | Professional admin CMS layout |
+| [x] E18-10 | Tenant-scoped CMS assets `uploads/cms/{tenantId}/` + URL path | api | Assets isolated per tenant |
+
+### E18 dependency order
+
+```
+E18-02 → E18-01 → E18-03 → E18-04 → E18-05 → E18-07 → E18-08 → E18-06 → E18-09 → E18-10
+```
+
+---
+
 ## Suggested Implementation Order
 
 ```
@@ -501,6 +528,7 @@ E14 (P0→P1→P2→P3→P4) — after E08/E10/E11; P0 before production
 E15 — after E02 + E01; start E15-01 after MVP or parallel with E14 P4
 E16 — after E15; SaaS multi-tenancy
 E17 — after E16; post-migration fixes (routes, headers, CMS defaults)
+E18 — after E17; CMS professional overhaul
 ```
 
 ---
