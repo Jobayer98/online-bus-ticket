@@ -12,7 +12,7 @@
 | ----- | ---- | ------- | ----------- |
 | `page` | number | 1 | Page number |
 | `pageSize` | number | 20 | Rows per page (max 100) |
-| `action` | string | — | `CREATE`, `UPDATE`, `SUSPEND`, `ACTIVATE`, `DELETE` |
+| `action` | string | — | `CREATE`, `UPDATE`, `SUSPEND`, `ACTIVATE`, `DELETE`, `EXPORT` |
 | `resourceType` | string | — | `TENANT` |
 | `from` | YYYY-MM-DD | — | Start date (Asia/Dhaka) |
 | `to` | YYYY-MM-DD | — | End date (Asia/Dhaka) |
@@ -50,3 +50,11 @@ Parsed by `listPlatformAuditLogsQuerySchema` from `@repo/shared`.
 
 - Audit log is append-only; no update or delete endpoints.
 - Passwords and tokens are never stored in `changes`.
+
+---
+
+## Export
+
+**Route:** `GET /api/v1/platform/audit-logs/export`  
+**Response:** `text/csv` attachment (max 5000 rows, same filters as list).
+

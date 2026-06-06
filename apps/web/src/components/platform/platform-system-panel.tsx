@@ -2,8 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useGlobalLoading } from "@/components/global-loading-provider";
-import { platformApiGet } from "@/lib/platform-api-client";
-import type { PlatformHealthDto, PlatformHealthMetricsDto } from "@repo/shared";
+import {
+  platformApiGet,
+  platformApiPatch,
+} from "@/lib/platform-api-client";
+import type { PlatformHealthDto, PlatformHealthMetricsDto, PlatformAlertDto } from "@repo/shared";
 
 const STATUS_CLASS: Record<string, string> = {
   healthy: "badge-green",
@@ -14,25 +17,60 @@ const STATUS_CLASS: Record<string, string> = {
 export function PlatformSystemPanel() {
   const [health, setHealth] = useState<PlatformHealthDto | null>(null);
   const [metrics, setMetrics] = useState<PlatformHealthMetricsDto | null>(null);
+  const [alerts, setAlerts] = useState<PlatformAlertDto[]>([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [updating, setUpdating] = useState<string | null>(null);
   useGlobalLoading(loading && !health);
 
-  useEffect(() => {
+  async function load() {
     setLoading(true);
-    Promise.all([
-      platformApiGet<PlatformHealthDto>("/platform/health"),
-      platformApiGet<PlatformHealthMetricsDto>(
-        "/platform/health/metrics?periodDays=7",
-      ),
-    ])
-      .then(([h, m]) => {
-        setHealth(h.data);
-        setMetrics(m.data);
-      })
-      .catch((e) => setError(e instanceof Error ? e.message : "Failed to load"))
-      .finally(() => setLoading(false));
+    try {
+      const [h, m] = await Promise.all([
+        platformApiGet<PlatformHealthDto>("/platform/health"),
+        platformApiGet<PlatformHealthMetricsDto>(
+          "/platform/health/metrics?periodDays=7",
+        ),
+      ]);
+      setHealth(h.data);
+      setMetrics(m.data);
+
+      try {
+        const a = await platformApiGet<PlatformAlertDto[]>(
+          "/platform/alerts?pageSize=20",
+        );
+        setAlerts(a.data);
+      } catch {
+        setAlerts([]);
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to load");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    void load();
   }, []);
+
+  async function updateAlert(id: string, status: PlatformAlertDto["status"]) {
+    setUpdating(id);
+    try {
+      await platformApiPatch(`/platform/alerts/${id}`, { status });
+      await load();
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Update failed");
+    } finally {
+      setUpdating(null);
+    }
+  }
+
+  const SEVERITY_CLASS: Record<string, string> = {
+    INFO: "badge-blue",
+    WARNING: "badge-yellow",
+    CRITICAL: "badge-red",
+  };
 
   return (
     <div className="cp-section admin-dashboard">
@@ -136,6 +174,70 @@ export function PlatformSystemPanel() {
               </table>
             </div>
           )}
+
+          <div className="platform-table-wrapper" style={{ marginTop: "1rem" }}>
+            <h3 className="platform-section-title">Alerts & incidents</h3>
+            <table className="platform-table">
+              <thead>
+                <tr>
+                  <th>Severity</th>
+                  <th>Title</th>
+                  <th>Status</th>
+                  <th>Created</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {alerts.map((a) => (
+                  <tr key={a.id}>
+                    <td>
+                      <span className={`badge ${SEVERITY_CLASS[a.severity]}`}>
+                        {a.severity}
+                      </span>
+                    </td>
+                    <td>
+                      <strong>{a.title}</strong>
+                      <br />
+                      <small>{a.message}</small>
+                    </td>
+                    <td>{a.status}</td>
+                    <td>
+                      {new Date(a.createdAt).toLocaleString("en-GB", {
+                        timeZone: "Asia/Dhaka",
+                      })}
+                    </td>
+                    <td>
+                      {a.status === "OPEN" && (
+                        <button
+                          type="button"
+                          className="platform-link"
+                          style={{ background: "none", border: "none", cursor: "pointer", marginRight: "0.5rem" }}
+                          disabled={updating === a.id}
+                          onClick={() => updateAlert(a.id, "ACKNOWLEDGED")}
+                        >
+                          Acknowledge
+                        </button>
+                      )}
+                      {a.status !== "RESOLVED" && (
+                        <button
+                          type="button"
+                          className="platform-link"
+                          style={{ background: "none", border: "none", cursor: "pointer" }}
+                          disabled={updating === a.id}
+                          onClick={() => updateAlert(a.id, "RESOLVED")}
+                        >
+                          Resolve
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {alerts.length === 0 && (
+              <p className="platform-empty">No active alerts.</p>
+            )}
+          </div>
         </>
       )}
     </div>

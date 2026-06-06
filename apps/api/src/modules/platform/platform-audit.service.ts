@@ -104,6 +104,57 @@ export async function listPlatformAuditLogs(query: ListPlatformAuditLogsQuery) {
   };
 }
 
+function escapeCsv(value: string): string {
+  if (/[",\n]/.test(value)) return `"${value.replace(/"/g, '""')}"`;
+  return value;
+}
+
+export function buildAuditCsv(
+  logs: PlatformAuditLogDto[],
+): string {
+  const header = "timestamp,actor,action,resourceType,resourceId,ipAddress";
+  const rows = logs.map((l) =>
+    [
+      l.createdAt,
+      escapeCsv(l.actorName),
+      l.action,
+      l.resourceType,
+      l.resourceId,
+      l.ipAddress ?? "",
+    ].join(","),
+  );
+  return [header, ...rows].join("\n");
+}
+
+export async function exportPlatformAuditLogs(
+  query: Omit<ListPlatformAuditLogsQuery, "page" | "pageSize">,
+) {
+  const where: {
+    action?: string;
+    resourceType?: string;
+    createdAt?: { gte?: Date; lte?: Date };
+  } = {};
+
+  if (query.action) where.action = query.action;
+  if (query.resourceType) where.resourceType = query.resourceType;
+  if (query.from || query.to) {
+    const range = parseReportDateRange(query.from, query.to);
+    where.createdAt = { gte: range.from, lte: range.to };
+  } else if (query.from) {
+    where.createdAt = { gte: dhakaStartOfDay(query.from) };
+  } else if (query.to) {
+    where.createdAt = { lte: dhakaEndOfDay(query.to) };
+  }
+
+  const rows = await prisma.platformAuditLog.findMany({
+    where,
+    orderBy: { createdAt: "desc" },
+    take: 5000,
+  });
+
+  return rows.map(toAuditDto);
+}
+
 export async function resolveAuditActor(userId: string): Promise<PlatformAuditActor> {
   const user = await prisma.user.findUnique({
     where: { id: userId },

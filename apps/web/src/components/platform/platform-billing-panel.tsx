@@ -7,11 +7,13 @@ import {
   platformApiGet,
   platformApiPatch,
   platformApiPost,
+  platformApiDownload,
 } from "@/lib/platform-api-client";
 import { formatMoneyBdt } from "@/lib/format";
 import type {
   PlatformBillingRevenueDto,
   PlatformSubscriptionDto,
+  PlatformInvoiceDto,
 } from "@repo/shared";
 
 export function PlatformBillingPanel() {
@@ -19,6 +21,7 @@ export function PlatformBillingPanel() {
     null,
   );
   const [subs, setSubs] = useState<PlatformSubscriptionDto[]>([]);
+  const [invoices, setInvoices] = useState<PlatformInvoiceDto[]>([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
@@ -38,6 +41,15 @@ export function PlatformBillingPanel() {
       ]);
       setRevenue(rev.data);
       setSubs(subList.data);
+
+      try {
+        const invList = await platformApiGet<PlatformInvoiceDto[]>(
+          "/platform/billing/invoices?pageSize=50",
+        );
+        setInvoices(invList.data);
+      } catch {
+        setInvoices([]);
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load");
     } finally {
@@ -73,6 +85,29 @@ export function PlatformBillingPanel() {
       alert(e instanceof Error ? e.message : "Suspend failed");
     } finally {
       setUpdating(null);
+    }
+  }
+
+  async function retryInvoice(id: string) {
+    setUpdating(id);
+    try {
+      await platformApiPost(`/platform/billing/invoices/${id}/retry`, {});
+      await load();
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Retry failed");
+    } finally {
+      setUpdating(null);
+    }
+  }
+
+  async function downloadInvoice(id: string, number: string) {
+    try {
+      await platformApiDownload(
+        `/platform/billing/invoices/${id}/download`,
+        `${number}.html`,
+      );
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Download failed");
     }
   }
 
@@ -205,6 +240,72 @@ export function PlatformBillingPanel() {
                 ))}
               </tbody>
             </table>
+          </div>
+
+          <div className="platform-table-wrapper" style={{ marginTop: "1.25rem" }}>
+            <h3 className="platform-section-title">Invoices</h3>
+            <table className="platform-table">
+              <thead>
+                <tr>
+                  <th>Invoice #</th>
+                  <th>Tenant</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Period</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {invoices.map((inv) => (
+                  <tr key={inv.id}>
+                    <td>{inv.invoiceNumber}</td>
+                    <td>{inv.tenantName}</td>
+                    <td>{formatMoneyBdt(inv.amountMinor)}</td>
+                    <td>
+                      <span
+                        className={`badge ${
+                          inv.status === "PAID"
+                            ? "badge-green"
+                            : inv.status === "FAILED"
+                              ? "badge-red"
+                              : "badge-yellow"
+                        }`}
+                      >
+                        {inv.status}
+                      </span>
+                    </td>
+                    <td>
+                      {new Date(inv.periodStart).toLocaleDateString("en-GB")} –{" "}
+                      {new Date(inv.periodEnd).toLocaleDateString("en-GB")}
+                    </td>
+                    <td>
+                      <button
+                        type="button"
+                        className="platform-link"
+                        style={{ background: "none", border: "none", cursor: "pointer", marginRight: "0.5rem" }}
+                        onClick={() => downloadInvoice(inv.id, inv.invoiceNumber)}
+                      >
+                        Download
+                      </button>
+                      {inv.status !== "PAID" && (
+                        <button
+                          type="button"
+                          className="platform-link"
+                          style={{ background: "none", border: "none", cursor: "pointer" }}
+                          disabled={updating === inv.id}
+                          onClick={() => retryInvoice(inv.id)}
+                        >
+                          Retry payment
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {invoices.length === 0 && (
+              <p className="platform-empty">No invoices yet.</p>
+            )}
           </div>
         </>
       )}

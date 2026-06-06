@@ -2,7 +2,7 @@
 
 import { Fragment, useCallback, useEffect, useState } from "react";
 import { useGlobalLoading } from "@/components/global-loading-provider";
-import { platformApiGet } from "@/lib/platform-api-client";
+import { platformApiGet, platformApiDownload } from "@/lib/platform-api-client";
 import type { PlatformAuditLogDto } from "@repo/shared";
 
 export function PlatformAuditPanel() {
@@ -13,6 +13,8 @@ export function PlatformAuditPanel() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [actionFilter, setActionFilter] = useState("");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   useGlobalLoading(loading && logs.length === 0);
 
@@ -25,6 +27,8 @@ export function PlatformAuditPanel() {
         pageSize: String(pageSize),
       });
       if (actionFilter) params.set("action", actionFilter);
+      if (fromDate) params.set("from", fromDate);
+      if (toDate) params.set("to", toDate);
 
       const json = await platformApiGet<PlatformAuditLogDto[]>(
         `/platform/audit-logs?${params.toString()}`,
@@ -36,7 +40,7 @@ export function PlatformAuditPanel() {
     } finally {
       setLoading(false);
     }
-  }, [page, pageSize, actionFilter]);
+  }, [page, pageSize, actionFilter, fromDate, toDate]);
 
   useEffect(() => {
     void fetchLogs();
@@ -44,9 +48,30 @@ export function PlatformAuditPanel() {
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
+  async function exportCsv() {
+    const params = new URLSearchParams();
+    if (actionFilter) params.set("action", actionFilter);
+    if (fromDate) params.set("from", fromDate);
+    if (toDate) params.set("to", toDate);
+    const qs = params.toString();
+    try {
+      await platformApiDownload(
+        `/platform/audit-logs/export${qs ? `?${qs}` : ""}`,
+        "platform-audit-logs.csv",
+      );
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Export failed");
+    }
+  }
+
   return (
     <div className="cp-section">
-      <h2 className="adm-page-title">Audit logs</h2>
+      <div className="platform-panel-head">
+        <h2 className="adm-page-title">Audit logs</h2>
+        <button type="button" className="platform-btn" onClick={() => void exportCsv()}>
+          Export CSV
+        </button>
+      </div>
 
       <div className="platform-filters">
         <select
@@ -62,7 +87,26 @@ export function PlatformAuditPanel() {
           <option value="UPDATE">Update</option>
           <option value="SUSPEND">Suspend</option>
           <option value="ACTIVATE">Activate</option>
+          <option value="EXPORT">Export</option>
         </select>
+        <input
+          type="date"
+          value={fromDate}
+          onChange={(e) => {
+            setFromDate(e.target.value);
+            setPage(1);
+          }}
+          aria-label="From date"
+        />
+        <input
+          type="date"
+          value={toDate}
+          onChange={(e) => {
+            setToDate(e.target.value);
+            setPage(1);
+          }}
+          aria-label="To date"
+        />
       </div>
 
       {error && <p className="sp-filter-error">{error}</p>}
