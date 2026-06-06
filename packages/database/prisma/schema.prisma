@@ -459,6 +459,23 @@ model Tenant {
   @@map("tenants")
 }
 
+model PlatformAuditLog {
+  id           String   @id @default(cuid())
+  actorId      String?  @map("actor_id")
+  actorName    String   @map("actor_name")
+  actorType    String   @map("actor_type")
+  action       String
+  resourceType String   @map("resource_type")
+  resourceId   String   @map("resource_id")
+  changes      Json?
+  ipAddress    String?  @map("ip_address")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@index([createdAt])
+  @@index([resourceType, resourceId])
+  @@map("platform_audit_logs")
+}
+
 model TenantMembership {
   id       String           @id @default(cuid())
   tenantId String           @map("tenant_id")
