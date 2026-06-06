@@ -16,6 +16,7 @@ import { AdminSchedulesPanel } from "./admin-schedules-panel";
 import { AdminReportsPanel } from "./admin-reports-panel";
 import { AdminCmsPanel } from "./cms/admin-cms-panel";
 import { AdminTenantSettingsPanel } from "./admin-tenant-settings-panel";
+import { AdminPaymentsPanel } from "./admin-payments-panel";
 import "../../app/home.css";
 import "../../app/search/search.css";
 import "../../app/counter/counter.css";
@@ -30,6 +31,7 @@ type Tab =
   | "schedules"
   | "reports"
   | "content"
+  | "payments"
   | "settings";
 
 const TABS: { id: Tab; label: string }[] = [
@@ -41,6 +43,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "schedules", label: "Schedules" },
   { id: "reports", label: "Reports" },
   { id: "content", label: "Content" },
+  { id: "payments", label: "Payments" },
   { id: "settings", label: "Settings" },
 ];
 
@@ -139,6 +142,7 @@ export function AdminPage() {
       {tab === "schedules" && <AdminSchedulesPanel />}
       {tab === "reports" && <AdminReportsPanel />}
       {tab === "content" && <AdminCmsPanel />}
+      {tab === "payments" && <AdminPaymentsPanel />}
       {tab === "settings" && <AdminTenantSettingsPanel />}
     </div>
   );

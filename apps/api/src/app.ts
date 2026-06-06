@@ -39,6 +39,8 @@ import { adminReportsRouter } from "./modules/admin/reports.routes.js";
 
 import { adminMembersRouter } from "./modules/admin/members.routes.js";
 
+import { adminPaymentProvidersRouter } from "./modules/admin/payment-providers.routes.js";
+
 import { adminCmsRouter, publicCmsRouter } from "./modules/admin/cms/cms.routes.js";
 
 import {
@@ -134,6 +136,8 @@ export async function createApp() {
   v1.use("/admin/reports", adminReportsRouter);
 
   v1.use("/admin/members", adminMembersRouter);
+
+  v1.use("/admin", adminPaymentProvidersRouter);
 
   v1.use("/admin/cms", adminCmsRouter);
 

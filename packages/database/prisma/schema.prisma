@@ -119,6 +119,34 @@ enum PaymentStatus {
   REFUNDED
 }
 
+enum PaymentProviderCode {
+  BKASH
+  SSLCOMMERZ
+}
+
+enum PaymentSettlementRoute {
+  TENANT_DIRECT
+  SYSTEM
+}
+
+enum LedgerEntryType {
+  CREDIT
+  DEBIT
+}
+
+enum LedgerReferenceType {
+  BOOKING_PAYMENT
+  WITHDRAWAL
+  WITHDRAWAL_REVERSAL
+}
+
+enum WithdrawalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  PAID
+}
+
 enum ScheduleStatus {
   SCHEDULED
   CANCELLED
@@ -405,18 +433,28 @@ model BookingSeat {
 }
 
 model Payment {
-  id             String        @id @default(cuid())
-  bookingId      String        @unique @map("booking_id")
-  amount         Int
-  method         PaymentMethod
-  status         PaymentStatus @default(PENDING)
-  idempotencyKey String?       @unique @map("idempotency_key")
-  providerRef    String?       @map("provider_ref")
-  createdAt      DateTime      @default(now()) @map("created_at")
-  updatedAt      DateTime      @updatedAt @map("updated_at")
+  id                String                  @id @default(cuid())
+  bookingId         String?                 @unique @map("booking_id")
+  platformInvoiceId String?                 @unique @map("platform_invoice_id")
+  amount            Int
+  method            PaymentMethod
+  status            PaymentStatus           @default(PENDING)
+  idempotencyKey    String?                 @unique @map("idempotency_key")
+  providerCode      PaymentProviderCode?    @map("provider_code")
+  settlementRoute   PaymentSettlementRoute? @map("settlement_route")
+  providerSessionId String?                 @map("provider_session_id")
+  systemProviderId  String?                 @map("system_provider_id")
+  tenantProviderId  String?                 @map("tenant_provider_id")
+  providerRef       String?                 @unique @map("provider_ref")
+  createdAt         DateTime                @default(now()) @map("created_at")
+  updatedAt         DateTime                @updatedAt @map("updated_at")
 
-  booking Booking @relation(fields: [bookingId], references: [id])
+  booking         Booking?              @relation(fields: [bookingId], references: [id])
+  platformInvoice PlatformInvoice?      @relation(fields: [platformInvoiceId], references: [id])
+  systemProvider  SystemPaymentProvider? @relation(fields: [systemProviderId], references: [id], onDelete: SetNull)
+  tenantProvider  TenantPaymentProvider? @relation(fields: [tenantProviderId], references: [id], onDelete: SetNull)
 
+  @@index([providerRef])
   @@map("payments")
 }
 
@@ -502,11 +540,115 @@ model Tenant {
   apiLogs          PlatformApiLog[]
   supportTickets   SupportTicket[]
   platformAlerts   PlatformAlert[]
-  invoices         PlatformInvoice[]
+  invoices              PlatformInvoice[]
+  paymentProviders      TenantPaymentProvider[]
+  wallet                TenantWallet?
+  ledgerEntries         TenantLedgerEntry[]
+  bankAccounts          TenantBankAccount[]
+  withdrawalRequests    WithdrawalRequest[]
 
   @@index([slug])
   @@index([subdomainPrefix])
   @@map("tenants")
+}
+
+model SystemPaymentProvider {
+  id                   String              @id @default(cuid())
+  code                 PaymentProviderCode @unique
+  displayName          String              @map("display_name")
+  isEnabled            Boolean             @default(false) @map("is_enabled")
+  credentialsEncrypted String?             @map("credentials_encrypted") @db.Text
+  sandboxMode          Boolean             @default(true) @map("sandbox_mode")
+  createdAt            DateTime            @default(now()) @map("created_at")
+  updatedAt            DateTime            @updatedAt @map("updated_at")
+
+  payments Payment[]
+
+  @@map("system_payment_providers")
+}
+
+model TenantPaymentProvider {
+  id                   String              @id @default(cuid())
+  tenantId             String              @map("tenant_id")
+  code                 PaymentProviderCode
+  isActive             Boolean             @default(false) @map("is_active")
+  credentialsEncrypted String?             @map("credentials_encrypted") @db.Text
+  sandboxMode          Boolean             @default(true) @map("sandbox_mode")
+  createdAt            DateTime            @default(now()) @map("created_at")
+  updatedAt            DateTime            @updatedAt @map("updated_at")
+
+  tenant   Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  payments Payment[]
+
+  @@unique([tenantId, code])
+  @@index([tenantId])
+  @@map("tenant_payment_providers")
+}
+
+model TenantWallet {
+  id           String   @id @default(cuid())
+  tenantId     String   @unique @map("tenant_id")
+  balanceMinor Int      @default(0) @map("balance_minor")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("tenant_wallets")
+}
+
+model TenantLedgerEntry {
+  id               String              @id @default(cuid())
+  tenantId         String              @map("tenant_id")
+  type             LedgerEntryType
+  amountMinor      Int                 @map("amount_minor")
+  balanceAfterMinor Int                @map("balance_after_minor")
+  referenceType    LedgerReferenceType @map("reference_type")
+  referenceId      String              @map("reference_id")
+  note             String?
+  createdAt        DateTime            @default(now()) @map("created_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, createdAt])
+  @@map("tenant_ledger_entries")
+}
+
+model TenantBankAccount {
+  id                      String   @id @default(cuid())
+  tenantId                String   @map("tenant_id")
+  bankName                String   @map("bank_name")
+  accountName             String   @map("account_name")
+  accountNumberEncrypted  String   @map("account_number_encrypted")
+  isDefault               Boolean  @default(false) @map("is_default")
+  createdAt               DateTime @default(now()) @map("created_at")
+  updatedAt               DateTime @updatedAt @map("updated_at")
+
+  tenant      Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  withdrawals WithdrawalRequest[]
+
+  @@index([tenantId])
+  @@map("tenant_bank_accounts")
+}
+
+model WithdrawalRequest {
+  id            String           @id @default(cuid())
+  tenantId      String           @map("tenant_id")
+  bankAccountId String           @map("bank_account_id")
+  amountMinor   Int              @map("amount_minor")
+  status        WithdrawalStatus @default(PENDING)
+  reviewNote    String?          @map("review_note")
+  reviewedById  String?          @map("reviewed_by_id")
+  reviewedAt    DateTime?        @map("reviewed_at")
+  paidAt        DateTime?        @map("paid_at")
+  createdAt     DateTime         @default(now()) @map("created_at")
+  updatedAt     DateTime         @updatedAt @map("updated_at")
+
+  tenant      Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  bankAccount TenantBankAccount @relation(fields: [bankAccountId], references: [id])
+
+  @@index([tenantId, status])
+  @@map("withdrawal_requests")
 }
 
 model PlatformAuditLog {
@@ -634,6 +776,7 @@ model PlatformInvoice {
 
   tenant       Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  payment      Payment?
 
   @@index([tenantId, createdAt])
   @@index([status])

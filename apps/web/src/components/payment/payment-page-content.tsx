@@ -15,14 +15,11 @@ import {
   resolveBookingAccessToken,
 } from "@/lib/booking-access";
 import { formatMoneyBdt } from "@/lib/format";
-import { storeTicketLookup } from "@/lib/ticket-lookup-session";
 import { useSiteTheme } from "@/components/site-theme-provider";
 import { HomeHeader } from "@/components/home-header";
 import { SearchFooter } from "@/components/search/search-footer";
 import { SeatHoldTimer } from "@/components/search/seat-hold-timer";
-import { SslCommerzMockGateway } from "./sslcommerz-mock-gateway";
-import type { PaymentMethodId } from "./sslcommerz-payment-strip";
-import type { BookingDto } from "@repo/shared";
+import type { BookingDto, PaymentGatewayOptionDto } from "@repo/shared";
 
 export function PaymentPageContent() {
   const { profile } = useSiteTheme();
@@ -33,8 +30,10 @@ export function PaymentPageContent() {
   const router = useRouter();
 
   const [booking, setBooking] = useState<BookingDto | null>(null);
+  const [gateways, setGateways] = useState<PaymentGatewayOptionDto[]>([]);
   const [error, setError] = useState("");
   const [holdExpired, setHoldExpired] = useState(false);
+  const [paying, setPaying] = useState(false);
 
   useEffect(() => {
     clearHoldPaymentNavigation();
@@ -50,12 +49,9 @@ export function PaymentPageContent() {
       setError("Missing booking access. Please start checkout again.");
       return;
     }
-    apiGet<BookingDto>(`/bookings/${bookingId}?${bookingAccessQuery(accessToken)}`)
+    void apiGet<BookingDto>(`/bookings/${bookingId}?${bookingAccessQuery(accessToken)}`)
       .then((r) => {
         setBooking(r.data);
-        if (r.data.holdExpiresAt) {
-          /* timer uses booking.holdExpiresAt */
-        }
         if (r.data.holdId) {
           setActiveHoldId(r.data.holdId);
         }
@@ -63,6 +59,10 @@ export function PaymentPageContent() {
       .catch(() => {
         setError("Could not load booking");
       });
+
+    void apiGet<{ gateways: PaymentGatewayOptionDto[] }>("/payments/gateways")
+      .then((r) => setGateways(r.data.gateways))
+      .catch(() => setGateways([]));
   }, [bookingId, accessTokenParam]);
 
   const handleHoldExpired = useCallback(() => {
@@ -72,38 +72,33 @@ export function PaymentPageContent() {
   }, []);
 
   const handlePay = useCallback(
-    async (_methodId: PaymentMethodId) => {
-      if (!bookingId || holdExpired) {
-        throw new Error("Booking is no longer valid");
-      }
+    async (providerCode: PaymentGatewayOptionDto["code"]) => {
+      if (!bookingId || holdExpired || paying) return;
       setError("");
+      setPaying(true);
       try {
-        const initiated = await apiPost<{ clientSecret: string }>(
-          "/payments/initiate",
-          { bookingId, method: "ONLINE" },
-        );
-        const r = await apiPost<{ ticket: { passengerNumber: string } }>(
-          "/payments/confirm",
-          { bookingId, clientSecret: initiated.data.clientSecret },
-          { "Idempotency-Key": bookingId },
-        );
-        clearActiveHoldId();
-        const pn = r.data.ticket?.passengerNumber;
-        if (pn && booking?.passengerPhone) {
-          storeTicketLookup(bookingId, pn, booking.passengerPhone);
+        const initiated = await apiPost<{
+          redirectUrl?: string;
+          clientSecret: string;
+        }>("/payments/initiate", {
+          bookingId,
+          method: "ONLINE",
+          providerCode,
+          scheduleId,
+        });
+        if (initiated.data.redirectUrl) {
+          window.location.href = initiated.data.redirectUrl;
+          return;
         }
-        router.push(
-          `/booking/${scheduleId}/confirmation?passengerNumber=${pn}&bookingId=${bookingId}`,
-        );
+        throw new Error("Payment gateway did not return a redirect URL");
       } catch (e) {
         const msg =
-          e instanceof Error ? e.message : "Payment could not be completed";
+          e instanceof Error ? e.message : "Payment could not be started";
         setError(msg);
-        await releaseActiveHold();
-        throw e;
+        setPaying(false);
       }
     },
-    [booking, bookingId, holdExpired, router, scheduleId],
+    [bookingId, holdExpired, paying, scheduleId],
   );
 
   async function cancelPayment() {
@@ -164,14 +159,43 @@ export function PaymentPageContent() {
         </div>
 
         {booking ? (
-          <SslCommerzMockGateway
-            amountMinor={booking.totalAmount}
-            merchantName={profile.companyName}
-            orderLabel={`Booking #${booking.id.slice(-8).toUpperCase()}`}
-            disabled={holdExpired}
-            onPay={handlePay}
-            onCancel={() => void cancelPayment()}
-          />
+          <div className="payment-page__gateways">
+            <p className="payment-page__gateway-hint">
+              Pay securely via {profile.companyName}&apos;s payment partner.
+            </p>
+            {gateways.length === 0 ? (
+              <p className="sp-panel-error" role="alert">
+                No payment gateways are configured. Please contact support.
+              </p>
+            ) : (
+              <ul className="payment-page__gateway-list">
+                {gateways.map((g) => (
+                  <li key={g.code}>
+                    <button
+                      type="button"
+                      className="payment-page__gateway-btn"
+                      disabled={holdExpired || paying}
+                      onClick={() => void handlePay(g.code)}
+                    >
+                      Pay with {g.displayName}
+                      {g.settlementRoute === "SYSTEM" && (
+                        <span className="payment-page__gateway-badge">
+                          Platform
+                        </span>
+                      )}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <button
+              type="button"
+              className="payment-page__cancel-btn"
+              onClick={() => void cancelPayment()}
+            >
+              Cancel
+            </button>
+          </div>
         ) : null}
 
         {error && booking && (

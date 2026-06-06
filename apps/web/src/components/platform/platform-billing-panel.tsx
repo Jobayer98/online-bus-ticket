@@ -88,13 +88,20 @@ export function PlatformBillingPanel() {
     }
   }
 
-  async function retryInvoice(id: string) {
+  async function payInvoice(id: string, providerCode: "BKASH" | "SSLCOMMERZ") {
     setUpdating(id);
     try {
-      await platformApiPost(`/platform/billing/invoices/${id}/retry`, {});
+      const res = await platformApiPost<{ redirectUrl: string }>(
+        `/platform/billing/invoices/${id}/pay`,
+        { providerCode },
+      );
+      if (res.data.redirectUrl) {
+        window.location.href = res.data.redirectUrl;
+        return;
+      }
       await load();
     } catch (e) {
-      alert(e instanceof Error ? e.message : "Retry failed");
+      alert(e instanceof Error ? e.message : "Payment failed");
     } finally {
       setUpdating(null);
     }
@@ -288,15 +295,26 @@ export function PlatformBillingPanel() {
                         Download
                       </button>
                       {inv.status !== "PAID" && (
-                        <button
-                          type="button"
-                          className="platform-link"
-                          style={{ background: "none", border: "none", cursor: "pointer" }}
-                          disabled={updating === inv.id}
-                          onClick={() => retryInvoice(inv.id)}
-                        >
-                          Retry payment
-                        </button>
+                        <>
+                          <button
+                            type="button"
+                            className="platform-link"
+                            style={{ background: "none", border: "none", cursor: "pointer", marginRight: "0.5rem" }}
+                            disabled={updating === inv.id}
+                            onClick={() => payInvoice(inv.id, "SSLCOMMERZ")}
+                          >
+                            Pay (SSLCommerz)
+                          </button>
+                          <button
+                            type="button"
+                            className="platform-link"
+                            style={{ background: "none", border: "none", cursor: "pointer" }}
+                            disabled={updating === inv.id}
+                            onClick={() => payInvoice(inv.id, "BKASH")}
+                          >
+                            Pay (bKash)
+                          </button>
+                        </>
                       )}
                     </td>
                   </tr>

@@ -31,7 +31,7 @@ describe("confirmPaymentWithClient", () => {
     totalAmount: 85000,
     hold: { expiresAt: new Date(Date.now() + 60_000) },
     seats: [{ scheduleSeatId: "seat-1" }],
-    payment: { id: "pay-1", status: "PENDING" },
+    payment: { id: "pay-1", status: "PENDING", method: "CASH" },
     ticket: null,
   };
 
@@ -79,7 +79,7 @@ describe("confirmPaymentWithClient", () => {
         findUnique: vi.fn().mockResolvedValue({
           ...bookingBase,
           status: "PAID",
-          payment: { id: "pay-1", status: "COMPLETED" },
+          payment: { id: "pay-1", status: "COMPLETED", method: "CASH" },
           ticket: null,
         }),
       },
@@ -110,6 +110,9 @@ describe("confirmPayment idempotency", () => {
   });
 
   it("repairs PAID booking missing ticket on idempotent retry", async () => {
+    prismaMock.booking.findUnique = vi.fn().mockResolvedValue({
+      payment: { method: "CASH" },
+    });
     prismaMock.payment.findUnique.mockResolvedValue({
       status: "COMPLETED",
       bookingId: "book-1",
