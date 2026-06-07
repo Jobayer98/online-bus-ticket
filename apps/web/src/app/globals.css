@@ -1,13 +1,83 @@
+@import "../components/ui/form.css";
+
 :root {
-  --bg: #f4f6f8;
-  --card: #fff;
-  --primary: #2e7d32;
-  --text: #1a1a2e;
-  --muted: #6c757d;
-  --border: #dee2e6;
-  --success: #198754;
-  --danger: #dc3545;
-  --warning: #ffc107;
+  /* CMS-overridable brand tokens (defaults match UI design guide) */
+  --primary: #15803d;
+  --primary-hover: #166534;
+  --primary-light: #dcfce7;
+  --primary-muted: #f0fdf4;
+  --accent: #16a34a;
+  --accent-hover: #14532d;
+  --bg: #f9fafb;
+  --card: #ffffff;
+  --text: #111827;
+  --muted: #6b7280;
+  --text-on-primary: #ffffff;
+  --border: #e5e7eb;
+  --success: #16a34a;
+  --danger: #dc2626;
+  --warning: #d97706;
+
+  /* Design guide aliases */
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-light: var(--primary-light);
+  --color-primary-subtle: var(--primary-muted);
+  --color-surface: var(--card);
+  --color-bg: var(--bg);
+  --color-border: var(--border);
+  --color-border-strong: #d1d5db;
+  --color-text: var(--text);
+  --color-text-secondary: var(--muted);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-info: #2563eb;
+
+  /* Green palette (static reference for dark surfaces) */
+  --green-950: #052e16;
+  --green-900: #14532d;
+  --green-800: #166534;
+  --green-700: #15803d;
+  --green-600: #16a34a;
+  --green-500: #22c55e;
+  --green-100: #dcfce7;
+  --green-50: #f0fdf4;
+
+  /* Home aliases (backward compat) */
+  --home-green: var(--primary);
+  --home-green-light: var(--primary-light);
+  --home-green-dark: var(--primary-hover);
+  --home-section-bg: #fafaf9;
+
+  /* Elevation shadows */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1), 0 8px 10px rgba(0, 0, 0, 0.04);
+
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-pill: 9999px;
+
+  /* Typography scale */
+  --text-xs: 0.611rem;
+  --text-sm: 0.722rem;
+  --text-base: 0.833rem;
+  --text-md: 0.944rem;
+  --text-lg: 1.111rem;
+  --text-xl: 1.333rem;
+  --text-2xl: 1.667rem;
+  --text-3xl: 2.111rem;
+  --text-fare: 1.222rem;
+
+  /* Layout */
+  --container-public: 1100px;
+  --container-content: 720px;
 }
 
 @import "../components/brand-logo.css";
@@ -18,6 +88,7 @@
 
 html {
   font-size: 18px;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
 
 body {
@@ -27,6 +98,12 @@ body {
   color: var(--text);
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
+}
+
+.fare,
+.pnr,
+.time {
+  font-variant-numeric: tabular-nums;
 }
 
 .site-main {
@@ -42,7 +119,7 @@ a {
 }
 
 .container {
-  max-width: 960px;
+  max-width: var(--container-public);
   margin: 0 auto;
   padding: 1rem;
 }
@@ -50,21 +127,36 @@ a {
 .card {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   padding: 1.25rem;
   margin-bottom: 1rem;
+  box-shadow: var(--shadow-xs);
 }
 
 .btn {
   display: inline-block;
   padding: 0.5rem 1rem;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   background: var(--primary);
-  color: #fff;
+  color: var(--text-on-primary, #fff);
   cursor: pointer;
   font-size: 1rem;
+  font-weight: 600;
   text-decoration: none;
+  min-width: 120px;
+  letter-spacing: 0.01em;
+  transition: background 0.15s ease;
+}
+
+.btn:hover:not(:disabled) {
+  background: var(--primary-hover);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px var(--color-primary-light);
 }
 
 .btn:disabled {
@@ -75,7 +167,7 @@ a {
 .btn-outline {
   background: transparent;
   color: var(--primary);
-  border: 1px solid var(--primary);
+  border: 1.5px solid var(--primary);
 }
 
 input,
@@ -83,9 +175,17 @@ select {
   width: 100%;
   padding: 0.5rem;
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   font-size: 1rem;
   margin-bottom: 0.75rem;
+}
+
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 0;
+  box-shadow: 0 0 0 3px var(--color-primary-light);
+  border-color: var(--color-primary);
 }
 
 label {
@@ -101,7 +201,7 @@ label {
 }
 
 .nav-inner {
-  max-width: 960px;
+  max-width: var(--container-public);
   margin: 0 auto;
   display: flex;
   gap: 1rem;
@@ -137,7 +237,6 @@ label {
   font-weight: 600;
 }
 
-
 .grid-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -159,7 +258,7 @@ label {
 .seat {
   width: 36px;
   height: 36px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   border: 1px solid var(--border);
   font-size: 0.65rem;
   cursor: pointer;
@@ -169,15 +268,20 @@ label {
 }
 
 .seat.available {
-  background: #e7f5ff;
+  background: var(--green-50);
+  border-color: var(--green-600);
+  color: var(--green-700);
 }
+
 .seat.selected {
   background: var(--primary);
-  color: #fff;
+  color: var(--text-on-primary, #fff);
+  border-color: var(--primary-hover);
 }
+
 .seat.sold,
 .seat.held {
-  background: #e9ecef;
+  background: #f3f4f6;
   color: var(--muted);
   cursor: not-allowed;
 }
@@ -185,12 +289,24 @@ label {
 .badge {
   display: inline-block;
   padding: 0.2rem 0.5rem;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   font-size: 0.75rem;
-  background: #e7f5ff;
+  background: var(--primary-light);
+  color: var(--green-900);
 }
 
 .error {
   color: var(--danger);
   font-size: 0.9rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

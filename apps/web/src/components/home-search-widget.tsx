@@ -2,39 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { m } from "framer-motion";
+import { ArrowRight, Check, Search } from "lucide-react";
 import { apiGet } from "@/lib/api-client";
 import { getTodayIso } from "@/lib/trip-date";
 import { HomeDatePicker } from "@/components/home-date-picker";
+import { shakeKeyframes } from "@/components/motion/variants";
 
 type Stop = { id: string; name: string; city: string; code: string };
-
-function CheckIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
-      <path
-        d="M2.5 7.5L5.5 10.5L11.5 3.5"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function SearchIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-      <circle cx="7" cy="7" r="4.5" stroke="currentColor" strokeWidth="1.5" />
-      <path
-        d="M10.5 10.5L14 14"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
 
 export function HomeSearchWidget() {
   const router = useRouter();
@@ -45,6 +20,7 @@ export function HomeSearchWidget() {
   const [acOn, setAcOn] = useState(true);
   const [nonAcOn, setNonAcOn] = useState(true);
   const [error, setError] = useState("");
+  const [shake, setShake] = useState(false);
 
   useEffect(() => {
     setDate(getTodayIso());
@@ -59,19 +35,25 @@ export function HomeSearchWidget() {
     return "";
   }
 
+  function showValidationError(message: string) {
+    setError(message);
+    setShake(true);
+    window.setTimeout(() => setShake(false), 400);
+  }
+
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     if (!fromStopId || !toStopId || !date) {
-      setError("Please fill from, to, and date");
+      showValidationError("Please fill from, to, and date");
       return;
     }
     if (fromStopId === toStopId) {
-      setError("From and to must differ");
+      showValidationError("From and to must differ");
       return;
     }
     if (!acOn && !nonAcOn) {
-      setError("Select at least AC or Non AC");
+      showValidationError("Select at least AC or Non AC");
       return;
     }
     const from = stops.find((s) => s.id === fromStopId);
@@ -86,78 +68,95 @@ export function HomeSearchWidget() {
   }
 
   return (
-    <form className="home-search-card" onSubmit={handleSearch}>
+    <m.form
+      className="home-search-card"
+      onSubmit={handleSearch}
+      animate={shake ? shakeKeyframes : { x: 0 }}
+      transition={{ duration: 0.3 }}
+      id="home-search"
+    >
       <div className="home-search-header">
-        Select Your Route &amp; Search Coach Schedule
+        Select your route &amp; search coach schedule
       </div>
       <div className="home-search-body">
         <div className="home-search-row">
           <div className="home-field">
+            <label className="home-field-label" htmlFor="home-from">
+              From
+            </label>
             <select
+              id="home-from"
               value={fromStopId}
               onChange={(e) => setFromStopId(e.target.value)}
               required
-              aria-label="From"
             >
-              <option value="">FROM</option>
+              <option value="">Select city</option>
               {stops.map((s) => (
                 <option key={s.id} value={s.id}>
-                  {s.city.toUpperCase()}
+                  {s.city}
                 </option>
               ))}
             </select>
           </div>
           <div className="home-field">
+            <label className="home-field-label" htmlFor="home-to">
+              To
+            </label>
             <select
+              id="home-to"
               value={toStopId}
               onChange={(e) => setToStopId(e.target.value)}
               required
-              aria-label="To"
             >
-              <option value="">TO</option>
+              <option value="">Select city</option>
               {stops.map((s) => (
                 <option key={s.id} value={s.id}>
-                  {s.city.toUpperCase()}
+                  {s.city}
                 </option>
               ))}
             </select>
           </div>
           <div className="home-date-field">
+            <label className="home-field-label">Date</label>
             <HomeDatePicker
               value={date}
               onChange={setDate}
               minDate={getTodayIso()}
             />
           </div>
-          <div className="home-bus-toggles">
-            <button
-              type="button"
-              className={`home-bus-toggle ${acOn ? "is-active" : ""}`}
-              onClick={() => setAcOn((v) => !v)}
-              aria-pressed={acOn}
-            >
-              {acOn && <CheckIcon />}
-              AC
-            </button>
-            <button
-              type="button"
-              className={`home-bus-toggle ${nonAcOn ? "is-active" : ""}`}
-              onClick={() => setNonAcOn((v) => !v)}
-              aria-pressed={nonAcOn}
-            >
-              {nonAcOn && <CheckIcon />}
-              Non AC
-            </button>
+          <div className="home-bus-toggles-wrap">
+            <span className="home-field-label">Coach type</span>
+            <div className="home-bus-toggles">
+              <button
+                type="button"
+                className={`home-bus-toggle ${acOn ? "is-active" : ""}`}
+                onClick={() => setAcOn((v) => !v)}
+                aria-pressed={acOn}
+              >
+                {acOn && <Check size={14} aria-hidden />}
+                AC
+              </button>
+              <button
+                type="button"
+                className={`home-bus-toggle ${nonAcOn ? "is-active" : ""}`}
+                onClick={() => setNonAcOn((v) => !v)}
+                aria-pressed={nonAcOn}
+              >
+                {nonAcOn && <Check size={14} aria-hidden />}
+                Non AC
+              </button>
+            </div>
           </div>
         </div>
       </div>
-      {error && <p className="home-search-error">{error}</p>}
+      {error && <p className="home-search-error" role="alert">{error}</p>}
       <div className="home-search-footer">
         <button type="submit" className="home-search-btn">
-          <SearchIcon />
-          SEARCH
+          <Search size={18} aria-hidden />
+          Search
+          <ArrowRight size={18} aria-hidden />
         </button>
       </div>
-    </form>
+    </m.form>
   );
 }

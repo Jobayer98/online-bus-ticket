@@ -14,9 +14,7 @@ export default function HomePage() {
     <div className="home-page">
       <HomeHeader />
       <HomeHero>
-        <div className="home-search-wrap" id="home-search">
-          <HomeSearchWidget />
-        </div>
+        <HomeSearchWidget />
       </HomeHero>
       <div className="home-spacer" aria-hidden />
       <HomePromos />

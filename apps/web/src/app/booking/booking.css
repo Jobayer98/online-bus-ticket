@@ -1,37 +1,63 @@
 .booking-page {
-  --sp-green: var(--primary, #2e7d32);
-  --sp-green-dark: var(--primary-hover, #1b5e20);
-  background: #f3f3f3;
+  --sp-green: var(--color-primary, #15803d);
+  --sp-green-dark: var(--color-primary-hover, #166534);
+  background: var(--color-bg, #f9fafb);
   min-height: calc(100vh - 57px);
   padding: 1.5rem 1rem 2rem;
 }
 
 .booking-page--checkout {
-  background: #fff;
+  background: var(--color-surface, #fff);
 }
 
 .booking-inner {
-  max-width: 640px;
+  max-width: var(--container-public);
   margin: 0 auto;
+}
+
+.booking-layout {
+  display: grid;
+  grid-template-columns: 1fr minmax(280px, 340px);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .booking-layout {
+    grid-template-columns: 1fr;
+  }
 }
 
 .booking-back {
   display: inline-block;
   margin-bottom: 1rem;
-  color: var(--sp-green);
+  color: var(--color-primary);
   text-decoration: none;
-  font-size: 0.9rem;
+  font-size: var(--text-sm);
+  font-weight: 600;
 }
 
 .booking-inner h1 {
-  font-size: 1.25rem;
+  font-size: var(--text-xl);
+  font-weight: 700;
   margin: 0 0 1rem;
+  letter-spacing: -0.02em;
 }
 
 .booking-error {
-  color: #c62828;
-  font-size: 0.9rem;
+  color: var(--color-danger);
+  font-size: var(--text-sm);
   margin-bottom: 1rem;
+}
+
+.booking-summary-card {
+  position: sticky;
+  top: 5rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  padding: 1.25rem;
 }
 
 .booking-payment-page .booking-payment-actions {
@@ -40,17 +66,13 @@
   margin-top: 1rem;
 }
 
-.booking-payment-page .booking-payment-home {
-  margin-top: 1rem;
-  font-size: 0.9rem;
-}
-
 .booking-hold-summary {
-  background: #e8f5e9;
+  background: var(--green-50);
   padding: 0.75rem 1rem;
   margin-bottom: 1rem;
-  font-size: 0.9rem;
-  border-radius: 4px;
+  font-size: var(--text-sm);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--green-100);
 }
 
 .booking-hold-summary p {
@@ -60,80 +82,48 @@
 .booking-form label {
   display: block;
   font-weight: 500;
-  font-size: 0.85rem;
-  margin: 0.75rem 0 0.25rem;
+  font-size: var(--text-sm);
+  margin: 0.75rem 0 0.35rem;
 }
 
 .booking-form input,
 .booking-form select {
   width: 100%;
-  padding: 0.5rem;
-  border: 1px solid #d5d5d5;
-  border-radius: 4px;
-  font-size: 1rem;
+  min-height: 48px;
+  padding: 0 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-base);
+  font-family: inherit;
+}
+
+.booking-form input:focus-visible,
+.booking-form select:focus-visible {
+  outline: 2px solid var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-light);
+  border-color: var(--color-primary);
 }
 
 .booking-btn {
   margin-top: 1.25rem;
   width: 100%;
+  min-height: 48px;
   padding: 0.65rem;
-  background: var(--sp-green-dark);
-  color: #fff;
+  background: var(--color-primary);
+  color: var(--text-on-primary, #fff);
   border: none;
-  border-radius: 4px;
-  font-weight: 700;
-  font-size: 0.95rem;
-  cursor: pointer;
-  font-family: inherit;
-}
-
-.booking-btn:hover {
-  background: #145214;
-}
-
-.booking-seat-map {
-  margin: 1rem 0;
-}
-
-.booking-seat-row {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  margin-bottom: 0.35rem;
-}
-
-.booking-aisle {
-  width: 24px;
-  flex-shrink: 0;
-}
-
-.booking-seat {
-  width: 36px;
-  height: 36px;
-  border: 1px solid #d5d5d5;
-  border-radius: 4px;
-  font-size: 0.65rem;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-base);
   font-weight: 600;
   cursor: pointer;
-  background: #fff;
   font-family: inherit;
 }
 
-.booking-seat.selected {
-  background: var(--sp-green);
-  color: #fff;
-  border-color: var(--sp-green);
+.booking-btn:hover:not(:disabled) {
+  background: var(--color-primary-hover);
 }
 
-.booking-seat.sold,
-.booking-seat.held {
-  background: #c62828;
-  color: #fff;
-  border-color: #c62828;
+.booking-btn:disabled {
+  opacity: 0.6;
   cursor: not-allowed;
-}
-
-.booking-summary-line {
-  font-size: 0.9rem;
-  color: #444;
 }

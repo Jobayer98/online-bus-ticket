@@ -1,7 +1,13 @@
 "use client";
 
+import { m } from "framer-motion";
 import { useSiteTheme } from "@/components/site-theme-provider";
 import { HomeSectionHeader } from "@/components/home-section-header";
+import {
+  defaultViewport,
+  staggerContainerVariants,
+  staggerItemVariants,
+} from "@/components/motion/variants";
 import { HOME_STATS_DEFAULTS } from "@/lib/home-defaults";
 
 export function HomeStats() {
@@ -17,14 +23,20 @@ export function HomeStats() {
           subtitle="Trusted by travellers across our network."
         />
 
-        <ul className="home-stats-grid">
+        <m.ul
+          className="home-stats-grid"
+          variants={staggerContainerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={defaultViewport}
+        >
           {stats.map((stat) => (
-            <li key={stat.label} className="home-stat-card">
-              <span className="home-stat-card__value">{stat.value}</span>
+            <m.li key={stat.label} className="home-stat-card" variants={staggerItemVariants}>
+              <span className="home-stat-card__value fare">{stat.value}</span>
               <span className="home-stat-card__label">{stat.label}</span>
-            </li>
+            </m.li>
           ))}
-        </ul>
+        </m.ul>
       </div>
     </section>
   );

@@ -1,5 +1,6 @@
 "use client";
 
+import { m } from "framer-motion";
 import { formatMoneyBdt } from "@/lib/format";
 import {
   groupSeatsByDeck,
@@ -87,7 +88,7 @@ function SeatButton({
   onToggle: (label: string, status: string) => void;
 }) {
   const isSelected = selectedLabels.includes(seat.label);
-  const className = `seat-cell ${seatStatusClass(seat, isSelected)}`;
+  const className = `seat-cell seat-cell--${seat.seatClass.toLowerCase()} ${seatStatusClass(seat, isSelected)}`;
   const title = `${seat.label} ${formatMoneyBdt(seat.price)}`;
 
   if (seat.status !== "AVAILABLE") {
@@ -95,7 +96,7 @@ function SeatButton({
       <span
         className={className}
         title={title}
-        aria-label={`Seat ${seat.label} sold`}
+        aria-label={`Seat ${seat.label} ${seat.status.toLowerCase()}`}
       >
         {seat.label}
       </span>
@@ -103,16 +104,18 @@ function SeatButton({
   }
 
   return (
-    <button
+    <m.button
       type="button"
       className={className}
       onClick={() => onToggle(seat.label, seat.status)}
       title={title}
       aria-label={`Seat ${seat.label}`}
       aria-pressed={isSelected}
+      whileTap={{ scale: [1, 0.88, 1.08, 1] }}
+      transition={{ type: "spring", stiffness: 400, damping: 20 }}
     >
       {seat.label}
-    </button>
+    </m.button>
   );
 }
 
