@@ -22,6 +22,10 @@ import {
   createAnnouncementSchema,
   bulkSuspendTenantsSchema,
   successResponse,
+  paymentProviderCodeSchema,
+  updateSystemPaymentProviderSchema,
+  payPlatformInvoiceSchema,
+  reviewWithdrawalSchema,
 } from "@repo/shared";
 import { authenticateRequired, requireRole } from "../../middleware/auth.js";
 import { platformAuthRouter } from "./platform-auth.routes.js";
@@ -63,8 +67,20 @@ import {
 import {
   getInvoiceHtml,
   listPlatformInvoices,
-  retryInvoicePayment,
 } from "./platform-invoice.service.js";
+import {
+  initiateInvoicePayment,
+} from "./platform-invoice-payment.service.js";
+import {
+  listSystemPaymentProviders,
+  updateSystemPaymentProvider,
+} from "./platform-payment-provider.service.js";
+import {
+  approveWithdrawal,
+  listPlatformWithdrawals,
+  markWithdrawalPaid,
+  rejectWithdrawal,
+} from "./platform-withdrawal.service.js";
 import {
   createAnnouncement,
   listAnnouncements,
@@ -442,14 +458,90 @@ platformRouter.get("/billing/invoices/:id/download", async (req, res, next) => {
   }
 });
 
-platformRouter.post("/billing/invoices/:id/retry", async (req, res, next) => {
+platformRouter.post("/billing/invoices/:id/pay", async (req, res, next) => {
   try {
+    const input = payPlatformInvoiceSchema.parse(req.body);
     const actor = await platformService.resolveAuditActor(req.userId!);
-    const data = await retryInvoicePayment(String(req.params.id), {
+    const data = await initiateInvoicePayment(String(req.params.id), input.providerCode, {
       actor,
       ipAddress: clientIp(req),
     });
     res.json(successResponse(data));
+  } catch (e) {
+    next(e);
+  }
+});
+
+platformRouter.get("/payment-providers", async (_req, res, next) => {
+  try {
+    const data = await listSystemPaymentProviders();
+    res.json(successResponse({ providers: data }));
+  } catch (e) {
+    next(e);
+  }
+});
+
+platformRouter.put("/payment-providers/:code", async (req, res, next) => {
+  try {
+    const code = paymentProviderCodeSchema.parse(req.params.code);
+    const input = updateSystemPaymentProviderSchema.parse(req.body);
+    const actor = await platformService.resolveAuditActor(req.userId!);
+    const data = await updateSystemPaymentProvider(code, input, {
+      actor,
+      ipAddress: clientIp(req),
+    });
+    res.json(successResponse(data));
+  } catch (e) {
+    next(e);
+  }
+});
+
+platformRouter.get("/withdrawals", async (req, res, next) => {
+  try {
+    const status = req.query.status as string | undefined;
+    const data = await listPlatformWithdrawals(status);
+    res.json(successResponse({ withdrawals: data }));
+  } catch (e) {
+    next(e);
+  }
+});
+
+platformRouter.post("/withdrawals/:id/approve", async (req, res, next) => {
+  try {
+    const input = reviewWithdrawalSchema.parse(req.body ?? {});
+    const actor = await platformService.resolveAuditActor(req.userId!);
+    await approveWithdrawal(String(req.params.id), input, {
+      actor,
+      ipAddress: clientIp(req),
+    });
+    res.json(successResponse({ approved: true }));
+  } catch (e) {
+    next(e);
+  }
+});
+
+platformRouter.post("/withdrawals/:id/reject", async (req, res, next) => {
+  try {
+    const input = reviewWithdrawalSchema.parse(req.body ?? {});
+    const actor = await platformService.resolveAuditActor(req.userId!);
+    await rejectWithdrawal(String(req.params.id), input, {
+      actor,
+      ipAddress: clientIp(req),
+    });
+    res.json(successResponse({ rejected: true }));
+  } catch (e) {
+    next(e);
+  }
+});
+
+platformRouter.post("/withdrawals/:id/mark-paid", async (req, res, next) => {
+  try {
+    const actor = await platformService.resolveAuditActor(req.userId!);
+    await markWithdrawalPaid(String(req.params.id), {
+      actor,
+      ipAddress: clientIp(req),
+    });
+    res.json(successResponse({ paid: true }));
   } catch (e) {
     next(e);
   }

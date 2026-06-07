@@ -1,15 +1,18 @@
 import { z } from "zod";
 import { paymentMethodSchema } from "../../enums/payment.js";
+import { paymentProviderCodeSchema } from "../../enums/payment-provider.js";
 
 export const initiatePaymentSchema = z.object({
   bookingId: z.string().cuid(),
   method: paymentMethodSchema,
+  providerCode: paymentProviderCodeSchema.optional(),
+  scheduleId: z.string().optional(),
 });
 
 export const confirmPaymentSchema = z.object({
   bookingId: z.string().cuid(),
   clientSecret: z.string().min(1),
-  providerRef: z.string().optional(),
+  providerRef: z.string().min(1),
 });
 
 export type InitiatePaymentInput = z.infer<typeof initiatePaymentSchema>;

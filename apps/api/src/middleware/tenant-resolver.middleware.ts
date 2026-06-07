@@ -9,6 +9,8 @@ const BYPASS_PATTERNS = [
   /^\/api\/v1\/platform\//,
   /^\/api\/v1\/auth\//,
   /^\/api\/v1\/health/,
+  /^\/api\/v1\/payments\/webhook\//,
+  /^\/api\/v1\/payments\/callback\//,
 ];
 
 function shouldBypass(path: string): boolean {

@@ -13,6 +13,10 @@ import { PlatformOverviewPanel } from "./platform-overview-panel";
 import { PlatformTenantsPanel } from "./platform-tenants-panel";
 import { PlatformAnalyticsPanel } from "./platform-analytics-panel";
 import { PlatformBillingPanel } from "./platform-billing-panel";
+import {
+  PlatformPaymentProvidersPanel,
+  PlatformWithdrawalsPanel,
+} from "./platform-payment-providers-panel";
 import { PlatformSystemPanel } from "./platform-system-panel";
 import { PlatformAuditPanel } from "./platform-audit-panel";
 import { PlatformSupportPanel } from "./platform-support-panel";
@@ -120,7 +124,13 @@ export function PlatformPage() {
       {tab === "overview" && <PlatformOverviewPanel />}
       {tab === "tenants" && <PlatformTenantsPanel />}
       {tab === "analytics" && <PlatformAnalyticsPanel />}
-      {tab === "billing" && <PlatformBillingPanel />}
+      {tab === "billing" && (
+        <>
+          <PlatformBillingPanel />
+          <PlatformPaymentProvidersPanel />
+          <PlatformWithdrawalsPanel />
+        </>
+      )}
       {tab === "system" && <PlatformSystemPanel />}
       {tab === "support" && <PlatformSupportPanel />}
       {tab === "audit" && <PlatformAuditPanel />}

@@ -55,6 +55,13 @@ export function platformApiPatch<T>(path: string, body: unknown) {
   });
 }
 
+export function platformApiPut<T>(path: string, body: unknown) {
+  return platformApi<T>(path, {
+    method: "PUT",
+    body: JSON.stringify(body),
+  });
+}
+
 export async function platformApiDownload(
   path: string,
   filename: string,

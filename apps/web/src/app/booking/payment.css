@@ -1,5 +1,3 @@
-/* SSLCommerz-style mock payment (customer online only) */
-
 .payment-page {
   background: #eceff1;
   min-height: 100vh;
@@ -51,12 +49,6 @@
   margin-top: 0.75rem;
 }
 
-.payment-page__loading {
-  text-align: center;
-  color: #607d8b;
-  padding: 2rem;
-}
-
 .payment-page__home {
   text-align: center;
   margin-top: 1.25rem;
@@ -67,380 +59,57 @@
   color: var(--sp-green-dark, #1b5e20);
 }
 
-/* Checkout strip */
-.ssl-strip {
-  border: 2px solid #662d91;
-  background: linear-gradient(180deg, #faf8fc 0%, #fff 100%);
-  border-radius: 4px;
-  padding: 1rem 1.15rem 1.1rem;
-}
-
-.ssl-strip--compact {
-  padding: 0.85rem 1rem;
-}
-
-.ssl-strip__header {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  margin-bottom: 0.5rem;
-}
-
-.ssl-strip__badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: #662d91;
-  color: #fff;
-}
-
-.ssl-strip__title {
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: #662d91;
-  letter-spacing: 0.02em;
-}
-
-.ssl-strip__note {
-  font-size: 0.78rem;
-  color: #546e7a;
-  margin: 0 0 0.75rem;
-  line-height: 1.45;
-}
-
-.ssl-strip__methods {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-  margin-bottom: 0.85rem;
-}
-
-.ssl-strip__chip {
-  display: inline-block;
-  padding: 0.2rem 0.55rem;
-  border-radius: 3px;
-  font-size: 0.68rem;
-  font-weight: 700;
-  background: var(--chip-bg);
-  color: var(--chip-fg);
-  letter-spacing: 0.02em;
-}
-
-.ssl-strip__footer-img {
-  border-top: 1px solid #e0e0e0;
-  padding-top: 0.75rem;
-}
-
-.ssl-strip__inline-img {
-  display: block;
-  width: 100%;
-  height: auto;
-  max-height: 52px;
-  object-fit: contain;
-  object-position: left center;
-}
-
-/* Mock gateway card */
-.ssl-gateway {
-  background: #fff;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow:
-    0 4px 24px rgba(38, 50, 56, 0.12),
-    0 0 0 1px rgba(102, 45, 145, 0.08);
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-}
-
-.ssl-gateway__top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: linear-gradient(135deg, #662d91 0%, #4a1f6e 100%);
-  color: #fff;
-  padding: 0.85rem 1.1rem;
-}
-
-.ssl-gateway__brand {
-  display: flex;
-  align-items: baseline;
-  gap: 0.15rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-}
-
-.ssl-gateway__logo {
-  font-size: 1.35rem;
-  line-height: 1;
-}
-
-.ssl-gateway__logo-sub {
-  font-size: 1.1rem;
-  font-weight: 600;
-  opacity: 0.95;
-}
-
-.ssl-gateway__secure {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  font-size: 0.7rem;
-  font-weight: 600;
-  opacity: 0.92;
-}
-
-.ssl-gateway__merchant {
-  padding: 0.75rem 1.1rem 0;
-  border-bottom: 1px dashed #e0e0e0;
-}
-
-.ssl-gateway__merchant-label {
-  margin: 0;
-  font-size: 0.68rem;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: #90a4ae;
-}
-
-.ssl-gateway__merchant-name {
-  margin: 0.15rem 0 0.65rem;
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: #37474f;
-}
-
-.ssl-gateway__amount-block {
-  text-align: center;
-  padding: 1.1rem 1rem 1rem;
-  background: #f5f0fa;
-}
-
-.ssl-gateway__amount-label {
-  margin: 0;
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #662d91;
-  font-weight: 600;
-}
-
-.ssl-gateway__amount {
-  margin: 0.25rem 0 0;
-  font-size: 2rem;
-  font-weight: 800;
-  color: #1a237e;
-  letter-spacing: -0.02em;
-}
-
-.ssl-gateway__order {
-  margin: 0.35rem 0 0;
-  font-size: 0.78rem;
-  color: #607d8b;
-}
-
-.ssl-gateway__choose {
-  margin: 0;
-  padding: 0.85rem 1.1rem 0.5rem;
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: #455a64;
-}
-
-.ssl-gateway__methods {
+.payment-page__gateway-list {
   list-style: none;
-  margin: 0;
-  padding: 0 0.65rem 0.5rem;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.45rem;
+  padding: 0;
+  margin: 0 0 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
-.ssl-gateway__method {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+.payment-page__gateway-btn {
   width: 100%;
-  padding: 0.55rem 0.6rem;
-  border: 2px solid #eceff1;
+  padding: 0.85rem 1rem;
+  border: 2px solid #662d91;
   border-radius: 6px;
   background: #fff;
-  cursor: pointer;
-  font-family: inherit;
-  text-align: left;
-  transition:
-    border-color 0.15s,
-    box-shadow 0.15s;
-}
-
-.ssl-gateway__method:hover:not(:disabled) {
-  border-color: #b39ddb;
-}
-
-.ssl-gateway__method.is-selected {
-  border-color: #662d91;
-  box-shadow: 0 0 0 1px #662d91;
-  background: #faf8fc;
-}
-
-.ssl-gateway__method:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
-.ssl-gateway__method-icon {
-  flex-shrink: 0;
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.85rem;
-  font-weight: 800;
-}
-
-.ssl-gateway__method-label {
-  flex: 1;
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: #37474f;
-}
-
-.ssl-gateway__method-check {
-  width: 1.1rem;
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: #662d91;
-}
-
-.ssl-gateway__error {
-  margin: 0 1.1rem 0.5rem;
-  padding: 0.5rem 0.65rem;
-  background: #ffebee;
-  color: #c62828;
-  font-size: 0.8rem;
-  border-radius: 4px;
-}
-
-.ssl-gateway__actions {
-  display: flex;
-  gap: 0.5rem;
-  padding: 0.65rem 1rem 1rem;
-}
-
-.ssl-gateway__btn {
-  flex: 1;
-  padding: 0.65rem 0.75rem;
-  border: none;
-  border-radius: 4px;
-  font-size: 0.88rem;
   font-weight: 700;
   cursor: pointer;
-  font-family: inherit;
+  color: #263238;
 }
 
-.ssl-gateway__btn--cancel {
-  background: #eceff1;
-  color: #455a64;
-}
-
-.ssl-gateway__btn--cancel:hover:not(:disabled) {
-  background: #cfd8dc;
-}
-
-.ssl-gateway__btn--pay {
-  background: linear-gradient(180deg, #7b4397 0%, #662d91 100%);
-  color: #fff;
-}
-
-.ssl-gateway__btn--pay:hover:not(:disabled) {
-  background: linear-gradient(180deg, #662d91 0%, #4a1f6e 100%);
-}
-
-.ssl-gateway__btn:disabled {
+.payment-page__gateway-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.ssl-gateway__processing {
-  padding: 2rem 1.5rem 2.5rem;
-  text-align: center;
-}
-
-.ssl-gateway__spinner {
-  width: 44px;
-  height: 44px;
-  margin: 0 auto 1rem;
-  border: 4px solid #e1bee7;
-  border-top-color: #662d91;
-  border-radius: 50%;
-  animation: ssl-spin 0.85s linear infinite;
-}
-
-@keyframes ssl-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.ssl-gateway__processing-text {
-  margin: 0;
-  font-size: 0.9rem;
+.payment-page__gateway-badge {
+  display: inline-block;
+  margin-left: 0.5rem;
+  font-size: 0.7rem;
   font-weight: 600;
-  color: #37474f;
+  color: #607d8b;
 }
 
-.ssl-gateway__processing-hint {
-  margin: 0.5rem 0 0;
-  font-size: 0.75rem;
-  color: #90a4ae;
+.payment-page__cancel-btn {
+  width: 100%;
+  padding: 0.65rem;
+  background: transparent;
+  border: 1px solid #cfd8dc;
+  border-radius: 6px;
+  cursor: pointer;
 }
 
-.ssl-gateway__processing-hint--inline {
-  text-align: center;
-  padding: 0.75rem 1rem 0.25rem;
-}
-
-.ssl-gateway__foot {
-  background: #f5f5f5;
-  border-top: 1px solid #e0e0e0;
-  padding: 0.65rem 1rem;
-  text-align: center;
-}
-
-.ssl-gateway__foot p {
-  margin: 0 0 0.4rem;
-  font-size: 0.68rem;
-  color: #78909c;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.ssl-gateway__trust-badges {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.35rem;
-}
-
-.ssl-gateway__trust-badges span {
-  font-size: 0.62rem;
-  font-weight: 600;
-  color: #546e7a;
+.payment-page__gateways {
   background: #fff;
   border: 1px solid #cfd8dc;
-  padding: 0.15rem 0.4rem;
-  border-radius: 2px;
+  border-radius: 6px;
+  padding: 1rem;
 }
 
-@media (max-width: 400px) {
-  .ssl-gateway__methods {
-    grid-template-columns: 1fr;
-  }
-
-  .ssl-gateway__actions {
-    flex-direction: column-reverse;
-  }
+.payment-page__gateway-hint {
+  font-size: 0.85rem;
+  color: #607d8b;
+  margin: 0 0 1rem;
 }

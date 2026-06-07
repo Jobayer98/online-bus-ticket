@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { paymentMethodSchema } from "../../enums/payment.js";
+import { paymentProviderCodeSchema } from "../../enums/payment-provider.js";
 
 export const initiatePaymentResponseSchema = z.object({
   paymentId: z.string(),
@@ -7,6 +8,10 @@ export const initiatePaymentResponseSchema = z.object({
   amount: z.number().int(),
   method: paymentMethodSchema,
   clientSecret: z.string(),
+  providerCode: paymentProviderCodeSchema.optional(),
+  settlementRoute: z.enum(["TENANT_DIRECT", "SYSTEM"]).optional(),
+  redirectUrl: z.string().url().optional(),
+  sessionId: z.string().optional(),
 });
 
 export type InitiatePaymentResponseDto = z.infer<

@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { SslCommerzPaymentStrip } from "@/components/payment/sslcommerz-payment-strip";
 import { useRouter } from "next/navigation";
 import { apiGet, apiPost } from "@/lib/api-client";
 import {
@@ -302,7 +301,9 @@ export function SearchCheckoutForm({
       </h2>
 
       <div className="sp-checkout-payment-box">
-        <SslCommerzPaymentStrip />
+        <p className="sp-checkout-payment-note">
+          On the next step you can pay securely with bKash or SSLCommerz.
+        </p>
       </div>
 
       {error && <p className="sp-panel-error sp-checkout-error">{error}</p>}

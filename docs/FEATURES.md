@@ -528,6 +528,32 @@ E16-01 → E16-02 → E16-03 → E16-04 → E16-05 → E16-06 → E16-07 → E16
 
 ---
 
+## Epic E27 — Real Payment Providers (bKash + SSLCommerz)
+
+**Goal:** Replace mock payment with pluggable bKash/SSLCommerz adapters, tenant/system gateway config, wallet + withdrawals, platform subscription billing.  
+**Depends on:** E08, E16, E23.
+
+| ID | Task | Layer | Acceptance |
+|----|------|-------|------------|
+| [x] E27-01 | Prisma: providers, wallet, ledger, withdrawal, Payment extensions | db | Migration applied |
+| [x] E27-02 | Credential encryption + provider credential Zod schemas | shared/api | AES-256-GCM at rest |
+| [x] E27-03 | `payment.ports.ts` + registry + `GatewayResolver` | api | Tenant-own vs system fallback |
+| [x] E27-04 | Platform system provider CRUD API | shared/api/web | SUPER_ADMIN configures gateways |
+| [x] E27-05 | Tenant admin payment provider CRUD | shared/api/web | Only system-enabled codes |
+| [x] E27-06 | SSLCommerz adapter + tests | api | Session + IPN verify |
+| [x] E27-07 | bKash adapter | api | Token grant + checkout |
+| [x] E27-08 | Extend `POST /payments/initiate` → redirect URL | shared/api/web | No mock confirm |
+| [x] E27-09 | Webhook/callback → atomic confirm | api | Idempotent providerRef |
+| [x] E27-10 | Wallet credit on system-route booking payment | api | Same transaction as ticket |
+| [x] E27-11 | Web gateway picker + redirect flow | web | Mock gateway removed |
+| [x] E27-12 | Tenant bank accounts + withdrawal requests | shared/api | PENDING workflow |
+| [x] E27-13 | Platform withdrawal approve/reject/mark-paid | shared/api | Atomic wallet debit |
+| [x] E27-14 | Admin + platform payment/wallet UI | web | Payments tab + billing |
+| [x] E27-15 | Platform invoice pay via system gateway | shared/api/web | Replaces mock retry |
+| [x] E27-16 | Remove mock payment paths; env `PAYMENT_CREDENTIALS_KEY` | api/docs | Prod requires encryption key |
+
+---
+
 ## Epic E17 — SaaS Post-Migration Fixes
 
 **Goal:** Fix tenant isolation gaps and misleading errors after E16 multi-tenancy rollout.  
