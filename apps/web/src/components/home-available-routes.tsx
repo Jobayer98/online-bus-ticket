@@ -1,9 +1,10 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useSiteTheme } from "@/components/site-theme-provider";
+import { HomeSectionHeader } from "@/components/home-section-header";
 import { resolveCmsAssetUrl } from "@/lib/cms-client";
+import { HOME_TAGLINE_FALLBACK } from "@/lib/home-defaults";
 import { getTodayIso } from "@/lib/trip-date";
 
 function BusIcon() {
@@ -28,14 +29,17 @@ export function HomeAvailableRoutes() {
     .filter((route) => route.isVisible)
     .sort((a, b) => a.sortOrder - b.sortOrder);
 
+  if (routes.length === 0) return null;
+
   return (
     <section className="home-routes" aria-labelledby="home-routes-title">
-      <h2 id="home-routes-title" className="home-routes-title">
-        AVAILABLE ROUTE
-      </h2>
-      <div className="home-routes-title-accent" aria-hidden />
+      <div className="home-section-inner">
+        <HomeSectionHeader
+          id="home-routes-title"
+          title="Popular routes"
+          subtitle="Quick links to our most travelled destinations."
+        />
 
-      <div className="home-routes-panel">
         <ul className="home-routes-grid">
           {routes.map((route) => {
             const href = `/search/${route.routeSlug}/${today}`;
@@ -43,9 +47,12 @@ export function HomeAvailableRoutes() {
             return (
               <li key={route.id}>
                 <Link href={href} className="home-route-card">
-                  <span className="home-route-city">{route.fromStop.city}</span>
-                  <BusIcon />
-                  <span className="home-route-city">{route.toStop.city}</span>
+                  <span className="home-route-card__cities">
+                    <span className="home-route-city">{route.fromStop.city}</span>
+                    <BusIcon />
+                    <span className="home-route-city">{route.toStop.city}</span>
+                  </span>
+                  <span className="home-route-card__action">View schedules</span>
                 </Link>
               </li>
             );
@@ -56,45 +63,20 @@ export function HomeAvailableRoutes() {
   );
 }
 
-export function HomeGallery() {
-  const { media } = useSiteTheme();
-  const images = [...media.featured].sort((a, b) => a.sortOrder - b.sortOrder);
-
-  if (images.length === 0) return null;
-
-  return (
-    <section className="home-gallery">
-      <div className="home-gallery-inner">
-        {images.map((img) => {
-          const src = resolveCmsAssetUrl(img.url) ?? img.url;
-          const isExternal = src.startsWith("http");
-          return (
-            <div className="home-gallery-item" key={img.id}>
-              <Image
-                src={src}
-                alt={img.alt}
-                width={480}
-                height={320}
-                sizes="(max-width: 900px) 50vw, 25vw"
-                unoptimized={isExternal}
-              />
-            </div>
-          );
-        })}
-      </div>
-    </section>
-  );
-}
-
 export function HomeHero({ children }: { children: React.ReactNode }) {
-  const { media } = useSiteTheme();
+  const { media, profile } = useSiteTheme();
   const heroUrl = resolveCmsAssetUrl(media.hero?.url ?? null) ?? "/images/home/hero.jpg";
+  const tagline = profile.tagline?.trim() || HOME_TAGLINE_FALLBACK;
 
   return (
     <section
       className="home-hero"
       style={{ backgroundImage: `url(${heroUrl})` }}
     >
+      <div className="home-hero__content">
+        <p className="home-hero__eyebrow">{profile.companyName}</p>
+        <h1 className="home-hero__headline">{tagline}</h1>
+      </div>
       {children}
     </section>
   );
