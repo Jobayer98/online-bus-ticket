@@ -24,6 +24,19 @@ const SHELL_LINKS = [
   { href: "/admin", label: "Admin" },
 ] as const;
 
+function hasTenantSlugCookie(): boolean {
+  if (typeof document === "undefined") return false;
+  return /(?:^|;\s*)tenant-slug=/.test(document.cookie);
+}
+
+function isPlatformMarketingRoute(pathname: string): boolean {
+  const isPlatformPath =
+    pathname === "/" ||
+    pathname === "/platform-landing" ||
+    pathname === "/onboarding";
+  return isPlatformPath && !hasTenantSlugCookie();
+}
+
 function isPublicMotionRoute(pathname: string): boolean {
   const isSearch =
     pathname.startsWith("/search") ||
@@ -57,6 +70,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
   const isCounter = pathname.startsWith("/counter");
   const isAdmin = pathname.startsWith("/admin");
   const isPlatform = pathname.startsWith("/platform");
+  const isPlatformMarketing = isPlatformMarketingRoute(pathname);
   const isHome = pathname === "/";
   const isMarketing =
     isHome ||
@@ -70,14 +84,24 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
     pathname === "/privacy-policy";
 
   const showFallbackNav =
-    !isSearch && !isMarketing && !isCounter && !isAdmin && !isPlatform;
+    !isSearch &&
+    !isMarketing &&
+    !isCounter &&
+    !isAdmin &&
+    !isPlatform &&
+    !isPlatformMarketing;
 
   const useMotion = isPublicMotionRoute(pathname);
 
   const mainContent = (
     <main
       className={
-        isSearch || isMarketing || isCounter || isAdmin || isPlatform
+        isSearch ||
+        isMarketing ||
+        isCounter ||
+        isAdmin ||
+        isPlatform ||
+        isPlatformMarketing
           ? "site-main site-main--flush"
           : "site-main"
       }

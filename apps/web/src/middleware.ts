@@ -5,10 +5,14 @@ import type { NextRequest } from "next/server";
 const MAIN_DOMAIN =
   process.env.NEXT_PUBLIC_MAIN_DOMAIN ?? "lvh.me:3000";
 
-const PLATFORM_ONLY_PATHS = ["/onboarding", "/platform"];
+const PLATFORM_PATHS = ["/onboarding", "/platform", "/platform-landing"];
 
 function mainDomainHost(): string {
   return MAIN_DOMAIN.split(":")[0];
+}
+
+function isPlatformPath(pathname: string): boolean {
+  return PLATFORM_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 }
 
 export function middleware(request: NextRequest) {
@@ -28,13 +32,20 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(redirectUrl);
   }
 
-  const isPlatformOnlyPath = PLATFORM_ONLY_PATHS.some((p) =>
-    pathname.startsWith(p),
-  );
-  if (!slug && !isPlatformOnlyPath) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/onboarding";
-    return NextResponse.rewrite(url);
+  if (!slug) {
+    if (pathname === "/") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/platform-landing";
+      const response = NextResponse.rewrite(url);
+      response.cookies.delete("tenant-slug");
+      return response;
+    }
+
+    if (!isPlatformPath(pathname)) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/";
+      return NextResponse.redirect(url);
+    }
   }
 
   const response = NextResponse.next();
@@ -46,6 +57,8 @@ export function middleware(request: NextRequest) {
       sameSite: "lax",
       httpOnly: false,
     });
+  } else {
+    response.cookies.delete("tenant-slug");
   }
 
   return response;
