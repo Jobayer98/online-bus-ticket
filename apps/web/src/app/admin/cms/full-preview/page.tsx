@@ -38,8 +38,8 @@ export default function AdminCmsFullPreviewPage() {
   return (
     <div className={admCmsFullPreviewPage}>
       <header className={admCmsFullPreviewBar}>
-        <Link href="/admin" className={spBtnBack}>
-          ← Back to admin
+        <Link href="/admin/content" className={spBtnBack}>
+          ← Back to content
         </Link>
         <h1>Draft site preview</h1>
         <button type="button" className={spFilterSearch} onClick={load} disabled={loading}>

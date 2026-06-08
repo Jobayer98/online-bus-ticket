@@ -19,12 +19,55 @@ export const opsHeaderMain =
 
 export const opsHeaderLogo = "max-md:min-w-0 max-md:flex-1";
 
+/** Admin shell header — professional sticky nav with pill tabs. */
+export const admHeader =
+  "sticky top-0 z-50 border-b border-[var(--border)] bg-white";
+
+export const admHeaderContainer =
+  "mx-auto max-w-[1200px] px-4 md:px-5";
+
+export const admHeaderBrandRow =
+  "flex items-center justify-between gap-4 py-3";
+
+export const admHeaderLogo =
+  "max-md:min-w-0 max-md:flex-1 [&_small]:text-[#64748b]";
+
+export const admHeaderUtility =
+  "flex shrink-0 flex-wrap items-center justify-end gap-2 max-md:gap-1.5";
+
+export const admHeaderClock =
+  "inline-flex items-center gap-1.5 text-[0.8rem] font-medium text-[#64748b] max-md:hidden";
+
+export const admHeaderUtilityDivider =
+  "mx-0.5 hidden h-4 w-px bg-[#e2e8f0] sm:block";
+
+export const admHeaderUtilityLink =
+  "inline-flex items-center gap-1.5 rounded-md px-2 py-1.5 text-[0.8rem] font-medium text-[#475569] no-underline transition-colors hover:bg-[#f1f5f9] hover:text-[var(--primary)] max-md:hidden";
+
+export const admHeaderUtilityBtn =
+  "inline-flex cursor-pointer items-center gap-1.5 rounded-md border-0 bg-transparent px-2 py-1.5 font-[inherit] text-[0.8rem] font-medium text-[#475569] transition-colors hover:bg-[#fef2f2] hover:text-[#b91c1c] max-md:hidden";
+
+export const admHeaderNavRow =
+  "border-t border-[#f1f5f9] pb-3 pt-2 max-md:hidden";
+
+export const admHeaderNav =
+  "flex gap-1 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden";
+
+export const admHeaderNavBtn =
+  "inline-flex shrink-0 items-center gap-1.5 rounded-lg border-0 bg-transparent px-3 py-2 text-[0.8125rem] font-medium whitespace-nowrap text-[#64748b] no-underline transition-colors hover:bg-[#f1f5f9] hover:text-[#1e293b]";
+
+export const admHeaderNavBtnActive =
+  "inline-flex shrink-0 items-center gap-1.5 rounded-lg border-0 bg-[var(--primary-muted)] px-3 py-2 text-[0.8125rem] font-semibold whitespace-nowrap text-[var(--primary)] no-underline shadow-[inset_0_0_0_1px_rgba(21,128,61,0.15)] transition-colors hover:bg-[var(--primary-light)] hover:text-[var(--primary-hover)]";
+
+/** @deprecated Use admHeaderNav* — kept for any legacy imports. */
 export const admNav =
   "flex flex-wrap gap-2 max-[900px]:hidden";
 
+/** @deprecated Use admHeaderNavBtn. */
 export const admNavBtn =
   "cursor-pointer border border-[#ccc] bg-white px-3 py-2 text-[0.875rem] hover:border-[var(--primary)] hover:bg-[var(--primary-light)]";
 
+/** @deprecated Use admHeaderNavBtnActive. */
 export const admNavBtnActive =
   "border-[var(--primary)] bg-[var(--primary)] text-white hover:border-[var(--primary)] hover:bg-[var(--primary)]";
 
