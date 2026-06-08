@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { cpToast, cpToastClose, cpToastText } from "./counter-tw";
 
 type Props = {
   message: string | null;
@@ -18,11 +19,11 @@ export function CounterToast({ message, onDismiss, durationMs = 4000 }: Props) {
   if (!message) return null;
 
   return (
-    <div className="cp-toast" role="alert" aria-live="assertive">
-      <span className="cp-toast__text">{message}</span>
+    <div className={cpToast} role="alert" aria-live="assertive">
+      <span className={cpToastText}>{message}</span>
       <button
         type="button"
-        className="cp-toast__close"
+        className={cpToastClose}
         onClick={onDismiss}
         aria-label="Dismiss"
       >

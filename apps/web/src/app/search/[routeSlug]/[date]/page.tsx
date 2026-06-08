@@ -1,14 +1,11 @@
 import { Suspense } from "react";
 import { SearchResultsContent } from "@/components/search/search-results-content";
-import "../../search.css";
-import "../../../home.css";
-import "../../../booking/payment.css";
 
 export default function SearchResultsPage() {
   return (
     <Suspense
       fallback={
-        <div className="search-page sp-empty" style={{ padding: "2rem" }}>
+        <div className="min-h-screen bg-[var(--bg)] p-8 text-center text-[#666]">
           Loading…
         </div>
       }

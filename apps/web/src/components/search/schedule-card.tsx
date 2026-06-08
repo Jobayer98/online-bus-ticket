@@ -31,10 +31,10 @@ function formatTripDuration(departureAt: string, arrivalAt: string): string {
   return `${hours}h ${mins}m`;
 }
 
-function availabilityClass(count: number): string {
-  if (count <= 3) return "sp-avail--low";
-  if (count <= 10) return "sp-avail--medium";
-  return "sp-avail--high";
+function availabilityDotClass(count: number): string {
+  if (count <= 3) return "bg-[var(--danger)]";
+  if (count <= 10) return "bg-[var(--warning)]";
+  return "bg-[var(--success)]";
 }
 
 const SEAT_CLASS_LABELS: Record<string, string> = {
@@ -84,61 +84,82 @@ export function ScheduleCard({
   const isAc = schedule.busType === "AC";
 
   return (
-    <article className={`sp-card${expanded ? " sp-card--expanded" : ""}`}>
-      <div className="sp-card-main">
-        <div className="sp-card-head">
-          <div className="sp-card-head-left">
-            <span className={`sp-badge ${isAc ? "sp-badge--ac" : "sp-badge--non-ac"}`}>
+    <article
+      className={`group rounded-[var(--radius-md)] border border-[var(--border)] bg-white shadow-[var(--shadow-xs)] transition-[box-shadow,border-color] duration-150 hover:border-[var(--border)] hover:shadow-[var(--shadow-md)]${expanded ? " border-[#b8d4ba]" : ""}`}
+    >
+      <div className="p-4 px-[1.1rem]">
+        <div className="mb-4 flex items-start justify-between gap-4">
+          <div className="flex flex-wrap items-center gap-[0.65rem]">
+            <span
+              className={`inline-flex rounded-[var(--radius-pill)] px-[0.55rem] py-[0.2rem] text-xs font-bold${isAc ? " bg-[var(--green-100)] text-[var(--green-800)]" : " bg-amber-100 text-amber-900"}`}
+            >
               {isAc ? "AC" : "Non AC"}
             </span>
-            <span className="sp-card-coach">{schedule.coachNumber}</span>
+            <span className="text-base font-semibold text-[var(--text)]">
+              {schedule.coachNumber}
+            </span>
           </div>
-          <div className="sp-card-fare-block">
-            <span className="sp-card-fare-label">from</span>
-            <span className="sp-card-fare fare">{formatMoneyBdt(schedule.fareFrom)}</span>
+          <div className="text-right">
+            <span className="block text-xs text-[var(--muted)]">from</span>
+            <span className="text-xl font-bold tracking-[-0.02em] text-[var(--primary)]">
+              {formatMoneyBdt(schedule.fareFrom)}
+            </span>
           </div>
         </div>
 
-        <div className="sp-card-route-row">
-          <div className="sp-card-stop">
-            <strong className="sp-card-stop-name">{schedule.startPoint}</strong>
-            <span className="sp-card-stop-time time">
+        <div className="mb-4 grid grid-cols-[1fr_minmax(100px,1.4fr)_1fr] items-center gap-3">
+          <div className="flex flex-col gap-[0.2rem]">
+            <strong className="text-base font-semibold text-[var(--text)]">
+              {schedule.startPoint}
+            </strong>
+            <span className="text-lg font-bold text-[var(--text)]">
               {formatTime12h(schedule.departureAt)}
             </span>
           </div>
 
-          <div className="sp-card-route-line" aria-hidden>
-            <span className="sp-card-route-duration">{duration}</span>
-            <div className="sp-card-route-track">
-              <Bus className="sp-card-bus-icon" size={18} />
+          <div className="flex flex-col items-center gap-[0.35rem]" aria-hidden>
+            <span className="text-xs text-[var(--muted)]">{duration}</span>
+            <div className="relative flex h-px w-full items-center justify-center bg-[var(--border)]">
+              <Bus
+                className="bg-white px-1 text-[var(--primary)] transition-transform duration-200 group-hover:translate-x-2"
+                size={18}
+              />
             </div>
           </div>
 
-          <div className="sp-card-stop sp-card-stop--end">
-            <strong className="sp-card-stop-name">{schedule.endPoint}</strong>
-            <span className="sp-card-stop-time time">
+          <div className="flex flex-col gap-[0.2rem] text-right">
+            <strong className="text-base font-semibold text-[var(--text)]">
+              {schedule.endPoint}
+            </strong>
+            <span className="text-lg font-bold text-[var(--text)]">
               {formatTime12h(schedule.estimatedArrivalAt)}
             </span>
           </div>
         </div>
 
-        <div className="sp-card-footer-row">
-          <div className="sp-card-meta">
-            <div className="sp-card-classes">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex flex-col gap-[0.45rem]">
+            <div className="flex flex-wrap gap-[0.35rem]">
               {schedule.seatClasses.map((cls) => (
-                <span key={cls} className="sp-class-pill">
+                <span
+                  key={cls}
+                  className="inline-flex rounded-[var(--radius-pill)] bg-[var(--green-100)] px-2 py-[0.15rem] text-xs font-semibold text-[var(--green-800)]"
+                >
                   {SEAT_CLASS_LABELS[cls] ?? cls}
                 </span>
               ))}
             </div>
-            <span className={`sp-card-avail ${availabilityClass(schedule.availableSeats)}`}>
-              <span className="sp-avail-dot" aria-hidden />
+            <span className="inline-flex items-center gap-[0.35rem] text-sm text-[var(--muted)]">
+              <span
+                className={`h-2 w-2 rounded-full ${availabilityDotClass(schedule.availableSeats)}`}
+                aria-hidden
+              />
               {schedule.availableSeats} seats left
             </span>
           </div>
           <button
             type="button"
-            className={`sp-btn-select${expanded ? " is-cancel" : ""}`}
+            className={`inline-flex min-h-10 min-w-[120px] cursor-pointer items-center justify-center gap-[0.35rem] rounded-[var(--radius-sm)] border-none px-4 py-[0.45rem] text-sm font-semibold font-inherit transition-colors duration-150${expanded ? " border border-[var(--border)] bg-gray-100 text-gray-700 hover:bg-gray-200" : " bg-[var(--primary)] text-[var(--text-on-primary,#fff)] hover:bg-[var(--primary-hover)]"}`}
             onClick={handleToggle}
           >
             {expanded ? "Cancel" : "Select seat"}
@@ -147,26 +168,30 @@ export function ScheduleCard({
         </div>
       </div>
 
-      <div className="sp-card-route">
-        <strong>Route:</strong> {routeLabel}
+      <div className="border-t border-[var(--green-100)] bg-[var(--green-50)] px-[1.1rem] py-2 text-sm text-[var(--green-900)]">
+        <strong className="mr-[0.35rem] font-semibold">Route:</strong> {routeLabel}
       </div>
 
       <AnimatePresence initial={false}>
         {expanded && (
           <m.div
-            className="sp-seat-expand-wrap is-open"
+            className="grid grid-rows-[1fr] motion-reduce:transition-none"
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.35, ease: "easeOut" }}
             style={{ overflow: "hidden" }}
           >
-            <div className="sp-seat-expand-inner">
+            <div className="min-h-0 overflow-hidden opacity-100">
               {mapError && (
-                <div className="sp-seat-panel-v2 sp-panel-error">{mapError}</div>
+                <div className="border-x border-b border-[var(--border)] border-t-2 border-t-[var(--primary)] bg-[#f8f8f8] p-4 text-[0.75rem] text-[var(--danger)]">
+                  {mapError}
+                </div>
               )}
               {loadingMap && (
-                <div className="sp-seat-loading">Loading seat map…</div>
+                <div className="border-t-2 border-[var(--primary)] bg-[#f5f5f5] p-8 text-center text-[#666]">
+                  Loading seat map…
+                </div>
               )}
               {seatMap && !loadingMap && (
                 <ScheduleSeatPanel

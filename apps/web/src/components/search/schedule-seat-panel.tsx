@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useGlobalLoading } from "@/components/global-loading-provider";
 import { getGuestSessionId } from "@/lib/guest-session";
 import { apiPost } from "@/lib/api-client";
-import { formatDateDdMmYyyy, formatMoneyBdt, formatTime12h } from "@/lib/format";
+import { formatDateDdMmYyyy, formatTime12h } from "@/lib/format";
 import { SeatMapGrid } from "./seat-map-grid";
 import type { HoldDto, ScheduleCardDto, SeatMapDto } from "@repo/shared";
 
@@ -82,8 +82,8 @@ export function ScheduleSeatPanel({
   }
 
   return (
-    <div className="sp-seat-panel-v2">
-      <div className="sp-seat-panel-v2__map">
+    <div className="grid border-x border-b border-[var(--border)] border-t-2 border-t-[var(--primary)] bg-[#f8f8f8] max-[900px]:grid-cols-1 grid-cols-[1fr_minmax(260px,300px)]">
+      <div className="overflow-x-auto border-r border-[var(--border)] bg-white p-4 max-[900px]:border-b max-[900px]:border-r-0">
         <SeatMapGrid
           seats={seatMap.seats}
           rows={seatMap.rows}
@@ -93,26 +93,32 @@ export function ScheduleSeatPanel({
         />
       </div>
 
-      <aside className="sp-seat-panel-v2__side">
-        <div className="sp-seat-legend sp-seat-legend--side">
-          <span className="sp-legend-item">
-            <span className="sp-legend-swatch sp-legend-swatch--available" />
+      <aside className="flex flex-col gap-[0.65rem] bg-[#fafafa] p-[0.85rem]">
+        <div className="mb-0 flex flex-wrap gap-x-3 gap-y-2 text-[0.68rem]">
+          <span className="flex items-center gap-[0.35rem]">
+            <span className="h-4 w-4 rounded-[2px] border border-[#bbb] bg-white" />
             Available Seat
           </span>
-          <span className="sp-legend-item">
-            <span className="sp-legend-swatch sp-legend-swatch--selected" />
+          <span className="flex items-center gap-[0.35rem]">
+            <span className="h-4 w-4 rounded-[2px] border border-[var(--primary)] bg-[var(--primary)]" />
             Selected Seat
           </span>
-          <span className="sp-legend-item">
-            <span className="sp-legend-swatch sp-legend-swatch--sold" />
+          <span className="flex items-center gap-[0.35rem]">
+            <span className="h-4 w-4 rounded-[2px] border border-gray-300 bg-gray-100" />
             Sold Seat
           </span>
         </div>
 
-        <div className="sp-boarding-field">
-          <label htmlFor={`bp-${schedule.scheduleId}`}>Boarding Place</label>
+        <div>
+          <label
+            htmlFor={`bp-${schedule.scheduleId}`}
+            className="mb-1 block text-xs font-semibold text-[#444]"
+          >
+            Boarding Place
+          </label>
           <select
             id={`bp-${schedule.scheduleId}`}
+            className="h-[34px] w-full border border-[var(--border)] px-2 text-[0.8rem]"
             value={boardingPointId}
             onChange={(e) => setBoardingPointId(e.target.value)}
           >
@@ -125,31 +131,37 @@ export function ScheduleSeatPanel({
           </select>
         </div>
 
-        <div className="sp-seat-table-wrap">
-          <table className="sp-seat-table">
+        <div className="border border-[var(--border)] bg-white">
+          <table className="w-full border-collapse text-[0.78rem]">
             <thead>
               <tr>
-                <th>Seat</th>
-                <th>Fare/Seat</th>
-                <th aria-label="Remove" />
+                <th className="border-b border-[#ddd] bg-[#f0f0f0] px-2 py-[0.35rem] text-left font-semibold">
+                  Seat
+                </th>
+                <th className="border-b border-[#ddd] bg-[#f0f0f0] px-2 py-[0.35rem] text-left font-semibold">
+                  Fare/Seat
+                </th>
+                <th className="border-b border-[#ddd] bg-[#f0f0f0] px-2 py-[0.35rem] text-left font-semibold" aria-label="Remove" />
               </tr>
             </thead>
             <tbody>
               {lineItems.length === 0 ? (
                 <tr>
-                  <td colSpan={3} className="sp-seat-table-empty">
+                  <td colSpan={3} className="px-2 py-[0.35rem] text-center text-[#999]">
                     No seats selected
                   </td>
                 </tr>
               ) : (
                 lineItems.map((s) => (
                   <tr key={s.label}>
-                    <td>{s.label}</td>
-                    <td>{(s.price / 100).toFixed(0)}</td>
-                    <td>
+                    <td className="border-b border-[#eee] px-2 py-[0.35rem]">{s.label}</td>
+                    <td className="border-b border-[#eee] px-2 py-[0.35rem]">
+                      {(s.price / 100).toFixed(0)}
+                    </td>
+                    <td className="border-b border-[#eee] px-2 py-[0.35rem]">
                       <button
                         type="button"
-                        className="sp-seat-remove"
+                        className="h-[22px] w-[22px] cursor-pointer rounded-[3px] border-none bg-gray-100 p-0 text-base leading-none text-white font-inherit"
                         onClick={() => removeSeat(s.label)}
                         aria-label={`Remove seat ${s.label}`}
                       >
@@ -162,32 +174,37 @@ export function ScheduleSeatPanel({
             </tbody>
             {lineItems.length > 0 && (
               <tfoot>
-                <tr className="sp-seat-table-total">
-                  <td>Total: {selected.length}</td>
-                  <td colSpan={2}>{(total / 100).toFixed(0)}</td>
+                <tr className="bg-[var(--primary-hover)] font-bold text-white">
+                  <td className="px-2 py-[0.35rem]">Total: {selected.length}</td>
+                  <td colSpan={2} className="border-b-0 px-2 py-[0.35rem]">
+                    {(total / 100).toFixed(0)}
+                  </td>
                 </tr>
               </tfoot>
             )}
           </table>
         </div>
 
-        <div className="sp-seat-trip-meta">
+        <div className="text-[0.75rem] leading-[1.55] text-[#444]">
           <div>
-            <span>Journey Time:</span> {journeyDisplay}
+            <span className="font-semibold">Journey Time:</span> {journeyDisplay}
           </div>
           <div>
-            <span>Coach No:</span> {schedule.coachNumber}
+            <span className="font-semibold">Coach No:</span> {schedule.coachNumber}
           </div>
           <div>
-            <span>Fare/Seat:</span> {(farePerSeat / 100).toFixed(0)}
+            <span className="font-semibold">Fare/Seat:</span>{" "}
+            {(farePerSeat / 100).toFixed(0)}
           </div>
         </div>
 
-        {error && <p className="sp-panel-error">{error}</p>}
+        {error && (
+          <p className="mb-2 text-[0.75rem] text-[var(--danger)]">{error}</p>
+        )}
 
         <button
           type="button"
-          className={`sp-btn-continue-v2${loading ? " btn-is-busy" : ""}`}
+          className={`mt-auto w-full cursor-pointer rounded-[3px] border-none bg-[var(--primary-hover)] py-[0.6rem] text-[0.9rem] font-bold text-white font-inherit hover:bg-[#145214] disabled:cursor-not-allowed disabled:opacity-65${loading ? " cursor-wait opacity-65" : ""}`}
           disabled={loading}
           aria-busy={loading}
           onClick={() => void handleContinue()}

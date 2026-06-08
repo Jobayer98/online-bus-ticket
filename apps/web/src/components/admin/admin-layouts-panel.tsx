@@ -12,6 +12,31 @@ import {
   LayoutEditorGrid,
   type LayoutCellClass,
 } from "./layout-editor-grid";
+import {
+  admFormCard,
+  admFormRow,
+  admLayoutIntro,
+  admLayoutSubmit,
+  admLayoutToolbar,
+  admLayoutToolbarMeta,
+  admPageTitle,
+  admSubheading,
+} from "./admin-tw";
+import {
+  cpSection,
+  cpTable,
+  cpTableCell,
+  cpTableHead,
+  cpTableRow,
+  cpTableWrap,
+} from "@/components/counter/counter-tw";
+import {
+  spBtnBack,
+  spBtnSelect,
+  spCheckoutField,
+  spFilterSearch,
+  spPanelError,
+} from "@/components/search/search-tw";
 
 type SeatTemplate = {
   id: string;
@@ -115,18 +140,18 @@ export function AdminLayoutsPanel() {
   const seatCount = gridToTemplates(grid).length;
 
   return (
-    <div className="cp-section">
+    <div className={cpSection}>
       <CounterToast message={toast} onDismiss={() => setToast(null)} />
-      <h2 className="adm-page-title">Seat layouts</h2>
-      <p className="adm-layout-intro">
+      <h2 className={admPageTitle}>Seat layouts</h2>
+      <p className={admLayoutIntro}>
         Define reusable seat maps, then assign them when creating coaches. Click grid cells to set
         seat class; leave cells empty for aisle space.
       </p>
 
-      <form className="adm-form-card adm-layout-form" onSubmit={submit}>
+      <form className={admFormCard} onSubmit={submit}>
         <h3>Create layout</h3>
-        <div className="adm-form-row">
-          <div className="sp-checkout-field">
+        <div className={admFormRow}>
+          <div className={spCheckoutField}>
             <label htmlFor="layout-name">Layout name</label>
             <input
               id="layout-name"
@@ -136,7 +161,7 @@ export function AdminLayoutsPanel() {
               required
             />
           </div>
-          <div className="sp-checkout-field">
+          <div className={spCheckoutField}>
             <label htmlFor="layout-rows">Rows</label>
             <input
               id="layout-rows"
@@ -147,7 +172,7 @@ export function AdminLayoutsPanel() {
               onChange={(e) => handleRowsChange(Number(e.target.value))}
             />
           </div>
-          <div className="sp-checkout-field">
+          <div className={spCheckoutField}>
             <label htmlFor="layout-cols">Columns</label>
             <input
               id="layout-cols"
@@ -160,56 +185,56 @@ export function AdminLayoutsPanel() {
           </div>
         </div>
 
-        <div className="adm-layout-toolbar">
-          <span className="adm-layout-toolbar-meta">
+        <div className={admLayoutToolbar}>
+          <span className={admLayoutToolbarMeta}>
             {seatCount} seat{seatCount === 1 ? "" : "s"} in {rows}×{cols} grid
           </span>
           <button
             type="button"
-            className="sp-btn-select"
+            className={spBtnSelect}
             onClick={() => setGrid(fillGrid(grid, "STANDARD"))}
           >
             Fill all standard
           </button>
           <button
             type="button"
-            className="sp-btn-select"
+            className={spBtnSelect}
             onClick={() => setGrid(fillGrid(grid, "PREMIUM"))}
           >
             Fill all premium
           </button>
-          <button type="button" className="sp-btn-back" onClick={() => setGrid(createEmptyGrid(rows, cols))}>
+          <button type="button" className={spBtnBack} onClick={() => setGrid(createEmptyGrid(rows, cols))}>
             Clear grid
           </button>
         </div>
 
         <LayoutEditorGrid rows={rows} cols={cols} grid={grid} onChange={setGrid} />
 
-        {error && <p className="sp-panel-error">{error}</p>}
+        {error && <p className={spPanelError}>{error}</p>}
 
-        <div className="adm-layout-submit">
-          <button type="submit" className="sp-filter-search" disabled={saving}>
+        <div className={admLayoutSubmit}>
+          <button type="submit" className={spFilterSearch} disabled={saving}>
             {saving ? "Saving…" : "Save layout"}
           </button>
         </div>
       </form>
 
-      <h3 className="adm-subheading">Saved layouts</h3>
+      <h3 className={admSubheading}>Saved layouts</h3>
       {!loading && (
-        <div className="cp-table-wrap">
-          <table className="cp-table">
+        <div className={cpTableWrap}>
+          <table className={cpTable}>
             <thead>
               <tr>
-                <th>Name</th>
-                <th>Grid</th>
-                <th>Seats</th>
-                <th>Classes</th>
+                <th className={cpTableHead}>Name</th>
+                <th className={cpTableHead}>Grid</th>
+                <th className={cpTableHead}>Seats</th>
+                <th className={cpTableHead}>Classes</th>
               </tr>
             </thead>
             <tbody>
               {layouts.length === 0 ? (
                 <tr>
-                  <td colSpan={4} style={{ textAlign: "center", color: "#666" }}>
+                  <td colSpan={4} className={`${cpTableCell} text-center text-[#666]`}>
                     No layouts yet — create one above
                   </td>
                 </tr>
@@ -217,15 +242,15 @@ export function AdminLayoutsPanel() {
                 layouts.map((l) => {
                   const classes = [...new Set(l.templates.map((t) => t.seatClass))];
                   return (
-                    <tr key={l.id}>
-                      <td>
+                    <tr key={l.id} className={cpTableRow}>
+                      <td className={cpTableCell}>
                         <strong>{l.name}</strong>
                       </td>
-                      <td>
+                      <td className={cpTableCell}>
                         {l.rows} × {l.cols}
                       </td>
-                      <td>{l.templates.length}</td>
-                      <td>{classes.map(formatSeatClassLabel).join(", ")}</td>
+                      <td className={cpTableCell}>{l.templates.length}</td>
+                      <td className={cpTableCell}>{classes.map(formatSeatClassLabel).join(", ")}</td>
                     </tr>
                   );
                 })

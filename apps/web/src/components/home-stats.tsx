@@ -15,8 +15,8 @@ export function HomeStats() {
   const stats = HOME_STATS_DEFAULTS;
 
   return (
-    <section className="home-stats" aria-labelledby="home-stats-title">
-      <div className="home-section-inner">
+    <section className="bg-[var(--card)] px-0 py-12" aria-labelledby="home-stats-title">
+      <div className="mx-auto max-w-[1100px] px-4">
         <HomeSectionHeader
           id="home-stats-title"
           title={`${profile.companyName} at a glance`}
@@ -24,16 +24,24 @@ export function HomeStats() {
         />
 
         <m.ul
-          className="home-stats-grid"
+          className="m-0 grid list-none grid-cols-4 gap-4 p-0 max-[900px]:grid-cols-2 max-[560px]:grid-cols-1"
           variants={staggerContainerVariants}
           initial="hidden"
           whileInView="visible"
           viewport={defaultViewport}
         >
           {stats.map((stat) => (
-            <m.li key={stat.label} className="home-stat-card" variants={staggerItemVariants}>
-              <span className="home-stat-card__value fare">{stat.value}</span>
-              <span className="home-stat-card__label">{stat.label}</span>
+            <m.li
+              key={stat.label}
+              className="flex flex-col gap-1.5 rounded-[14px] bg-gradient-to-br from-[var(--primary-hover,#166534)] to-[var(--primary,#15803d)] px-4 py-5 text-center text-white shadow-[0_4px_14px_rgba(21,128,61,0.22)]"
+              variants={staggerItemVariants}
+            >
+              <span className="text-[clamp(1.35rem,2.5vw,1.75rem)] font-bold tracking-tight tabular-nums">
+                {stat.value}
+              </span>
+              <span className="text-[0.8125rem] leading-snug text-white/88">
+                {stat.label}
+              </span>
             </m.li>
           ))}
         </m.ul>

@@ -1,6 +1,17 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
+import {
+  admCmsFileInput,
+  admCmsHint,
+  admCmsMediaThumb,
+  admCmsMediaThumbWide,
+  admCmsUploadField,
+  admCmsUploadFieldEmpty,
+  admCmsUploadFieldLabel,
+  admCmsUploadFieldPending,
+  admMuted,
+} from "../admin-tw";
 
 type Props = {
   label: string;
@@ -64,33 +75,31 @@ export function CmsImageUploadField({
   const previewSrc = pendingPreview ?? savedSrc;
 
   return (
-    <div className="adm-cms-upload-field">
-      <label htmlFor={inputId} className="adm-cms-upload-field__label">
+    <div className={admCmsUploadField}>
+      <label htmlFor={inputId} className={admCmsUploadFieldLabel}>
         {label}
       </label>
-      {hint ? <p className="adm-muted adm-cms-hint">{hint}</p> : null}
+      {hint ? <p className={`${admMuted} ${admCmsHint}`}>{hint}</p> : null}
       <div
         className={
-          wide
-            ? "adm-cms-media-thumb adm-cms-media-thumb--wide adm-cms-upload-field__thumb"
-            : "adm-cms-media-thumb adm-cms-upload-field__thumb"
+          wide ? `${admCmsMediaThumb} ${admCmsMediaThumbWide}` : admCmsMediaThumb
         }
       >
         {previewSrc ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={previewSrc} alt="" />
         ) : (
-          <span className="adm-muted adm-cms-upload-field__empty">No image selected</span>
+          <span className={`${admMuted} ${admCmsUploadFieldEmpty}`}>No image selected</span>
         )}
       </div>
       {pendingName ? (
-        <p className="adm-muted adm-cms-upload-field__pending">{pendingName}</p>
+        <p className={`${admMuted} ${admCmsUploadFieldPending}`}>{pendingName}</p>
       ) : null}
       <input
         id={inputId}
         type="file"
         accept={accept}
-        className="adm-cms-file-input"
+        className={admCmsFileInput}
         disabled={disabled}
         onChange={(e) => {
           void handleChange(e.target.files?.[0]);

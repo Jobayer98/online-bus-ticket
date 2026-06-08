@@ -4,6 +4,40 @@ import { useCallback, useEffect, useState } from "react";
 import { apiDelete, apiGet, apiPatch, apiPost } from "@/lib/api-client";
 import { useGlobalLoading } from "@/components/global-loading-provider";
 import { CounterToast } from "@/components/counter/counter-toast";
+import {
+  admBoardingHint,
+  admBoardingRouteLabel,
+  admBoardingSection,
+  admBtnDelete,
+  admBtnEdit,
+  admFormActionsButtons,
+  admFormActionsSpacer,
+  admFormActionsWithLabel,
+  admFormCard,
+  admFormField,
+  admFormFieldInput,
+  admFormFieldLabel,
+  admFormFieldWide,
+  admFormRow,
+  admInlineInput,
+  admRowActions,
+  admRowSelected,
+} from "./admin-tw";
+import {
+  cpSection,
+  cpSectionTitle,
+  cpTable,
+  cpTableCell,
+  cpTableHead,
+  cpTableRow,
+  cpTableWrap,
+} from "@/components/counter/counter-tw";
+import {
+  spBtnBack,
+  spEmpty,
+  spFilterSearch,
+  spPanelError,
+} from "@/components/search/search-tw";
 
 type Stop = { id: string; name: string; city: string; code: string };
 type Route = {
@@ -161,17 +195,18 @@ export function AdminRoutesPanel() {
   }
 
   return (
-    <div className="cp-section">
+    <div className={cpSection}>
       <CounterToast message={toast} onDismiss={() => setToast(null)} />
-      <h2 className="cp-section-title">ROUTES</h2>
+      <h2 className={cpSectionTitle}>ROUTES</h2>
 
-      <form className="adm-form-card" onSubmit={submitRoute}>
+      <form className={admFormCard} onSubmit={submitRoute}>
         <h3>Add route</h3>
-        <div className="adm-form-row">
-          <div className="adm-form-field adm-form-field--wide">
-            <label htmlFor="route-from">From</label>
+        <div className={admFormRow}>
+          <div className={`${admFormField} ${admFormFieldWide}`}>
+            <label htmlFor="route-from" className={admFormFieldLabel}>From</label>
             <select
               id="route-from"
+              className={admFormFieldInput}
               value={fromStopId}
               onChange={(e) => setFromStopId(e.target.value)}
               required
@@ -184,10 +219,11 @@ export function AdminRoutesPanel() {
               ))}
             </select>
           </div>
-          <div className="adm-form-field adm-form-field--wide">
-            <label htmlFor="route-to">To</label>
+          <div className={`${admFormField} ${admFormFieldWide}`}>
+            <label htmlFor="route-to" className={admFormFieldLabel}>To</label>
             <select
               id="route-to"
+              className={admFormFieldInput}
               value={toStopId}
               onChange={(e) => setToStopId(e.target.value)}
               required
@@ -200,60 +236,65 @@ export function AdminRoutesPanel() {
               ))}
             </select>
           </div>
-          <div className="adm-form-field">
-            <label htmlFor="route-km">Distance (km)</label>
+          <div className={admFormField}>
+            <label htmlFor="route-km" className={admFormFieldLabel}>Distance (km)</label>
             <input
               id="route-km"
               type="number"
+              className={admFormFieldInput}
               min={1}
               value={distanceKm}
               onChange={(e) => setDistanceKm(e.target.value)}
             />
           </div>
-          <div className="adm-form-actions adm-form-actions--with-label">
-            <span className="adm-form-actions__spacer" aria-hidden="true">
+          <div className={admFormActionsWithLabel}>
+            <span className={admFormActionsSpacer} aria-hidden="true">
               Actions
             </span>
-            <div className="adm-form-actions__buttons">
-              <button type="submit" className="sp-filter-search">
+            <div className={admFormActionsButtons}>
+              <button type="submit" className={spFilterSearch}>
                 Add route
               </button>
             </div>
           </div>
         </div>
-        {error && <p className="sp-panel-error">{error}</p>}
+        {error && <p className={spPanelError}>{error}</p>}
       </form>
 
       {!loading && (
-        <div className="cp-table-wrap">
-          <table className="cp-table">
+        <div className={cpTableWrap}>
+          <table className={cpTable}>
             <thead>
               <tr>
-                <th>Slug</th>
-                <th>From</th>
-                <th>To</th>
-                <th>Distance</th>
-                <th />
+                <th className={cpTableHead}>Slug</th>
+                <th className={cpTableHead}>From</th>
+                <th className={cpTableHead}>To</th>
+                <th className={cpTableHead}>Distance</th>
+                <th className={cpTableHead} />
               </tr>
             </thead>
             <tbody>
               {routes.map((r) => (
                 <tr
                   key={r.id}
-                  className={selectedRouteId === r.id ? "adm-row-selected" : undefined}
+                  className={
+                    selectedRouteId === r.id
+                      ? `${cpTableRow} ${admRowSelected}`
+                      : cpTableRow
+                  }
                 >
-                  <td>{r.slug}</td>
-                  <td>
+                  <td className={cpTableCell}>{r.slug}</td>
+                  <td className={cpTableCell}>
                     {r.fromStop.city} ({r.fromStop.code})
                   </td>
-                  <td>
+                  <td className={cpTableCell}>
                     {r.toStop.city} ({r.toStop.code})
                   </td>
-                  <td>{r.distanceKm ? `${r.distanceKm} km` : "—"}</td>
-                  <td>
+                  <td className={cpTableCell}>{r.distanceKm ? `${r.distanceKm} km` : "—"}</td>
+                  <td className={cpTableCell}>
                     <button
                       type="button"
-                      className="adm-btn-edit"
+                      className={admBtnEdit}
                       onClick={() => setSelectedRouteId(r.id)}
                     >
                       Boarding points
@@ -266,17 +307,18 @@ export function AdminRoutesPanel() {
         </div>
       )}
 
-      <section className="adm-form-card adm-boarding-section">
+      <section className={`${admFormCard} ${admBoardingSection}`}>
         <h3>Boarding points</h3>
-        <p className="adm-boarding-hint">
+        <p className={admBoardingHint}>
           Each route can have multiple pickup points. Customers choose one when booking.
         </p>
 
-        <div className="adm-form-row">
-          <div className="adm-form-field adm-form-field--wide">
-            <label htmlFor="bp-route">Route</label>
+        <div className={admFormRow}>
+          <div className={`${admFormField} ${admFormFieldWide}`}>
+            <label htmlFor="bp-route" className={admFormFieldLabel}>Route</label>
             <select
               id="bp-route"
+              className={admFormFieldInput}
               value={selectedRouteId}
               onChange={(e) => setSelectedRouteId(e.target.value)}
             >
@@ -291,41 +333,43 @@ export function AdminRoutesPanel() {
         </div>
 
         {selectedRoute && (
-          <p className="adm-boarding-route-label">
+          <p className={admBoardingRouteLabel}>
             Managing: <strong>{selectedRoute.slug}</strong>
           </p>
         )}
 
         {selectedRouteId && (
           <>
-            <form className="adm-form-row" onSubmit={addBoardingPoint}>
-              <div className="adm-form-field adm-form-field--wide">
-                <label htmlFor="bp-name">Point name</label>
+            <form className={admFormRow} onSubmit={addBoardingPoint}>
+              <div className={`${admFormField} ${admFormFieldWide}`}>
+                <label htmlFor="bp-name" className={admFormFieldLabel}>Point name</label>
                 <input
                   id="bp-name"
                   type="text"
+                  className={admFormFieldInput}
                   value={bpName}
                   onChange={(e) => setBpName(e.target.value)}
                   placeholder="e.g. Gabtoli"
                 />
               </div>
-              <div className="adm-form-field">
-                <label htmlFor="bp-sort">Order</label>
+              <div className={admFormField}>
+                <label htmlFor="bp-sort" className={admFormFieldLabel}>Order</label>
                 <input
                   id="bp-sort"
                   type="number"
+                  className={admFormFieldInput}
                   min={0}
                   value={bpSortOrder}
                   onChange={(e) => setBpSortOrder(e.target.value)}
                   placeholder="Auto"
                 />
               </div>
-              <div className="adm-form-actions adm-form-actions--with-label">
-                <span className="adm-form-actions__spacer" aria-hidden="true">
+              <div className={admFormActionsWithLabel}>
+                <span className={admFormActionsSpacer} aria-hidden="true">
                   Actions
                 </span>
-                <div className="adm-form-actions__buttons">
-                  <button type="submit" className="sp-filter-search">
+                <div className={admFormActionsButtons}>
+                  <button type="submit" className={spFilterSearch}>
                     Add point
                   </button>
                 </div>
@@ -334,26 +378,26 @@ export function AdminRoutesPanel() {
 
             {!bpLoading &&
               (boardingPoints.length === 0 ? (
-                <div className="sp-empty">No boarding points yet for this route.</div>
+                <div className={spEmpty}>No boarding points yet for this route.</div>
               ) : (
-                <div className="cp-table-wrap">
-                  <table className="cp-table">
+                <div className={cpTableWrap}>
+                  <table className={cpTable}>
                     <thead>
                       <tr>
-                        <th>Order</th>
-                        <th>Name</th>
-                        <th>Actions</th>
+                        <th className={cpTableHead}>Order</th>
+                        <th className={cpTableHead}>Name</th>
+                        <th className={cpTableHead}>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
                       {boardingPoints.map((bp) => (
-                        <tr key={bp.id}>
-                          <td>
+                        <tr key={bp.id} className={cpTableRow}>
+                          <td className={cpTableCell}>
                             {editBpId === bp.id ? (
                               <input
                                 type="number"
                                 min={0}
-                                className="adm-inline-input"
+                                className={admInlineInput}
                                 value={editBpSort}
                                 onChange={(e) => setEditBpSort(e.target.value)}
                               />
@@ -361,11 +405,11 @@ export function AdminRoutesPanel() {
                               bp.sortOrder
                             )}
                           </td>
-                          <td>
+                          <td className={cpTableCell}>
                             {editBpId === bp.id ? (
                               <input
                                 type="text"
-                                className="adm-inline-input"
+                                className={admInlineInput}
                                 value={editBpName}
                                 onChange={(e) => setEditBpName(e.target.value)}
                               />
@@ -373,20 +417,20 @@ export function AdminRoutesPanel() {
                               bp.name
                             )}
                           </td>
-                          <td>
-                            <div className="adm-row-actions">
+                          <td className={cpTableCell}>
+                            <div className={admRowActions}>
                               {editBpId === bp.id ? (
                                 <>
                                   <button
                                     type="button"
-                                    className="adm-btn-edit"
+                                    className={admBtnEdit}
                                     onClick={saveBoardingPointEdit}
                                   >
                                     Save
                                   </button>
                                   <button
                                     type="button"
-                                    className="sp-btn-back"
+                                    className={spBtnBack}
                                     onClick={() => setEditBpId(null)}
                                   >
                                     Cancel
@@ -396,14 +440,14 @@ export function AdminRoutesPanel() {
                                 <>
                                   <button
                                     type="button"
-                                    className="adm-btn-edit"
+                                    className={admBtnEdit}
                                     onClick={() => startEdit(bp)}
                                   >
                                     Edit
                                   </button>
                                   <button
                                     type="button"
-                                    className="adm-btn-delete"
+                                    className={admBtnDelete}
                                     onClick={() => deleteBoardingPoint(bp.id)}
                                   >
                                     Delete

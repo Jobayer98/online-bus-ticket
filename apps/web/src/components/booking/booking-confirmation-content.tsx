@@ -12,6 +12,9 @@ import type { TicketDto } from "@repo/shared";
 
 const TICKET_CAPTURE_ID = "bus-ticket-download";
 
+const ticketGhostBtnClass =
+  "box-border flex w-full cursor-pointer items-center justify-center gap-[0.45rem] rounded-md border-2 border-[var(--primary)] bg-white px-4 py-3 text-[0.95rem] font-bold text-[var(--green-900,#14532d)] no-underline transition-[background,transform] duration-150 hover:bg-[var(--green-50,#f0fdf4)]";
+
 export function BookingConfirmationContent() {
   const searchParams = useSearchParams();
   const passengerNumber = searchParams.get("passengerNumber")?.trim() ?? "";
@@ -80,25 +83,33 @@ export function BookingConfirmationContent() {
   }
 
   return (
-    <div className="search-page confirmation-page">
+    <div className="min-h-screen bg-gradient-to-b from-[#e8f0ea] via-[#f4f6f8] via-40% to-white">
       <HomeHeader />
-      <div className="confirmation-page__inner">
-        <div className="confirmation-page__success">
-          <div className="confirmation-page__success-icon" aria-hidden>
+      <div className="mx-auto max-w-[520px] px-4 pb-10 pt-5">
+        <div className="mb-5 text-center">
+          <div
+            className="mb-[0.65rem] inline-flex h-[52px] w-[52px] items-center justify-center rounded-full bg-[var(--primary)] text-2xl font-bold text-white shadow-[0_4px_14px_rgba(46,125,50,0.35)]"
+            aria-hidden
+          >
             ✓
           </div>
-          <h1 className="confirmation-page__title">Booking confirmed</h1>
-          <p className="confirmation-page__subtitle">
+          <h1 className="m-0 text-[1.35rem] font-extrabold tracking-[-0.02em] text-[#1a237e]">
+            Booking confirmed
+          </h1>
+          <p className="mt-[0.4rem] text-[0.88rem] text-[#546e7a]">
             Your payment was successful. Save or download your e-ticket below.
           </p>
         </div>
 
         {needsPhone && !ticket && !loading && (
           <form
-            className="confirmation-page__phone-form"
+            className="mt-4 rounded-lg border border-[#cfd8dc] bg-white p-4"
             onSubmit={handlePhoneSubmit}
           >
-            <label htmlFor="confirm-phone">
+            <label
+              htmlFor="confirm-phone"
+              className="mb-[0.35rem] block text-[0.8rem] font-semibold text-[#455a64]"
+            >
               Mobile number (used when booking)
             </label>
             <input
@@ -106,13 +117,14 @@ export function BookingConfirmationContent() {
               type="tel"
               inputMode="numeric"
               autoComplete="tel"
+              className="mb-3 w-full rounded border border-[#b0bec5] px-[0.65rem] py-[0.55rem] text-base"
               value={phoneInput}
               onChange={(e) => setPhoneInput(e.target.value)}
               placeholder="01XXXXXXXXX"
             />
             <button
               type="submit"
-              className={`ticket-preview__btn ticket-preview__btn--primary${loading ? " btn-is-busy" : ""}`}
+              className={`box-border flex w-full cursor-pointer items-center justify-center gap-[0.45rem] rounded-md border-none px-4 py-3 text-[0.95rem] font-bold text-white no-underline transition-[background,transform] duration-150 bg-gradient-to-b from-[var(--primary)] to-[var(--green-900)] shadow-[0_3px_12px_rgba(27,94,32,0.3)] hover:brightness-105 disabled:cursor-wait disabled:opacity-65${loading ? " cursor-wait opacity-65" : ""}`}
               disabled={loading}
               aria-busy={loading}
             >
@@ -127,17 +139,17 @@ export function BookingConfirmationContent() {
             captureId={TICKET_CAPTURE_ID}
             hint="The downloaded image matches this ticket exactly. You can also retrieve it anytime from Download Ticket using your PNR and phone."
           >
-            <Link href="/" className="ticket-preview__btn ticket-preview__btn--ghost">
+            <Link href="/" className={ticketGhostBtnClass}>
               Book another trip
             </Link>
-            <Link href="/ticket" className="ticket-preview__btn ticket-preview__btn--ghost">
+            <Link href="/ticket" className={ticketGhostBtnClass}>
               Download ticket later
             </Link>
           </BusTicketPreview>
         )}
 
         {error && (
-          <p className="sp-panel-error confirmation-page__error" role="alert">
+          <p className="mt-4 text-center text-[0.75rem] text-[var(--danger)]" role="alert">
             {error}
           </p>
         )}

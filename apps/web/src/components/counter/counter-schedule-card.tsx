@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { apiGet } from "@/lib/api-client";
 import { useGlobalLoading } from "@/components/global-loading-provider";
 import {
@@ -8,8 +7,29 @@ import {
   formatScheduleClassLine,
   formatTime12h,
 } from "@/lib/format";
+import {
+  spBtnSelect,
+  spBtnSelectCancel,
+  spCard,
+  spCardAvail,
+  spCardClass,
+  spCardCol,
+  spCardColPrice,
+  spCardExpanded,
+  spCardFare,
+  spCardRow,
+  spCardRoute,
+  spPanelError,
+  spSeatExpandInner,
+  spSeatExpandInnerOpen,
+  spSeatExpandWrap,
+  spSeatExpandWrapOpen,
+  spSeatLoading,
+  spTime,
+} from "@/components/search/search-tw";
 import { CounterSeatPanel } from "./counter-seat-panel";
 import type { ScheduleCardDto, SeatMapDto } from "@repo/shared";
+import { useState } from "react";
 
 type Props = {
   schedule: ScheduleCardDto;
@@ -68,32 +88,32 @@ export function CounterScheduleCard({
   );
 
   return (
-    <article className={`sp-card${expanded ? " sp-card--expanded" : ""}`}>
-      <div className="sp-card-row">
-        <div className="sp-card-col">
+    <article className={`${spCard}${expanded ? ` ${spCardExpanded}` : ""}`}>
+      <div className={spCardRow}>
+        <div className={spCardCol}>
           <label>Coach#</label>
           <strong>{schedule.coachNumber}</strong>
-          <label style={{ marginTop: "0.35rem" }}>Start Point</label>
+          <label className="mt-[0.35rem]">Start Point</label>
           <strong>{schedule.startPoint.toUpperCase()}</strong>
-          <div className="sp-time">{formatTime12h(schedule.departureAt)}</div>
+          <div className={spTime}>{formatTime12h(schedule.departureAt)}</div>
         </div>
-        <div className="sp-card-col">
+        <div className={spCardCol}>
           <label>End Point</label>
           <strong>{schedule.endPoint.toUpperCase()}</strong>
-          <label style={{ marginTop: "0.35rem" }}>Est. End Time</label>
+          <label className="mt-[0.35rem]">Est. End Time</label>
           <strong>{formatTime12h(schedule.estimatedArrivalAt)}</strong>
         </div>
-        <div className="sp-card-col sp-card-price">
-          <div className="sp-card-class">{busClass}</div>
-          <div className="sp-card-fare">{formatMoneyBdt(schedule.fareFrom)}</div>
-          <div className="sp-card-avail">
+        <div className={`${spCardCol} ${spCardColPrice}`}>
+          <div className={spCardClass}>{busClass}</div>
+          <div className={spCardFare}>{formatMoneyBdt(schedule.fareFrom)}</div>
+          <div className={spCardAvail}>
             AVAILABLE: {schedule.availableSeats}
           </div>
         </div>
-        <div className="sp-card-col">
+        <div className={spCardCol}>
           <button
             type="button"
-            className={`sp-btn-select${expanded ? " is-cancel" : ""}`}
+            className={`${spBtnSelect}${expanded ? ` ${spBtnSelectCancel}` : ""}`}
             onClick={handleToggle}
           >
             {expanded ? "CANCEL" : "SELECT SEAT"}
@@ -101,14 +121,18 @@ export function CounterScheduleCard({
         </div>
       </div>
 
-      <div className="sp-card-route">
+      <div className={spCardRoute}>
         <strong>ROUTE:</strong> {routeLabel}
       </div>
 
-      <div className={`sp-seat-expand-wrap${expanded ? " is-open" : ""}`}>
-        <div className="sp-seat-expand-inner">
+      <div
+        className={`${spSeatExpandWrap}${expanded ? ` ${spSeatExpandWrapOpen}` : ""}`}
+      >
+        <div
+          className={`${spSeatExpandInner}${expanded ? ` ${spSeatExpandInnerOpen}` : ""}`}
+        >
           {mapError && (
-            <div className="sp-seat-loading sp-panel-error">{mapError}</div>
+            <div className={`${spSeatLoading} ${spPanelError}`}>{mapError}</div>
           )}
           {seatMap && !loadingMap && (
             <CounterSeatPanel

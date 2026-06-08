@@ -4,6 +4,22 @@ import { Fragment, useCallback, useEffect, useState } from "react";
 import { useGlobalLoading } from "@/components/global-loading-provider";
 import { platformApiGet, platformApiDownload } from "@/lib/platform-api-client";
 import type { PlatformAuditLogDto } from "@repo/shared";
+import {
+  admPageTitleClass,
+  badgeClass,
+  cpSectionClass,
+  filterErrorClass,
+  platformAuditDetailClass,
+  platformBtnClass,
+  platformEmptyClass,
+  platformFiltersClass,
+  platformLinkClass,
+  platformLoadingClass,
+  platformPaginationClass,
+  platformPanelHeadClass,
+  platformTableClass,
+  platformTableWrapClass,
+} from "./platform-styles";
 
 export function PlatformAuditPanel() {
   const [logs, setLogs] = useState<PlatformAuditLogDto[]>([]);
@@ -65,15 +81,15 @@ export function PlatformAuditPanel() {
   }
 
   return (
-    <div className="cp-section">
-      <div className="platform-panel-head">
-        <h2 className="adm-page-title">Audit logs</h2>
-        <button type="button" className="platform-btn" onClick={() => void exportCsv()}>
+    <div className={cpSectionClass}>
+      <div className={platformPanelHeadClass}>
+        <h2 className={admPageTitleClass}>Audit logs</h2>
+        <button type="button" className={platformBtnClass} onClick={() => void exportCsv()}>
           Export CSV
         </button>
       </div>
 
-      <div className="platform-filters">
+      <div className={platformFiltersClass}>
         <select
           value={actionFilter}
           onChange={(e) => {
@@ -109,13 +125,13 @@ export function PlatformAuditPanel() {
         />
       </div>
 
-      {error && <p className="sp-filter-error">{error}</p>}
-      {loading && <p className="platform-loading">Loading audit logs…</p>}
+      {error && <p className={filterErrorClass}>{error}</p>}
+      {loading && <p className={platformLoadingClass}>Loading audit logs…</p>}
 
       {!loading && !error && (
         <>
-          <div className="platform-table-wrapper">
-            <table className="platform-table">
+          <div className={platformTableWrapClass}>
+            <table className={platformTableClass}>
               <thead>
                 <tr>
                   <th>Timestamp</th>
@@ -137,7 +153,7 @@ export function PlatformAuditPanel() {
                       </td>
                       <td>{log.actorName}</td>
                       <td>
-                        <span className={`badge badge-blue`}>{log.action}</span>
+                        <span className={badgeClass("badge-blue")}>{log.action}</span>
                       </td>
                       <td>
                         {log.resourceType} · {log.resourceId.slice(0, 8)}…
@@ -147,12 +163,7 @@ export function PlatformAuditPanel() {
                         {log.changes && (
                           <button
                             type="button"
-                            className="platform-link"
-                            style={{
-                              background: "none",
-                              border: "none",
-                              cursor: "pointer",
-                            }}
+                            className={`${platformLinkClass} cursor-pointer border-0 bg-transparent p-0`}
                             onClick={() =>
                               setExpandedId(expandedId === log.id ? null : log.id)
                             }
@@ -165,7 +176,7 @@ export function PlatformAuditPanel() {
                     {expandedId === log.id && log.changes && (
                       <tr>
                         <td colSpan={6}>
-                          <pre className="platform-audit-detail">
+                          <pre className={platformAuditDetailClass}>
                             {JSON.stringify(log.changes, null, 2)}
                           </pre>
                         </td>
@@ -176,11 +187,11 @@ export function PlatformAuditPanel() {
               </tbody>
             </table>
             {logs.length === 0 && (
-              <p className="platform-empty">No audit entries yet.</p>
+              <p className={platformEmptyClass}>No audit entries yet.</p>
             )}
           </div>
 
-          <div className="platform-pagination">
+          <div className={platformPaginationClass}>
             <button
               type="button"
               disabled={page <= 1}

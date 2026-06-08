@@ -16,6 +16,38 @@ import { seatClassesFromTemplates } from "@repo/shared";
 import { CounterToast } from "@/components/counter/counter-toast";
 import { HomeDateTimePicker } from "@/components/home-datetime-picker";
 import { getTodayIso } from "@/lib/trip-date";
+import {
+  admBtnDelete,
+  admBtnEdit,
+  admFormActionsButtons,
+  admFormActionsSpacer,
+  admFormActionsWithLabel,
+  admFormCard,
+  admFormField,
+  admFormFieldDatetime,
+  admFormFieldInput,
+  admFormFieldLabel,
+  admFormFieldWide,
+  admFormRow,
+  admRowActions,
+} from "./admin-tw";
+import {
+  cpBadgeBase,
+  cpBadgeCancel,
+  cpBadgeSell,
+  cpSection,
+  cpSectionTitle,
+  cpTable,
+  cpTableCell,
+  cpTableHead,
+  cpTableRow,
+  cpTableWrap,
+} from "@/components/counter/counter-tw";
+import {
+  spBtnBack,
+  spFilterSearch,
+  spPanelError,
+} from "@/components/search/search-tw";
 
 type Route = { id: string; slug: string; fromStop: { city: string }; toStop: { city: string } };
 type Coach = {
@@ -199,17 +231,18 @@ export function AdminSchedulesPanel() {
   }
 
   return (
-    <div className="cp-section">
+    <div className={cpSection}>
       <CounterToast message={toast} onDismiss={() => setToast(null)} />
-      <h2 className="cp-section-title">SCHEDULES</h2>
+      <h2 className={cpSectionTitle}>SCHEDULES</h2>
 
-      <form className="adm-form-card" onSubmit={createSchedule}>
+      <form className={admFormCard} onSubmit={createSchedule}>
         <h3>Create schedule</h3>
-        <div className="adm-form-row">
-          <div className="adm-form-field adm-form-field--wide">
-            <label htmlFor="sch-route">Route</label>
+        <div className={admFormRow}>
+          <div className={`${admFormField} ${admFormFieldWide}`}>
+            <label htmlFor="sch-route" className={admFormFieldLabel}>Route</label>
             <select
               id="sch-route"
+              className={admFormFieldInput}
               value={routeId}
               onChange={(e) => setRouteId(e.target.value)}
               required
@@ -222,10 +255,11 @@ export function AdminSchedulesPanel() {
               ))}
             </select>
           </div>
-          <div className="adm-form-field">
-            <label htmlFor="sch-coach">Coach</label>
+          <div className={admFormField}>
+            <label htmlFor="sch-coach" className={admFormFieldLabel}>Coach</label>
             <select
               id="sch-coach"
+              className={admFormFieldInput}
               value={coachId}
               onChange={(e) => setCoachId(e.target.value)}
               required
@@ -239,39 +273,40 @@ export function AdminSchedulesPanel() {
               ))}
             </select>
           </div>
-          <div className="adm-form-field adm-form-field--datetime">
-            <label>Departure</label>
+          <div className={`${admFormField} ${admFormFieldDatetime}`}>
+            <label className={admFormFieldLabel}>Departure</label>
             <HomeDateTimePicker
               value={departureAt}
               onChange={setDepartureAt}
               minDate={getTodayIso()}
             />
           </div>
-          <div className="adm-form-field adm-form-field--datetime">
-            <label>Arrival</label>
+          <div className={`${admFormField} ${admFormFieldDatetime}`}>
+            <label className={admFormFieldLabel}>Arrival</label>
             <HomeDateTimePicker
               value={arrivalAt}
               onChange={setArrivalAt}
               minDate={getTodayIso()}
             />
           </div>
-          <div className="adm-form-field">
-            <label htmlFor="sch-fare">Base fare (৳)</label>
+          <div className={admFormField}>
+            <label htmlFor="sch-fare" className={admFormFieldLabel}>Base fare (৳)</label>
             <input
               id="sch-fare"
               type="number"
+              className={admFormFieldInput}
               min={0}
               value={baseFareTaka}
               onChange={(e) => setBaseFareTaka(e.target.value)}
               required
             />
           </div>
-          <div className="adm-form-actions adm-form-actions--with-label">
-            <span className="adm-form-actions__spacer" aria-hidden="true">
+          <div className={admFormActionsWithLabel}>
+            <span className={admFormActionsSpacer} aria-hidden="true">
               Actions
             </span>
-            <div className="adm-form-actions__buttons">
-              <button type="submit" className="sp-filter-search">
+            <div className={admFormActionsButtons}>
+              <button type="submit" className={spFilterSearch}>
                 Create
               </button>
             </div>
@@ -279,12 +314,12 @@ export function AdminSchedulesPanel() {
         </div>
         {coachId &&
           coaches.find((c) => c.id === coachId && !c.seatLayoutId) && (
-            <p className="sp-panel-error">
+            <p className={spPanelError}>
               Selected coach has no seat layout — assign one on the Coaches tab
               before creating a schedule.
             </p>
           )}
-        {error && <p className="sp-panel-error">{error}</p>}
+        {error && <p className={spPanelError}>{error}</p>}
       </form>
 
       <AdminCsvImport
@@ -298,44 +333,45 @@ export function AdminSchedulesPanel() {
       />
 
       {rescheduleId && (
-        <form className="adm-form-card" onSubmit={submitReschedule}>
+        <form className={admFormCard} onSubmit={submitReschedule}>
           <h3>Reschedule</h3>
-          <div className="adm-form-row">
-            <div className="adm-form-field adm-form-field--datetime">
-              <label>New departure</label>
+          <div className={admFormRow}>
+            <div className={`${admFormField} ${admFormFieldDatetime}`}>
+              <label className={admFormFieldLabel}>New departure</label>
               <HomeDateTimePicker
                 value={rescheduleDep}
                 onChange={setRescheduleDep}
                 minDate={getTodayIso()}
               />
             </div>
-            <div className="adm-form-field adm-form-field--datetime">
-              <label>New arrival</label>
+            <div className={`${admFormField} ${admFormFieldDatetime}`}>
+              <label className={admFormFieldLabel}>New arrival</label>
               <HomeDateTimePicker
                 value={rescheduleArr}
                 onChange={setRescheduleArr}
                 minDate={getTodayIso()}
               />
             </div>
-            <div className="adm-form-field adm-form-field--wide">
-              <label htmlFor="sch-reason">Reason</label>
+            <div className={`${admFormField} ${admFormFieldWide}`}>
+              <label htmlFor="sch-reason" className={admFormFieldLabel}>Reason</label>
               <input
                 id="sch-reason"
+                className={admFormFieldInput}
                 value={rescheduleReason}
                 onChange={(e) => setRescheduleReason(e.target.value)}
               />
             </div>
-            <div className="adm-form-actions adm-form-actions--with-label">
-              <span className="adm-form-actions__spacer" aria-hidden="true">
+            <div className={admFormActionsWithLabel}>
+              <span className={admFormActionsSpacer} aria-hidden="true">
                 Actions
               </span>
-              <div className="adm-form-actions__buttons">
-                <button type="submit" className="sp-filter-search">
+              <div className={admFormActionsButtons}>
+                <button type="submit" className={spFilterSearch}>
                   Save
                 </button>
                 <button
                   type="button"
-                  className="sp-btn-back"
+                  className={spBtnBack}
                   onClick={() => setRescheduleId(null)}
                 >
                   Cancel
@@ -347,44 +383,44 @@ export function AdminSchedulesPanel() {
       )}
 
       {!loading && (
-        <div className="cp-table-wrap">
-          <table className="cp-table">
+        <div className={cpTableWrap}>
+          <table className={cpTable}>
             <thead>
               <tr>
-                <th>Route</th>
-                <th>Coach</th>
-                <th>Date</th>
-                <th>Departure</th>
-                <th>Fare from</th>
-                <th>Status</th>
-                <th>Actions</th>
+                <th className={cpTableHead}>Route</th>
+                <th className={cpTableHead}>Coach</th>
+                <th className={cpTableHead}>Date</th>
+                <th className={cpTableHead}>Departure</th>
+                <th className={cpTableHead}>Fare from</th>
+                <th className={cpTableHead}>Status</th>
+                <th className={cpTableHead}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {schedules.map((s) => (
-                <tr key={s.id}>
-                  <td>{s.route.slug}</td>
-                  <td>{formatCoachLabel(s.coach)}</td>
-                  <td>{formatDateDdMmYyyy(s.departureAt.slice(0, 10))}</td>
-                  <td>{formatTime12h(s.departureAt)}</td>
-                  <td>{formatMoneyBdt(s.baseFare)}</td>
-                  <td>
+                <tr key={s.id} className={cpTableRow}>
+                  <td className={cpTableCell}>{s.route.slug}</td>
+                  <td className={cpTableCell}>{formatCoachLabel(s.coach)}</td>
+                  <td className={cpTableCell}>{formatDateDdMmYyyy(s.departureAt.slice(0, 10))}</td>
+                  <td className={cpTableCell}>{formatTime12h(s.departureAt)}</td>
+                  <td className={cpTableCell}>{formatMoneyBdt(s.baseFare)}</td>
+                  <td className={cpTableCell}>
                     <span
                       className={
                         s.status === "CANCELLED"
-                          ? "cp-badge cp-badge--cancel"
-                          : "cp-badge cp-badge--sell"
+                          ? `${cpBadgeBase} ${cpBadgeCancel}`
+                          : `${cpBadgeBase} ${cpBadgeSell}`
                       }
                     >
                       {s.status}
                     </span>
                   </td>
-                  <td>
+                  <td className={cpTableCell}>
                     {s.status !== "CANCELLED" && (
-                      <div className="adm-row-actions">
+                      <div className={admRowActions}>
                         <button
                           type="button"
-                          className="adm-btn-edit"
+                          className={admBtnEdit}
                           onClick={() => {
                             setRescheduleId(s.id);
                             setRescheduleDep(toDatetimeLocal(s.departureAt));
@@ -396,7 +432,7 @@ export function AdminSchedulesPanel() {
                         </button>
                         <button
                           type="button"
-                          className="adm-btn-delete"
+                          className={admBtnDelete}
                           onClick={() => cancelSchedule(s.id)}
                         >
                           Cancel

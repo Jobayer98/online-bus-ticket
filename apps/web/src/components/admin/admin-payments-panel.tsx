@@ -7,6 +7,28 @@ import type {
   TenantPaymentProviderDto,
   PaymentProviderCode,
 } from "@repo/shared";
+import {
+  admBtn,
+  admBtnDanger,
+  admBtnPrimary,
+  admBtnSm,
+  admCheckbox,
+  admForm,
+  admFormActions,
+  admFormCardAlt,
+  admFormFieldInput,
+  admFormFieldLabel,
+  admFormInline,
+  admHelp,
+  admKpiCard,
+  admKpiCardLabel,
+  admKpiCardSpan,
+  admKpiCardStrong,
+  admKpiGrid,
+  admPageTitle,
+  admSection,
+} from "./admin-tw";
+import { spFilterError } from "@/components/search/search-tw";
 
 type WalletSummary = {
   wallet: { balanceMinor: number };
@@ -133,22 +155,22 @@ export function AdminPaymentsPanel() {
   }
 
   return (
-    <div className="adm-section">
-      <h2 className="adm-page-title">Payments & wallet</h2>
-      {error && <p className="sp-filter-error">{error}</p>}
+    <div className={admSection}>
+      <h2 className={admPageTitle}>Payments & wallet</h2>
+      {error && <p className={spFilterError}>{error}</p>}
 
       {wallet && (
-        <div className="adm-kpi-grid" style={{ marginBottom: "1.5rem" }}>
-          <div className="adm-kpi-card">
-            <label>Wallet balance</label>
-            <strong>{formatMoneyBdt(wallet.wallet.balanceMinor)}</strong>
-            <span>System-collected booking payments</span>
+        <div className={admKpiGrid} style={{ marginBottom: "1.5rem" }}>
+          <div className={admKpiCard}>
+            <label className={admKpiCardLabel}>Wallet balance</label>
+            <strong className={admKpiCardStrong}>{formatMoneyBdt(wallet.wallet.balanceMinor)}</strong>
+            <span className={admKpiCardSpan}>System-collected booking payments</span>
           </div>
         </div>
       )}
 
       <h3>Payment gateways</h3>
-      <p className="adm-help">
+      <p className={admHelp}>
         Configure your own bKash or SSLCommerz to receive payments directly.
         If none are active, passengers pay via platform gateways and funds
         credit your wallet.
@@ -182,7 +204,7 @@ export function AdminPaymentsPanel() {
                     <>
                       <button
                         type="button"
-                        className="adm-btn adm-btn--sm"
+                        className={`${admBtn} ${admBtnSm}`}
                         onClick={() => {
                           setEditing(p.code);
                           setForm((f) => ({
@@ -197,7 +219,7 @@ export function AdminPaymentsPanel() {
                       {p.configured && (
                         <button
                           type="button"
-                          className="adm-btn adm-btn--sm adm-btn--danger"
+                          className={`${admBtn} ${admBtnSm} ${admBtnDanger}`}
                           onClick={() => void removeProvider(p.code)}
                         >
                           Remove
@@ -214,7 +236,7 @@ export function AdminPaymentsPanel() {
 
       {editing && (
         <form
-          className="adm-form adm-form--card"
+          className={`${admForm} ${admFormCardAlt}`}
           onSubmit={(e) => {
             e.preventDefault();
             void saveProvider(editing);
@@ -223,19 +245,21 @@ export function AdminPaymentsPanel() {
           <h4>Configure {editing}</h4>
           {editing === "SSLCOMMERZ" ? (
             <>
-              <label>
+              <label className={admFormFieldLabel}>
                 Store ID
                 <input
+                  className={admFormFieldInput}
                   value={form.storeId}
                   onChange={(e) =>
                     setForm({ ...form, storeId: e.target.value })
                   }
                 />
               </label>
-              <label>
+              <label className={admFormFieldLabel}>
                 Store password
                 <input
                   type="password"
+                  className={admFormFieldInput}
                   value={form.storePassword}
                   onChange={(e) =>
                     setForm({ ...form, storePassword: e.target.value })
@@ -245,36 +269,40 @@ export function AdminPaymentsPanel() {
             </>
           ) : (
             <>
-              <label>
+              <label className={admFormFieldLabel}>
                 App key
                 <input
+                  className={admFormFieldInput}
                   value={form.appKey}
                   onChange={(e) => setForm({ ...form, appKey: e.target.value })}
                 />
               </label>
-              <label>
+              <label className={admFormFieldLabel}>
                 App secret
                 <input
                   type="password"
+                  className={admFormFieldInput}
                   value={form.appSecret}
                   onChange={(e) =>
                     setForm({ ...form, appSecret: e.target.value })
                   }
                 />
               </label>
-              <label>
+              <label className={admFormFieldLabel}>
                 Username
                 <input
+                  className={admFormFieldInput}
                   value={form.username}
                   onChange={(e) =>
                     setForm({ ...form, username: e.target.value })
                   }
                 />
               </label>
-              <label>
+              <label className={admFormFieldLabel}>
                 Password
                 <input
                   type="password"
+                  className={admFormFieldInput}
                   value={form.password}
                   onChange={(e) =>
                     setForm({ ...form, password: e.target.value })
@@ -283,7 +311,7 @@ export function AdminPaymentsPanel() {
               </label>
             </>
           )}
-          <label className="adm-checkbox">
+          <label className={admCheckbox}>
             <input
               type="checkbox"
               checked={form.sandboxMode}
@@ -293,7 +321,7 @@ export function AdminPaymentsPanel() {
             />
             Sandbox mode
           </label>
-          <label className="adm-checkbox">
+          <label className={admCheckbox}>
             <input
               type="checkbox"
               checked={form.isActive}
@@ -303,13 +331,13 @@ export function AdminPaymentsPanel() {
             />
             Active
           </label>
-          <div className="adm-form-actions">
-            <button type="submit" className="adm-btn adm-btn--primary">
+          <div className={admFormActions}>
+            <button type="submit" className={`${admBtn} ${admBtnPrimary}`}>
               Save
             </button>
             <button
               type="button"
-              className="adm-btn"
+              className={admBtn}
               onClick={() => setEditing(null)}
             >
               Cancel
@@ -319,8 +347,9 @@ export function AdminPaymentsPanel() {
       )}
 
       <h3 style={{ marginTop: "2rem" }}>Bank accounts</h3>
-      <form className="adm-form adm-form--inline" onSubmit={addBankAccount}>
+      <form className={admFormInline} onSubmit={addBankAccount}>
         <input
+          className={admFormFieldInput}
           placeholder="Bank name"
           value={bankForm.bankName}
           onChange={(e) =>
@@ -329,6 +358,7 @@ export function AdminPaymentsPanel() {
           required
         />
         <input
+          className={admFormFieldInput}
           placeholder="Account name"
           value={bankForm.accountName}
           onChange={(e) =>
@@ -337,6 +367,7 @@ export function AdminPaymentsPanel() {
           required
         />
         <input
+          className={admFormFieldInput}
           placeholder="Account number"
           value={bankForm.accountNumber}
           onChange={(e) =>
@@ -344,7 +375,7 @@ export function AdminPaymentsPanel() {
           }
           required
         />
-        <button type="submit" className="adm-btn adm-btn--primary">
+        <button type="submit" className={`${admBtn} ${admBtnPrimary}`}>
           Add account
         </button>
       </form>
@@ -358,8 +389,9 @@ export function AdminPaymentsPanel() {
 
       <h3 style={{ marginTop: "2rem" }}>Withdrawals</h3>
       {accounts.length > 0 && wallet && wallet.wallet.balanceMinor > 0 && (
-        <form className="adm-form adm-form--inline" onSubmit={requestWithdrawal}>
+        <form className={admFormInline} onSubmit={requestWithdrawal}>
           <select
+            className={admFormFieldInput}
             value={withdrawAccountId}
             onChange={(e) => setWithdrawAccountId(e.target.value)}
             required
@@ -375,12 +407,13 @@ export function AdminPaymentsPanel() {
             type="number"
             step="0.01"
             min="0"
+            className={admFormFieldInput}
             placeholder="Amount (BDT)"
             value={withdrawAmount}
             onChange={(e) => setWithdrawAmount(e.target.value)}
             required
           />
-          <button type="submit" className="adm-btn adm-btn--primary">
+          <button type="submit" className={`${admBtn} ${admBtnPrimary}`}>
             Request withdrawal
           </button>
         </form>

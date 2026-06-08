@@ -7,12 +7,36 @@ import {
   platformApiPatch,
 } from "@/lib/platform-api-client";
 import type { PlatformHealthDto, PlatformHealthMetricsDto, PlatformAlertDto } from "@repo/shared";
+import {
+  admKpiCardClass,
+  admKpiGridClass,
+  admPageTitleClass,
+  badgeClass,
+  cpSectionClass,
+  filterErrorClass,
+  platformDetailCardClass,
+  platformDetailGridClass,
+  platformEmptyClass,
+  platformLinkClass,
+  platformLoadingClass,
+  platformPlanBarFillClass,
+  platformPlanBarLabelClass,
+  platformPlanBarMetaClass,
+  platformPlanBarRowClass,
+  platformPlanBarsClass,
+  platformPlanBarTrackClass,
+  platformSectionTitleClass,
+  platformTableClass,
+  platformTableWrapClass,
+} from "./platform-styles";
 
 const STATUS_CLASS: Record<string, string> = {
   healthy: "badge-green",
   degraded: "badge-yellow",
   down: "badge-red",
 };
+
+const linkBtnClass = `${platformLinkClass} mr-2 cursor-pointer border-0 bg-transparent p-0`;
 
 export function PlatformSystemPanel() {
   const [health, setHealth] = useState<PlatformHealthDto | null>(null);
@@ -73,31 +97,31 @@ export function PlatformSystemPanel() {
   };
 
   return (
-    <div className="cp-section admin-dashboard">
-      <h2 className="adm-page-title">System health</h2>
-      {error && <p className="sp-filter-error">{error}</p>}
-      {loading && !health && <p className="platform-loading">Loading health…</p>}
+    <div className={cpSectionClass}>
+      <h2 className={admPageTitleClass}>System health</h2>
+      {error && <p className={filterErrorClass}>{error}</p>}
+      {loading && !health && <p className={platformLoadingClass}>Loading health…</p>}
 
       {health && (
         <>
-          <div className="adm-kpi-grid">
-            <div className="adm-kpi-card">
+          <div className={admKpiGridClass}>
+            <div className={admKpiCardClass}>
               <label>Overall status</label>
               <strong style={{ textTransform: "capitalize" }}>
                 {health.overallStatus}
               </strong>
             </div>
-            <div className="adm-kpi-card">
+            <div className={admKpiCardClass}>
               <label>Uptime (24h)</label>
               <strong>{health.uptimePct}%</strong>
             </div>
             {metrics && (
               <>
-                <div className="adm-kpi-card">
+                <div className={admKpiCardClass}>
                   <label>Error rate (7d)</label>
                   <strong>{metrics.errorRatePct}%</strong>
                 </div>
-                <div className="adm-kpi-card">
+                <div className={admKpiCardClass}>
                   <label>Memory (heap)</label>
                   <strong>{metrics.memoryUsagePct}%</strong>
                 </div>
@@ -105,30 +129,30 @@ export function PlatformSystemPanel() {
             )}
           </div>
 
-          <div className="platform-detail-grid">
+          <div className={platformDetailGridClass}>
             {health.services.map((s) => (
-              <section key={s.name} className="platform-detail-card">
+              <section key={s.name} className={platformDetailCardClass}>
                 <h3>{s.name}</h3>
                 <p>
-                  <span className={`badge ${STATUS_CLASS[s.status] ?? "badge-grey"}`}>
+                  <span className={badgeClass(STATUS_CLASS[s.status] ?? "badge-grey")}>
                     {s.status}
                   </span>
                 </p>
-                <p style={{ fontSize: "0.875rem", color: "#6b7280" }}>{s.detail}</p>
+                <p className="text-[0.875rem] text-[#6b7280]">{s.detail}</p>
               </section>
             ))}
           </div>
 
           {metrics && metrics.uptimeByDay.length > 0 && (
-            <div className="platform-detail-card" style={{ marginTop: "1rem" }}>
+            <div className={`${platformDetailCardClass} mt-4`}>
               <h3>Uptime by day</h3>
-              <div className="platform-plan-bars">
+              <div className={platformPlanBarsClass}>
                 {metrics.uptimeByDay.map((d) => (
-                  <div key={d.date} className="platform-plan-bar-row">
-                    <span className="platform-plan-bar-label">{d.date.slice(5)}</span>
-                    <div className="platform-plan-bar-track">
+                  <div key={d.date} className={platformPlanBarRowClass}>
+                    <span className={platformPlanBarLabelClass}>{d.date.slice(5)}</span>
+                    <div className={platformPlanBarTrackClass}>
                       <div
-                        className="platform-plan-bar-fill"
+                        className={platformPlanBarFillClass}
                         style={{
                           width: `${d.uptimePct}%`,
                           backgroundColor:
@@ -136,7 +160,7 @@ export function PlatformSystemPanel() {
                         }}
                       />
                     </div>
-                    <span className="platform-plan-bar-meta">{d.uptimePct}%</span>
+                    <span className={platformPlanBarMetaClass}>{d.uptimePct}%</span>
                   </div>
                 ))}
               </div>
@@ -144,9 +168,9 @@ export function PlatformSystemPanel() {
           )}
 
           {metrics && metrics.recentErrors.length > 0 && (
-            <div className="platform-table-wrapper" style={{ marginTop: "1rem" }}>
-              <h3 className="platform-section-title">Recent errors (7d)</h3>
-              <table className="platform-table">
+            <div className={`${platformTableWrapClass} mt-4`}>
+              <h3 className={platformSectionTitleClass}>Recent errors (7d)</h3>
+              <table className={platformTableClass}>
                 <thead>
                   <tr>
                     <th>Time</th>
@@ -175,9 +199,9 @@ export function PlatformSystemPanel() {
             </div>
           )}
 
-          <div className="platform-table-wrapper" style={{ marginTop: "1rem" }}>
-            <h3 className="platform-section-title">Alerts & incidents</h3>
-            <table className="platform-table">
+          <div className={`${platformTableWrapClass} mt-4`}>
+            <h3 className={platformSectionTitleClass}>Alerts & incidents</h3>
+            <table className={platformTableClass}>
               <thead>
                 <tr>
                   <th>Severity</th>
@@ -191,7 +215,7 @@ export function PlatformSystemPanel() {
                 {alerts.map((a) => (
                   <tr key={a.id}>
                     <td>
-                      <span className={`badge ${SEVERITY_CLASS[a.severity]}`}>
+                      <span className={badgeClass(SEVERITY_CLASS[a.severity])}>
                         {a.severity}
                       </span>
                     </td>
@@ -210,8 +234,7 @@ export function PlatformSystemPanel() {
                       {a.status === "OPEN" && (
                         <button
                           type="button"
-                          className="platform-link"
-                          style={{ background: "none", border: "none", cursor: "pointer", marginRight: "0.5rem" }}
+                          className={linkBtnClass}
                           disabled={updating === a.id}
                           onClick={() => updateAlert(a.id, "ACKNOWLEDGED")}
                         >
@@ -221,8 +244,7 @@ export function PlatformSystemPanel() {
                       {a.status !== "RESOLVED" && (
                         <button
                           type="button"
-                          className="platform-link"
-                          style={{ background: "none", border: "none", cursor: "pointer" }}
+                          className={linkBtnClass}
                           disabled={updating === a.id}
                           onClick={() => updateAlert(a.id, "RESOLVED")}
                         >
@@ -235,7 +257,7 @@ export function PlatformSystemPanel() {
               </tbody>
             </table>
             {alerts.length === 0 && (
-              <p className="platform-empty">No active alerts.</p>
+              <p className={platformEmptyClass}>No active alerts.</p>
             )}
           </div>
         </>

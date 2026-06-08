@@ -2,6 +2,24 @@
 
 import { buildSeatLabel } from "@repo/shared";
 import { aisleSplitIndex } from "@/lib/seat-layout";
+import {
+  admLayoutAisle,
+  admLayoutCabin,
+  admLayoutCabinLabels,
+  admLayoutCellBase,
+  admLayoutCellBusiness,
+  admLayoutCellDemo,
+  admLayoutCellEmpty,
+  admLayoutCellPremium,
+  admLayoutCellStandard,
+  admLayoutCellWrap,
+  admLayoutEditor,
+  admLayoutHint,
+  admLayoutLegend,
+  admLayoutRow,
+  admLayoutRowCells,
+  admLayoutRowNum,
+} from "./admin-tw";
 
 export type LayoutCellClass = "EMPTY" | "STANDARD" | "PREMIUM" | "BUSINESS";
 
@@ -15,10 +33,11 @@ type Props = {
 };
 
 function cellClassName(cls: LayoutCellClass): string {
-  if (cls === "EMPTY") return "adm-layout-cell adm-layout-cell--empty";
-  if (cls === "STANDARD") return "adm-layout-cell adm-layout-cell--standard";
-  if (cls === "PREMIUM") return "adm-layout-cell adm-layout-cell--premium";
-  return "adm-layout-cell adm-layout-cell--business";
+  const base = admLayoutCellBase;
+  if (cls === "EMPTY") return `${base} ${admLayoutCellEmpty}`;
+  if (cls === "STANDARD") return `${base} ${admLayoutCellStandard}`;
+  if (cls === "PREMIUM") return `${base} ${admLayoutCellPremium}`;
+  return `${base} ${admLayoutCellBusiness}`;
 }
 
 export function createEmptyGrid(rows: number, cols: number): LayoutCellClass[][] {
@@ -60,7 +79,7 @@ export function gridToTemplates(
   return templates;
 }
 
-export function LayoutEditorGrid({ rows, cols, grid, onChange }: Props) {
+export function LayoutEditorGrid({ rows: _rows, cols, grid, onChange }: Props) {
   const split = aisleSplitIndex(cols);
 
   function cycle(r: number, c: number) {
@@ -71,37 +90,37 @@ export function LayoutEditorGrid({ rows, cols, grid, onChange }: Props) {
     onChange(next);
   }
 
+  const demoCell = `${admLayoutCellBase} ${admLayoutCellDemo}`;
+
   return (
-    <div className="adm-layout-editor">
-      <div className="adm-layout-legend">
+    <div className={admLayoutEditor}>
+      <div className={admLayoutLegend}>
         <span>
-          <span className="adm-layout-cell adm-layout-cell--empty adm-layout-cell--demo" /> Aisle
+          <span className={`${demoCell} ${admLayoutCellEmpty}`} /> Aisle
         </span>
         <span>
-          <span className="adm-layout-cell adm-layout-cell--standard adm-layout-cell--demo" />{" "}
-          Standard
+          <span className={`${demoCell} ${admLayoutCellStandard}`} /> Standard
         </span>
         <span>
-          <span className="adm-layout-cell adm-layout-cell--premium adm-layout-cell--demo" /> Premium
+          <span className={`${demoCell} ${admLayoutCellPremium}`} /> Premium
         </span>
         <span>
-          <span className="adm-layout-cell adm-layout-cell--business adm-layout-cell--demo" />{" "}
-          Business
+          <span className={`${demoCell} ${admLayoutCellBusiness}`} /> Business
         </span>
-        <span className="adm-layout-hint">Click a cell to cycle type</span>
+        <span className={admLayoutHint}>Click a cell to cycle type</span>
       </div>
 
-      <div className="adm-layout-cabin">
-        <div className="adm-layout-cabin-labels">
+      <div className={admLayoutCabin}>
+        <div className={admLayoutCabinLabels}>
           <span>Front (entry)</span>
           <span>Driver</span>
         </div>
         {grid.map((row, ri) => (
-          <div key={ri} className="adm-layout-row">
-            <span className="adm-layout-row-num">{ri + 1}</span>
-            <div className="adm-layout-row-cells">
+          <div key={ri} className={admLayoutRow}>
+            <span className={admLayoutRowNum}>{ri + 1}</span>
+            <div className={admLayoutRowCells}>
               {row.map((cell, ci) => (
-                <span key={ci} className="adm-layout-cell-wrap">
+                <span key={ci} className={admLayoutCellWrap}>
                   <button
                     type="button"
                     className={cellClassName(cell)}
@@ -115,7 +134,7 @@ export function LayoutEditorGrid({ rows, cols, grid, onChange }: Props) {
                     {cell === "EMPTY" ? "·" : buildSeatLabel(ri + 1, ci + 1)}
                   </button>
                   {ci === split - 1 && cols > 2 && (
-                    <span className="adm-layout-aisle" aria-hidden />
+                    <span className={admLayoutAisle} aria-hidden />
                   )}
                 </span>
               ))}

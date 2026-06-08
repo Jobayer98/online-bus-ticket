@@ -13,12 +13,18 @@ export function HomeSectionHeader({
 }: HomeSectionHeaderProps) {
   return (
     <header
-      className={`home-section-header home-section-header--${align}`}
+      className={`mb-8 ${align === "center" ? "text-center" : ""}`}
       id={id}
     >
-      <h2 className="home-section-header__title">{title}</h2>
+      <h2 className="m-0 mb-2 text-[clamp(1.35rem,2.5vw,1.75rem)] font-bold tracking-tight text-[var(--text)]">
+        {title}
+      </h2>
       {subtitle ? (
-        <p className="home-section-header__subtitle">{subtitle}</p>
+        <p
+          className={`m-0 max-w-xl text-[0.975rem] leading-relaxed text-[var(--muted)] ${align === "center" ? "mx-auto" : ""}`}
+        >
+          {subtitle}
+        </p>
       ) : null}
     </header>
   );

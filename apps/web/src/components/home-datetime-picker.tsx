@@ -1,6 +1,5 @@
 "use client";
 
-import "./home-date-picker.css";
 import { useEffect, useId, useRef, useState } from "react";
 import {
   DatePickerCalendarPanel,
@@ -23,6 +22,15 @@ const HOURS = Array.from({ length: 24 }, (_, i) =>
 const MINUTES = Array.from({ length: 60 }, (_, i) =>
   String(i).padStart(2, "0"),
 );
+
+const triggerClass =
+  "m-0 box-border flex h-[42px] w-full cursor-pointer items-center justify-between gap-2 border border-[#d5d5d5] bg-white px-3 text-left text-[0.9rem] text-[#333] hover:border-[#aaa]";
+
+const timeSlotClass =
+  "cursor-pointer rounded border border-[#d5d5d5] bg-white px-1.5 py-1.5 text-center font-[inherit] text-[0.78rem] font-semibold text-[#333] hover:border-[var(--primary)] hover:bg-[#eef5ee]";
+
+const timeSlotSelectedClass =
+  "cursor-pointer rounded border border-[var(--primary)] bg-[var(--primary)] px-1.5 py-1.5 text-center font-[inherit] text-[0.78rem] font-semibold text-white";
 
 function CalendarIcon() {
   return (
@@ -152,32 +160,32 @@ export function HomeDateTimePicker({
   const displayTime = value && date ? time : "";
 
   return (
-    <div className="home-date-picker home-datetime-picker" ref={rootRef}>
+    <div className="relative z-[2] w-full" ref={rootRef}>
       <button
         type="button"
-        className={`home-date-trigger${open ? " is-open" : ""}`}
+        className={`${triggerClass} ${open ? "border-[var(--primary)] shadow-[0_0_0_2px_rgba(46,125,50,0.15)]" : ""}`}
         onClick={openPicker}
         aria-expanded={open}
         aria-haspopup="dialog"
         aria-controls={listboxId}
       >
-        <span className="home-date-trigger-text">
+        <span className="min-w-0 flex-1 truncate">
           {date ? (
             <>
-              <span className="day-name">{dayName},</span>
+              <span className="mr-1.5 font-bold">{dayName},</span>
               <span>{datePart}</span>
               {displayTime && (
                 <>
-                  <span className="home-datetime-sep">·</span>
-                  <span className="home-datetime-time-part">{displayTime}</span>
+                  <span className="mx-1 text-[#888]">·</span>
+                  <span className="font-semibold text-[#333]">{displayTime}</span>
                 </>
               )}
             </>
           ) : (
-            <span className="home-date-placeholder">Select date & time</span>
+            <span className="text-[#888]">Select date & time</span>
           )}
         </span>
-        <span className="home-date-trigger-icon">
+        <span className="flex shrink-0 text-[#666]">
           <CalendarIcon />
         </span>
       </button>
@@ -185,15 +193,15 @@ export function HomeDateTimePicker({
       {open && (
         <div
           id={listboxId}
-          className="home-date-dropdown home-datetime-dropdown"
+          className="absolute top-[calc(100%+6px)] left-0 z-50 w-[min(320px,92vw)] rounded-md border border-[#d5d5d5] bg-white p-3 shadow-[0_8px_28px_rgba(0,0,0,0.16)]"
           role="dialog"
           aria-label={step === "date" ? "Select date" : "Select time"}
         >
-          <div className="home-datetime-step-header">
+          <div className="mb-2.5 flex items-center justify-between border-b border-[#eee] pb-2">
             {step === "time" ? (
               <button
                 type="button"
-                className="home-datetime-back"
+                className="inline-flex cursor-pointer items-center gap-0.5 border-0 bg-transparent py-0.5 pr-1 pl-0 font-[inherit] text-[0.82rem] font-semibold text-[var(--primary-hover)] hover:text-[var(--primary)]"
                 onClick={goBackToDate}
                 aria-label="Back to date"
               >
@@ -201,9 +209,11 @@ export function HomeDateTimePicker({
                 <span>Date</span>
               </button>
             ) : (
-              <span className="home-datetime-step-title">Select date</span>
+              <span className="text-[0.85rem] font-bold text-[var(--primary-hover)]">
+                Select date
+              </span>
             )}
-            <span className="home-datetime-step-badge">
+            <span className="text-[0.72rem] font-semibold tracking-widest text-[#888]">
               {step === "date" ? "1 / 2" : "2 / 2"}
             </span>
           </div>
@@ -219,22 +229,28 @@ export function HomeDateTimePicker({
               onViewChange={setView}
             />
           ) : (
-            <div className="home-datetime-time-step">
+            <div className="flex flex-col gap-2.5">
               {draftDisplay && (
-                <p className="home-datetime-selected-date">
-                  <span className="day-name">{draftDisplay.dayName},</span>{" "}
+                <p className="m-0 rounded bg-[#e8f5e9] px-2.5 py-2 text-[0.88rem] text-[#222]">
+                  <span className="font-bold">{draftDisplay.dayName},</span>{" "}
                   {draftDisplay.datePart}
                 </p>
               )}
-              <p className="home-datetime-time-heading">Select time</p>
-              <div className="home-datetime-hour-grid" role="listbox" aria-label="Hour">
+              <p className="m-0 text-[0.8rem] font-semibold text-[#555]">Select time</p>
+              <div
+                className="grid max-h-[200px] grid-cols-4 gap-1.5 overflow-y-auto"
+                role="listbox"
+                aria-label="Hour"
+              >
                 {HOURS.map((h) => (
                   <button
                     key={h}
                     type="button"
                     role="option"
                     aria-selected={draftTime.slice(0, 2) === h}
-                    className={`home-datetime-hour${draftTime.slice(0, 2) === h ? " is-selected" : ""}`}
+                    className={
+                      draftTime.slice(0, 2) === h ? timeSlotSelectedClass : timeSlotClass
+                    }
                     onClick={() =>
                       setDraftTime(`${h}:${draftTime.slice(3, 5)}`)
                     }
@@ -243,14 +259,14 @@ export function HomeDateTimePicker({
                   </button>
                 ))}
               </div>
-              <div className="home-datetime-minute-row">
-                <span className="home-datetime-minute-label">Minute</span>
-                <div className="home-datetime-minute-grid">
+              <div className="flex flex-col gap-1.5">
+                <span className="text-[0.75rem] font-semibold text-[#666]">Minute</span>
+                <div className="flex flex-wrap gap-1.5">
                   {MINUTES.filter((m) => Number(m) % 5 === 0).map((m) => (
                     <button
                       key={m}
                       type="button"
-                      className={`home-datetime-minute${draftTime.slice(3, 5) === m ? " is-selected" : ""}`}
+                      className={`min-w-12 ${draftTime.slice(3, 5) === m ? timeSlotSelectedClass : timeSlotClass}`}
                       onClick={() =>
                         setDraftTime(`${draftTime.slice(0, 2)}:${m}`)
                       }
@@ -262,7 +278,7 @@ export function HomeDateTimePicker({
               </div>
               <button
                 type="button"
-                className="home-datetime-done"
+                className="mt-1 w-full cursor-pointer rounded border-0 bg-[var(--primary-hover)] px-3 py-2 font-[inherit] text-[0.85rem] font-bold text-white hover:bg-[#145214]"
                 onClick={confirmTime}
               >
                 Confirm {draftTime}

@@ -4,6 +4,31 @@ import { useCallback, useEffect, useState } from "react";
 import { apiDelete, apiGet, apiPatch, apiPost } from "@/lib/api-client";
 import { useGlobalLoading } from "@/components/global-loading-provider";
 import { CounterToast } from "@/components/counter/counter-toast";
+import {
+  admBtnDelete,
+  admBtnEdit,
+  admFormActionsButtons,
+  admFormActionsSpacer,
+  admFormActionsWithLabel,
+  admFormCard,
+  admFormRow,
+  admRowActions,
+} from "./admin-tw";
+import {
+  cpSection,
+  cpSectionTitle,
+  cpTable,
+  cpTableCell,
+  cpTableHead,
+  cpTableRow,
+  cpTableWrap,
+} from "@/components/counter/counter-tw";
+import {
+  spBtnBack,
+  spCheckoutField,
+  spFilterSearch,
+  spPanelError,
+} from "@/components/search/search-tw";
 
 type Stop = { id: string; name: string; city: string; code: string };
 
@@ -65,14 +90,14 @@ export function AdminStopsPanel() {
   }
 
   return (
-    <div className="cp-section">
+    <div className={cpSection}>
       <CounterToast message={toast} onDismiss={() => setToast(null)} />
-      <h2 className="cp-section-title">STOPS</h2>
+      <h2 className={cpSectionTitle}>STOPS</h2>
 
-      <form className="adm-form-card" onSubmit={submit}>
+      <form className={admFormCard} onSubmit={submit}>
         <h3>{editId ? "Edit stop" : "Add stop"}</h3>
-        <div className="adm-form-row">
-          <div className="sp-checkout-field">
+        <div className={admFormRow}>
+          <div className={spCheckoutField}>
             <label htmlFor="stop-name">Name</label>
             <input
               id="stop-name"
@@ -81,7 +106,7 @@ export function AdminStopsPanel() {
               required
             />
           </div>
-          <div className="sp-checkout-field">
+          <div className={spCheckoutField}>
             <label htmlFor="stop-city">City</label>
             <input
               id="stop-city"
@@ -90,7 +115,7 @@ export function AdminStopsPanel() {
               required
             />
           </div>
-          <div className="sp-checkout-field">
+          <div className={spCheckoutField}>
             <label htmlFor="stop-code">Code</label>
             <input
               id="stop-code"
@@ -100,47 +125,47 @@ export function AdminStopsPanel() {
               maxLength={10}
             />
           </div>
-          <div className="adm-form-actions adm-form-actions--with-label">
-            <span className="adm-form-actions__spacer" aria-hidden="true">
+          <div className={admFormActionsWithLabel}>
+            <span className={admFormActionsSpacer} aria-hidden="true">
               Actions
             </span>
-            <div className="adm-form-actions__buttons">
-              <button type="submit" className="sp-filter-search">
+            <div className={admFormActionsButtons}>
+              <button type="submit" className={spFilterSearch}>
                 {editId ? "Update" : "Add"}
               </button>
               {editId && (
-                <button type="button" className="sp-btn-back" onClick={resetForm}>
+                <button type="button" className={spBtnBack} onClick={resetForm}>
                   Cancel
                 </button>
               )}
             </div>
           </div>
         </div>
-        {error && <p className="sp-panel-error">{error}</p>}
+        {error && <p className={spPanelError}>{error}</p>}
       </form>
 
       {!loading && (
-        <div className="cp-table-wrap">
-          <table className="cp-table">
+        <div className={cpTableWrap}>
+          <table className={cpTable}>
             <thead>
               <tr>
-                <th>Code</th>
-                <th>Name</th>
-                <th>City</th>
-                <th>Actions</th>
+                <th className={cpTableHead}>Code</th>
+                <th className={cpTableHead}>Name</th>
+                <th className={cpTableHead}>City</th>
+                <th className={cpTableHead}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {stops.map((s) => (
-                <tr key={s.id}>
-                  <td>{s.code}</td>
-                  <td>{s.name}</td>
-                  <td>{s.city}</td>
-                  <td>
-                    <div className="adm-row-actions">
+                <tr key={s.id} className={cpTableRow}>
+                  <td className={cpTableCell}>{s.code}</td>
+                  <td className={cpTableCell}>{s.name}</td>
+                  <td className={cpTableCell}>{s.city}</td>
+                  <td className={cpTableCell}>
+                    <div className={admRowActions}>
                       <button
                         type="button"
-                        className="adm-btn-edit"
+                        className={admBtnEdit}
                         onClick={() => {
                           setEditId(s.id);
                           setForm({ name: s.name, city: s.city, code: s.code });
@@ -150,7 +175,7 @@ export function AdminStopsPanel() {
                       </button>
                       <button
                         type="button"
-                        className="adm-btn-delete"
+                        className={admBtnDelete}
                         onClick={() => remove(s.id, s.name)}
                       >
                         Delete

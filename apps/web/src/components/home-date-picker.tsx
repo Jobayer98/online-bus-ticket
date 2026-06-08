@@ -1,6 +1,5 @@
 "use client";
 
-import "./home-date-picker.css";
 import { useEffect, useId, useRef, useState } from "react";
 import { DatePickerCalendar, useCalendarView } from "@/components/date-picker-calendar";
 import { formatTripDateDisplay, getTodayIso } from "@/lib/trip-date";
@@ -33,6 +32,9 @@ function CalendarIcon() {
     </svg>
   );
 }
+
+const triggerClass =
+  "m-0 box-border flex h-[42px] w-full cursor-pointer items-center justify-between gap-2 border border-[#d5d5d5] bg-white px-3 text-left text-[0.9rem] text-[#333] hover:border-[#aaa]";
 
 export function HomeDatePicker({
   value,
@@ -67,26 +69,26 @@ export function HomeDatePicker({
     : { dayName: "", datePart: "" };
 
   return (
-    <div className="home-date-picker" ref={rootRef}>
+    <div className="relative z-[2] w-full" ref={rootRef}>
       <button
         type="button"
-        className={`home-date-trigger${open ? " is-open" : ""}`}
+        className={`${triggerClass} ${open ? "border-[var(--primary)] shadow-[0_0_0_2px_rgba(46,125,50,0.15)]" : ""}`}
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
         aria-haspopup="dialog"
         aria-controls={listboxId}
       >
-        <span className="home-date-trigger-text">
+        <span className="min-w-0 flex-1 truncate">
           {value ? (
             <>
-              <span className="day-name">{dayName},</span>
+              <span className="mr-1.5 font-bold">{dayName},</span>
               <span>{datePart}</span>
             </>
           ) : (
-            <span className="home-date-placeholder">Select date</span>
+            <span className="text-[#888]">Select date</span>
           )}
         </span>
-        <span className="home-date-trigger-icon">
+        <span className="flex shrink-0 text-[#666]">
           <CalendarIcon />
         </span>
       </button>

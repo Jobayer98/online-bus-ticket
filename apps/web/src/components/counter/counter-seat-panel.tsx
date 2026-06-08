@@ -1,6 +1,24 @@
 "use client";
 
 import { SeatMapGrid } from "@/components/search/seat-map-grid";
+import {
+  spBoardingField,
+  spBtnContinue,
+  spLegendItem,
+  spLegendSwatchAvailable,
+  spLegendSwatchSelected,
+  spLegendSwatchSold,
+  spSeatLegend,
+  spSeatPanelMap,
+  spSeatPanelSide,
+  spSeatPanelV2,
+  spSeatRemove,
+  spSeatTable,
+  spSeatTableEmpty,
+  spSeatTableTotal,
+  spSeatTableWrap,
+  spSeatTripMeta,
+} from "@/components/search/search-tw";
 import { formatDateDdMmYyyy, formatTime12h } from "@/lib/format";
 import type { ScheduleCardDto, SeatMapDto } from "@repo/shared";
 
@@ -50,8 +68,8 @@ export function CounterSeatPanel({
   const journeyDisplay = `${formatDateDdMmYyyy(tripDate)} ${formatTime12h(schedule.departureAt)}`;
 
   return (
-    <div className="sp-seat-panel-v2">
-      <div className="sp-seat-panel-v2__map">
+    <div className={spSeatPanelV2}>
+      <div className={spSeatPanelMap}>
         <SeatMapGrid
           seats={seatMap.seats}
           rows={seatMap.rows}
@@ -61,23 +79,23 @@ export function CounterSeatPanel({
         />
       </div>
 
-      <aside className="sp-seat-panel-v2__side">
-        <div className="sp-seat-legend sp-seat-legend--side">
-          <span className="sp-legend-item">
-            <span className="sp-legend-swatch sp-legend-swatch--available" />
+      <aside className={spSeatPanelSide}>
+        <div className={spSeatLegend}>
+          <span className={spLegendItem}>
+            <span className={spLegendSwatchAvailable} />
             Available Seat
           </span>
-          <span className="sp-legend-item">
-            <span className="sp-legend-swatch sp-legend-swatch--selected" />
+          <span className={spLegendItem}>
+            <span className={spLegendSwatchSelected} />
             Selected Seat
           </span>
-          <span className="sp-legend-item">
-            <span className="sp-legend-swatch sp-legend-swatch--sold" />
+          <span className={spLegendItem}>
+            <span className={spLegendSwatchSold} />
             Sold Seat
           </span>
         </div>
 
-        <div className="sp-boarding-field">
+        <div className={spBoardingField}>
           <label htmlFor={`cp-bp-${schedule.scheduleId}`}>Boarding Place</label>
           <select
             id={`cp-bp-${schedule.scheduleId}`}
@@ -93,8 +111,8 @@ export function CounterSeatPanel({
           </select>
         </div>
 
-        <div className="sp-seat-table-wrap">
-          <table className="sp-seat-table">
+        <div className={spSeatTableWrap}>
+          <table className={spSeatTable}>
             <thead>
               <tr>
                 <th>Seat</th>
@@ -105,7 +123,7 @@ export function CounterSeatPanel({
             <tbody>
               {lineItems.length === 0 ? (
                 <tr>
-                  <td colSpan={3} className="sp-seat-table-empty">
+                  <td colSpan={3} className={spSeatTableEmpty}>
                     No seats selected
                   </td>
                 </tr>
@@ -117,7 +135,7 @@ export function CounterSeatPanel({
                     <td>
                       <button
                         type="button"
-                        className="sp-seat-remove"
+                        className={spSeatRemove}
                         onClick={() => removeSeat(s.label)}
                         aria-label={`Remove seat ${s.label}`}
                       >
@@ -130,7 +148,7 @@ export function CounterSeatPanel({
             </tbody>
             {lineItems.length > 0 && (
               <tfoot>
-                <tr className="sp-seat-table-total">
+                <tr className={spSeatTableTotal}>
                   <td>Total: {selected.length}</td>
                   <td colSpan={2}>{(total / 100).toFixed(0)}</td>
                 </tr>
@@ -139,7 +157,7 @@ export function CounterSeatPanel({
           </table>
         </div>
 
-        <div className="sp-seat-trip-meta">
+        <div className={spSeatTripMeta}>
           <div>
             <span>Journey Time:</span> {journeyDisplay}
           </div>
@@ -153,7 +171,7 @@ export function CounterSeatPanel({
 
         <button
           type="button"
-          className="sp-btn-continue-v2"
+          className={spBtnContinue}
           disabled={disabled}
           onClick={onContinue}
         >

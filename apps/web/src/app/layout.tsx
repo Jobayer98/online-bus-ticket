@@ -11,7 +11,6 @@ import { SiteThemeProvider } from "@/components/site-theme-provider";
 import { SiteShell } from "@/components/site-shell";
 import { fetchCmsSiteBundle } from "@/lib/cms-server";
 import "./globals.css";
-import "./responsive.css";
 
 const inter = Inter({
   subsets: ["latin"],

@@ -3,18 +3,34 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { btnBusyClass } from "@/components/brand-loading-overlay";
 import { apiGet, apiPost } from "@/lib/api-client";
 import {
   releaseActiveHold,
   setActiveHoldId,
 } from "@/lib/active-hold";
 import { formatMoneyBdt } from "@/lib/format";
-import { groupSeatsByRow, seatRow } from "@/lib/seat-layout";
 import { useGlobalLoading } from "@/components/global-loading-provider";
 import { SeatHoldTimer } from "@/components/search/seat-hold-timer";
+import { SeatMapGrid } from "@/components/search/seat-map-grid";
 import type { CreateBookingResponseDto, SeatMapDto, HoldDto } from "@repo/shared";
 import { buildPaymentUrl } from "@/lib/booking-access";
 import { getGuestSessionId } from "@/lib/guest-session";
+
+const bookingPageClass =
+  "min-h-[calc(100vh-57px)] bg-[var(--bg,#f9fafb)] px-4 py-6 pb-8";
+const bookingPageCheckoutClass = "bg-white";
+const bookingInnerClass = "mx-auto max-w-[var(--container-public,1100px)]";
+const bookingBackClass =
+  "mb-4 inline-block text-[0.833rem] font-semibold text-[var(--primary)] no-underline";
+const bookingErrorClass = "mb-4 text-[0.833rem] text-[var(--danger)]";
+const bookingSummaryClass = "text-[0.833rem] text-[#444]";
+const bookingHoldSummaryClass =
+  "mb-4 rounded-[var(--radius-sm,6px)] border border-[var(--green-100,#dcfce7)] bg-[var(--green-50,#f0fdf4)] px-4 py-3 text-[0.833rem] [&_p]:my-1";
+const bookingFormClass =
+  "[&_input]:box-border [&_input]:min-h-12 [&_input]:w-full [&_input]:rounded-[var(--radius-sm,6px)] [&_input]:border [&_input]:border-[var(--border)] [&_input]:px-3 [&_input]:text-base [&_input]:font-[inherit] [&_input]:focus-visible:border-[var(--primary)] [&_input]:focus-visible:shadow-[0_0_0_3px_var(--primary-light)] [&_input]:focus-visible:outline-2 [&_input]:focus-visible:outline-[var(--primary)] [&_label]:mt-3 [&_label]:block [&_label]:text-[0.833rem] [&_label]:font-medium [&_select]:box-border [&_select]:min-h-12 [&_select]:w-full [&_select]:rounded-[var(--radius-sm,6px)] [&_select]:border [&_select]:border-[var(--border)] [&_select]:px-3 [&_select]:text-base [&_select]:font-[inherit] [&_select]:focus-visible:border-[var(--primary)] [&_select]:focus-visible:shadow-[0_0_0_3px_var(--primary-light)] [&_select]:focus-visible:outline-2 [&_select]:focus-visible:outline-[var(--primary)]";
+const bookingBtnClass =
+  "mt-5 min-h-12 w-full cursor-pointer rounded-[var(--radius-sm,6px)] border-0 bg-[var(--primary)] px-3 py-2.5 font-[inherit] text-base font-semibold text-[var(--text-on-primary,#fff)] hover:bg-[var(--primary-hover)] disabled:cursor-not-allowed disabled:opacity-60";
 
 export function BookingPageContent() {
   const { scheduleId } = useParams<{ scheduleId: string }>();
@@ -118,16 +134,12 @@ export function BookingPageContent() {
   }
 
   if (!seatMap) {
-    return <div className="booking-page" aria-busy="true" />;
+    return <div className={bookingPageClass} aria-busy="true" />;
   }
 
-  const cols = seatMap.cols || 4;
-  const mid = Math.ceil(cols / 2);
-  const rows = groupSeatsByRow(seatMap.seats);
-
   return (
-    <div className={`booking-page${fromSearch ? " booking-page--checkout" : ""}`}>
-      <div className="booking-inner">
+    <div className={`${bookingPageClass}${fromSearch ? ` ${bookingPageCheckoutClass}` : ""}`}>
+      <div className={bookingInnerClass}>
         {fromSearch && (
           <Link
             href={
@@ -135,40 +147,27 @@ export function BookingPageContent() {
                 ? sessionStorage.getItem("last-search-url") ?? "/"
                 : "/"
             }
-            className="booking-back"
+            className={bookingBackClass}
             onClick={() => void releaseActiveHold()}
           >
             ← Back to search
           </Link>
         )}
-        <h1>{step === "passenger" ? "Passenger details" : "Select seats"}</h1>
-        {error && <p className="booking-error">{error}</p>}
+        <h1 className="m-0 mb-4 text-[var(--text-xl,1.111rem)] font-bold tracking-tight">
+          {step === "passenger" ? "Passenger details" : "Select seats"}
+        </h1>
+        {error && <p className={bookingErrorClass}>{error}</p>}
 
         {step === "seats" && (
           <>
-            <div className="booking-seat-map">
-              {rows.map((rowSeats) => (
-                <div
-                  key={rowSeats.map((s) => s.label).join("-")}
-                  className="booking-seat-row"
-                >
-                  {rowSeats.map((s, idx) => (
-                    <span key={s.label} style={{ display: "contents" }}>
-                      {idx === mid && <span className="booking-aisle" />}
-                      <button
-                        type="button"
-                        className={`booking-seat ${selected.includes(s.label) ? "selected" : s.status.toLowerCase()}`}
-                        disabled={s.status !== "AVAILABLE"}
-                        onClick={() => toggleSeat(s.label, s.status)}
-                      >
-                        {s.label}
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              ))}
-            </div>
-            <p className="booking-summary-line">
+            <SeatMapGrid
+              seats={seatMap.seats}
+              rows={seatMap.rows}
+              cols={seatMap.cols || 4}
+              selected={selected}
+              onToggle={toggleSeat}
+            />
+            <p className={bookingSummaryClass}>
               Selected: {selected.join(", ") || "none"} · Total:{" "}
               {formatMoneyBdt(
                 seatMap.seats
@@ -178,7 +177,7 @@ export function BookingPageContent() {
             </p>
             <button
               type="button"
-              className={`booking-btn${submitting ? " btn-is-busy" : ""}`}
+              className={`${bookingBtnClass}${submitting ? ` ${btnBusyClass}` : ""}`}
               disabled={submitting}
               aria-busy={submitting}
               onClick={() => void createHold()}
@@ -189,7 +188,7 @@ export function BookingPageContent() {
         )}
 
         {step === "passenger" && hold && (
-          <div className="booking-form">
+          <div className={bookingFormClass}>
             <SeatHoldTimer
               expiresAt={hold.expiresAt}
               onExpired={() => {
@@ -199,7 +198,7 @@ export function BookingPageContent() {
                 setError("Your seat hold expired. Please select seats again.");
               }}
             />
-            <div className="booking-hold-summary">
+            <div className={bookingHoldSummaryClass}>
               <p>
                 <strong>Seats:</strong> {hold.seatLabels.join(", ")}
               </p>
@@ -245,7 +244,7 @@ export function BookingPageContent() {
             />
             <button
               type="button"
-              className={`booking-btn${submitting ? " btn-is-busy" : ""}`}
+              className={`${bookingBtnClass}${submitting ? ` ${btnBusyClass}` : ""}`}
               disabled={submitting}
               aria-busy={submitting}
               onClick={() => void submitBooking()}

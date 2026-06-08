@@ -8,6 +8,31 @@ import { useGlobalLoading } from "@/components/global-loading-provider";
 import { formatBusTypeLabel } from "@/lib/format";
 import { CounterToast } from "@/components/counter/counter-toast";
 import { AdminCsvImport } from "@/components/admin/admin-csv-import";
+import {
+  admBtnDelete,
+  admBtnEdit,
+  admFormActionsButtons,
+  admFormActionsSpacer,
+  admFormActionsWithLabel,
+  admFormCard,
+  admFormRow,
+  admRowActions,
+} from "./admin-tw";
+import {
+  cpSection,
+  cpSectionTitle,
+  cpTable,
+  cpTableCell,
+  cpTableHead,
+  cpTableRow,
+  cpTableWrap,
+} from "@/components/counter/counter-tw";
+import {
+  spBtnBack,
+  spCheckoutField,
+  spFilterSearch,
+  spPanelError,
+} from "@/components/search/search-tw";
 
 type Layout = { id: string; name: string };
 type Coach = {
@@ -130,14 +155,14 @@ export function AdminCoachesPanel() {
   }
 
   return (
-    <div className="cp-section">
+    <div className={cpSection}>
       <CounterToast message={toast} onDismiss={() => setToast(null)} />
-      <h2 className="cp-section-title">COACHES</h2>
+      <h2 className={cpSectionTitle}>COACHES</h2>
 
-      <form className="adm-form-card" onSubmit={submit}>
+      <form className={admFormCard} onSubmit={submit}>
         <h3>{editId ? "Edit coach" : "Add coach"}</h3>
-        <div className="adm-form-row">
-          <div className="sp-checkout-field">
+        <div className={admFormRow}>
+          <div className={spCheckoutField}>
             <label htmlFor="coach-num">Coach number</label>
             <input
               id="coach-num"
@@ -148,7 +173,7 @@ export function AdminCoachesPanel() {
               required
             />
           </div>
-          <div className="sp-checkout-field">
+          <div className={spCheckoutField}>
             <label htmlFor="coach-type">Bus type</label>
             <select
               id="coach-type"
@@ -164,7 +189,7 @@ export function AdminCoachesPanel() {
               <option value="NON_AC">Non AC</option>
             </select>
           </div>
-          <div className="sp-checkout-field">
+          <div className={spCheckoutField}>
             <label htmlFor="coach-layout">Seat layout</label>
             <select
               id="coach-layout"
@@ -181,23 +206,23 @@ export function AdminCoachesPanel() {
               ))}
             </select>
           </div>
-          <div className="adm-form-actions adm-form-actions--with-label">
-            <span className="adm-form-actions__spacer" aria-hidden="true">
+          <div className={admFormActionsWithLabel}>
+            <span className={admFormActionsSpacer} aria-hidden="true">
               Actions
             </span>
-            <div className="adm-form-actions__buttons">
-              <button type="submit" className="sp-filter-search">
+            <div className={admFormActionsButtons}>
+              <button type="submit" className={spFilterSearch}>
                 {editId ? "Update" : "Add"}
               </button>
               {editId && (
-                <button type="button" className="sp-btn-back" onClick={resetForm}>
+                <button type="button" className={spBtnBack} onClick={resetForm}>
                   Cancel
                 </button>
               )}
             </div>
           </div>
         </div>
-        {error && <p className="sp-panel-error">{error}</p>}
+        {error && <p className={spPanelError}>{error}</p>}
       </form>
 
       <AdminCsvImport
@@ -211,27 +236,27 @@ export function AdminCoachesPanel() {
       />
 
       {!loading && (
-        <div className="cp-table-wrap">
-          <table className="cp-table">
+        <div className={cpTableWrap}>
+          <table className={cpTable}>
             <thead>
               <tr>
-                <th>Coach #</th>
-                <th>Type</th>
-                <th>Layout</th>
-                <th>Actions</th>
+                <th className={cpTableHead}>Coach #</th>
+                <th className={cpTableHead}>Type</th>
+                <th className={cpTableHead}>Layout</th>
+                <th className={cpTableHead}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {coaches.map((c) => (
-                <tr key={c.id}>
-                  <td>{c.coachNumber}</td>
-                  <td>{formatBusTypeLabel(c.busType)}</td>
-                  <td>{c.seatLayout?.name ?? "—"}</td>
-                  <td>
-                    <div className="adm-row-actions">
+                <tr key={c.id} className={cpTableRow}>
+                  <td className={cpTableCell}>{c.coachNumber}</td>
+                  <td className={cpTableCell}>{formatBusTypeLabel(c.busType)}</td>
+                  <td className={cpTableCell}>{c.seatLayout?.name ?? "—"}</td>
+                  <td className={cpTableCell}>
+                    <div className={admRowActions}>
                       <button
                         type="button"
-                        className="adm-btn-edit"
+                        className={admBtnEdit}
                         onClick={() => {
                           setEditId(c.id);
                           setForm({
@@ -245,7 +270,7 @@ export function AdminCoachesPanel() {
                       </button>
                       <button
                         type="button"
-                        className="adm-btn-delete"
+                        className={admBtnDelete}
                         onClick={() => remove(c.id, c.coachNumber)}
                       >
                         Delete

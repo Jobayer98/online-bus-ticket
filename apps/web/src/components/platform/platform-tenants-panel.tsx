@@ -12,6 +12,29 @@ import {
 } from "@/lib/platform-api-client";
 import { formatMoneyBdt } from "@/lib/format";
 import type { PlatformTenantListItemDto } from "@repo/shared";
+import {
+  admPageTitleClass,
+  badgeSelectClass,
+  cpSectionClass,
+  platformBulkBarClass,
+  platformBtnClass,
+  platformBtnPrimaryClass,
+  platformEmptyClass,
+  platformErrorClass,
+  platformFiltersClass,
+  platformLinkClass,
+  platformLoadingClass,
+  platformMetaClass,
+  platformModalActionsClass,
+  platformModalClass,
+  platformModalOverlayClass,
+  platformPaginationClass,
+  platformPanelHeadClass,
+  platformSearchClass,
+  platformTableClass,
+  platformTableRowClickClass,
+  platformTableWrapClass,
+} from "./platform-styles";
 
 const PLAN_COLORS: Record<string, string> = {
   FREE: "badge-grey",
@@ -243,19 +266,19 @@ export function PlatformTenantsPanel() {
   }
 
   return (
-    <div className="cp-section">
-      <div className="platform-panel-head">
-        <h2 className="adm-page-title">Tenant management</h2>
+    <div className={cpSectionClass}>
+      <div className={platformPanelHeadClass}>
+        <h2 className={admPageTitleClass}>Tenant management</h2>
         <button
           type="button"
-          className="platform-btn platform-btn--primary"
+          className={platformBtnPrimaryClass}
           onClick={() => setShowCreate(true)}
         >
           + Create tenant
         </button>
       </div>
 
-      <div className="platform-filters">
+      <div className={platformFiltersClass}>
         <select
           value={filters.planStatus}
           onChange={(e) => {
@@ -288,17 +311,17 @@ export function PlatformTenantsPanel() {
           placeholder="Search name or slug…"
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
-          className="platform-search"
+          className={platformSearchClass}
         />
       </div>
 
-      {loading && <p className="platform-loading">Loading tenants…</p>}
-      {error && <div className="platform-error">{error}</div>}
+      {loading && <p className={platformLoadingClass}>Loading tenants…</p>}
+      {error && <div className={platformErrorClass}>{error}</div>}
 
       {!loading && !error && (
         <>
           {selected.size > 0 && (
-            <div className="platform-bulk-bar">
+            <div className={platformBulkBarClass}>
               <span>{selected.size} selected</span>
               <button type="button" disabled={bulkBusy} onClick={() => setShowAnnounce(true)}>
                 Send announcement
@@ -312,8 +335,8 @@ export function PlatformTenantsPanel() {
             </div>
           )}
 
-          <div className="platform-table-wrapper">
-            <table className="platform-table">
+          <div className={platformTableWrapClass}>
+            <table className={platformTableClass}>
               <thead>
                 <tr>
                   <th>
@@ -339,7 +362,7 @@ export function PlatformTenantsPanel() {
                 {tenants.map((t) => (
                   <tr
                     key={t.id}
-                    className="platform-table-row-click"
+                    className={platformTableRowClickClass}
                     onClick={() => router.push(`/platform/tenants/${t.id}`)}
                   >
                     <td onClick={(e) => e.stopPropagation()}>
@@ -358,7 +381,7 @@ export function PlatformTenantsPanel() {
                     </td>
                     <td onClick={(e) => e.stopPropagation()}>
                       <select
-                        className={`badge ${PLAN_COLORS[t.planTier]}`}
+                        className={badgeSelectClass(PLAN_COLORS[t.planTier])}
                         value={t.planTier}
                         disabled={updating === t.id}
                         onChange={(e) =>
@@ -372,7 +395,7 @@ export function PlatformTenantsPanel() {
                     </td>
                     <td onClick={(e) => e.stopPropagation()}>
                       <select
-                        className={`badge ${STATUS_COLORS[t.planStatus]}`}
+                        className={badgeSelectClass(STATUS_COLORS[t.planStatus])}
                         value={t.planStatus}
                         disabled={updating === t.id}
                         onChange={(e) =>
@@ -392,7 +415,7 @@ export function PlatformTenantsPanel() {
                       {new Date(t.createdAt).toLocaleDateString("en-GB")}
                     </td>
                     <td onClick={(e) => e.stopPropagation()}>
-                      <Link href={`/platform/tenants/${t.id}`} className="platform-link">
+                      <Link href={`/platform/tenants/${t.id}`} className={platformLinkClass}>
                         Details
                       </Link>
                     </td>
@@ -401,11 +424,11 @@ export function PlatformTenantsPanel() {
               </tbody>
             </table>
             {tenants.length === 0 && (
-              <p className="platform-empty">No tenants match your filters.</p>
+              <p className={platformEmptyClass}>No tenants match your filters.</p>
             )}
           </div>
 
-          <div className="platform-pagination">
+          <div className={platformPaginationClass}>
             <button
               type="button"
               disabled={page <= 1}
@@ -429,17 +452,17 @@ export function PlatformTenantsPanel() {
 
       {showAnnounce && (
         <div
-          className="platform-modal-overlay"
+          className={platformModalOverlayClass}
           onClick={() => !bulkBusy && setShowAnnounce(false)}
           role="presentation"
         >
           <form
-            className="platform-modal"
+            className={platformModalClass}
             onSubmit={sendAnnouncement}
             onClick={(e) => e.stopPropagation()}
           >
             <h3>Send announcement</h3>
-            <p className="platform-meta">
+            <p className={platformMetaClass}>
               {selected.size > 0
                 ? `To ${selected.size} selected tenant(s)`
                 : "To all tenants"}
@@ -476,13 +499,13 @@ export function PlatformTenantsPanel() {
                 required
               />
             </label>
-            <div className="platform-modal-actions">
-              <button type="button" disabled={bulkBusy} onClick={() => setShowAnnounce(false)}>
+            <div className={platformModalActionsClass}>
+              <button type="button" className={platformBtnClass} disabled={bulkBusy} onClick={() => setShowAnnounce(false)}>
                 Cancel
               </button>
               <button
                 type="submit"
-                className="platform-btn platform-btn--primary"
+                className={platformBtnPrimaryClass}
                 disabled={bulkBusy}
               >
                 Send
@@ -494,12 +517,12 @@ export function PlatformTenantsPanel() {
 
       {showCreate && (
         <div
-          className="platform-modal-overlay"
+          className={platformModalOverlayClass}
           onClick={() => !creating && setShowCreate(false)}
           role="presentation"
         >
           <form
-            className="platform-modal"
+            className={platformModalClass}
             onSubmit={submitCreate}
             onClick={(e) => e.stopPropagation()}
           >
@@ -541,9 +564,10 @@ export function PlatformTenantsPanel() {
                 <option value="ENTERPRISE">ENTERPRISE</option>
               </select>
             </label>
-            <div className="platform-modal-actions">
+            <div className={platformModalActionsClass}>
               <button
                 type="button"
+                className={platformBtnClass}
                 onClick={() => setShowCreate(false)}
                 disabled={creating}
               >
@@ -551,7 +575,7 @@ export function PlatformTenantsPanel() {
               </button>
               <button
                 type="submit"
-                className="platform-btn platform-btn--primary"
+                className={platformBtnPrimaryClass}
                 disabled={creating}
               >
                 {creating ? "Creating…" : "Create"}

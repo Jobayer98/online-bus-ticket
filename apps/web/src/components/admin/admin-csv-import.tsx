@@ -2,6 +2,27 @@
 
 import { useRef, useState } from "react";
 import { downloadCsv, parseCsv } from "@/lib/csv-parse";
+import {
+  admCsvImport,
+  admCsvImportActions,
+  admCsvImportErrors,
+  admCsvImportFile,
+  admCsvImportHint,
+  admCsvImportPreview,
+  admFormCard,
+} from "./admin-tw";
+import {
+  cpTable,
+  cpTableCell,
+  cpTableHead,
+  cpTableRow,
+  cpTableWrap,
+} from "@/components/counter/counter-tw";
+import {
+  spBtnBack,
+  spFilterSearch,
+  spPanelError,
+} from "@/components/search/search-tw";
 
 type Props = {
   title: string;
@@ -68,12 +89,12 @@ export function AdminCsvImport({
   const dataRows = preview.length > 1 ? preview.slice(1) : [];
 
   return (
-    <div className="adm-form-card adm-csv-import">
+    <div className={`${admFormCard} ${admCsvImport}`.trim()}>
       <h3>{title}</h3>
-      <div className="adm-csv-import__actions">
+      <div className={admCsvImportActions}>
         <button
           type="button"
-          className="sp-btn-back"
+          className={spBtnBack}
           onClick={() => downloadCsv(templateFilename, templateContent)}
         >
           Download template
@@ -83,47 +104,51 @@ export function AdminCsvImport({
           type="file"
           accept=".csv,text/csv"
           onChange={handleFileChange}
-          className="adm-csv-import__file"
+          className={admCsvImportFile}
         />
         <button
           type="button"
-          className="sp-filter-search"
+          className={spFilterSearch}
           disabled={importing}
           onClick={() => void handleImport()}
         >
           {importing ? "Importing…" : "Import"}
         </button>
       </div>
-      {fileError && <p className="sp-panel-error">{fileError}</p>}
+      {fileError && <p className={spPanelError}>{fileError}</p>}
       {importErrors.length > 0 && (
-        <ul className="adm-csv-import__errors">
+        <ul className={admCsvImportErrors}>
           {importErrors.map((msg) => (
             <li key={msg}>{msg}</li>
           ))}
         </ul>
       )}
       {preview.length > 0 && (
-        <div className="cp-table-wrap adm-csv-import__preview">
-          <table className="cp-table">
+        <div className={`${cpTableWrap} ${admCsvImportPreview}`}>
+          <table className={cpTable}>
             <thead>
               <tr>
                 {headerRow.map((h) => (
-                  <th key={h}>{h}</th>
+                  <th key={h} className={cpTableHead}>
+                    {h}
+                  </th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {dataRows.map((row, i) => (
-                <tr key={i}>
+                <tr key={i} className={cpTableRow}>
                   {row.map((cell, j) => (
-                    <td key={j}>{cell}</td>
+                    <td key={j} className={cpTableCell}>
+                      {cell}
+                    </td>
                   ))}
                 </tr>
               ))}
             </tbody>
           </table>
           {preview.length > 6 && (
-            <p className="adm-csv-import__hint">Showing first 5 data rows</p>
+            <p className={admCsvImportHint}>Showing first 5 data rows</p>
           )}
         </div>
       )}

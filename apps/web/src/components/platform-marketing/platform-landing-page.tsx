@@ -115,8 +115,8 @@ function FeatureVisual({ type }: { type: "seats" | "chart" }) {
 
 export function PlatformLandingPage() {
   return (
-    <div className="bg-surface text-on-surface overflow-x-hidden gradient-mesh min-h-screen">
-      <nav className="fixed top-0 w-full z-50 glass backdrop-blur-md border-b border-outline-variant/20">
+    <div className="min-h-screen overflow-x-hidden bg-surface text-on-surface [background-image:radial-gradient(at_0%_0%,rgba(5,150,105,0.05)_0px,transparent_50%),radial-gradient(at_100%_0%,rgba(133,248,196,0.1)_0px,transparent_50%)]">
+      <nav className="fixed top-0 z-50 w-full border-b border-outline-variant/20 bg-white/70 backdrop-blur-md">
         <div className="flex justify-between items-center px-4 md:px-10 py-4 max-w-7xl mx-auto">
           <div className="flex items-center gap-8">
             <Link href="/" className="flex items-center gap-2">
@@ -230,7 +230,7 @@ export function PlatformLandingPage() {
               priority
             />
             <div className="hidden lg:block absolute -right-12 top-1/4 w-80 transform rotate-3 hover:rotate-0 transition-transform duration-500">
-              <div className="glass p-4 rounded-2xl border border-white/20 shadow-2xl">
+              <div className="rounded-2xl border border-white/20 bg-white/70 p-4 shadow-2xl backdrop-blur-md">
                 <Image
                   src={SEAT_BUILDER_IMG}
                   alt="Interactive bus seat layout builder"
@@ -335,7 +335,7 @@ export function PlatformLandingPage() {
                 return (
                   <div
                     key={feature.title}
-                    className="md:col-span-2 bento-card bg-surface-container-lowest p-8 rounded-3xl border border-outline-variant/20 flex flex-col md:flex-row gap-8 items-center"
+                    className="flex flex-col items-center gap-8 rounded-3xl border border-outline-variant/20 bg-surface-container-lowest p-8 transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_20px_25px_-5px_rgba(0,0,0,0.05),0_10px_10px_-5px_rgba(0,0,0,0.01)] md:col-span-2 md:flex-row"
                   >
                     <div className="flex-1">
                       <span className="inline-flex p-3 bg-primary/10 text-primary rounded-xl mb-6">
@@ -356,7 +356,7 @@ export function PlatformLandingPage() {
               return (
                 <div
                   key={feature.title}
-                  className={`bento-card bg-surface-container-lowest p-8 rounded-3xl border border-outline-variant/20 ${
+                  className={`rounded-3xl border border-outline-variant/20 bg-surface-container-lowest p-8 transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_20px_25px_-5px_rgba(0,0,0,0.05),0_10px_10px_-5px_rgba(0,0,0,0.01)] ${
                     feature.large ? "md:col-span-2 flex flex-col justify-between overflow-hidden relative" : ""
                   }`}
                 >

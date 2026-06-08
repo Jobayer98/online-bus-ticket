@@ -38,28 +38,38 @@ export function SeatHoldTimer({
   const isUrgent = secondsLeft <= 120 && !isExpired;
 
   const ringColor = useMemo(() => {
-    if (isExpired) return "var(--color-danger)";
-    if (isUrgent) return "var(--color-danger)";
-    if (secondsLeft <= 300) return "var(--color-warning)";
-    return "var(--color-warning)";
+    if (isExpired) return "var(--danger)";
+    if (isUrgent) return "var(--danger)";
+    if (secondsLeft <= 300) return "var(--warning)";
+    return "var(--warning)";
   }, [isExpired, isUrgent, secondsLeft]);
 
   if (!countdown) return null;
 
+  const baseClass =
+    "flex items-center gap-3 rounded-[var(--radius-md)] border px-4 py-[0.65rem] text-sm font-semibold";
+  const variantMargin =
+    variant === "payment" ? "mb-4" : "mx-4 mt-3";
+  const stateClass =
+    isExpired || isUrgent
+      ? " border-red-300 bg-red-50 text-red-900"
+      : " border-amber-300 bg-amber-50 text-amber-900";
+  const urgentAnim = isUrgent && !isExpired ? " animate-pulse" : "";
+
   return (
     <div
-      className={`sp-hold-timer sp-hold-timer--${variant}${isExpired ? " is-expired" : ""}${isUrgent ? " is-urgent" : ""}`}
+      className={`${baseClass} ${variantMargin} ${stateClass}${urgentAnim}`}
       role="timer"
       aria-live="polite"
     >
-      <div className="sp-hold-timer__ring-wrap" aria-hidden>
+      <div className="shrink-0" aria-hidden>
         <svg width="44" height="44" viewBox="0 0 44 44">
           <circle
             cx="22"
             cy="22"
             r={RING_R}
             fill="none"
-            stroke="var(--color-border)"
+            stroke="var(--border)"
             strokeWidth="3"
           />
           <m.circle
@@ -79,11 +89,13 @@ export function SeatHoldTimer({
           />
         </svg>
       </div>
-      <div className="sp-hold-timer__text">
-        <span className="sp-hold-timer__label">
+      <div className="flex flex-col gap-[0.1rem]">
+        <span className="text-xs font-medium">
           {isExpired ? "Seat hold expired" : "Seats reserved for"}
         </span>
-        <span className="sp-hold-timer__value">{isExpired ? "0:00" : countdown}</span>
+        <span className="min-w-[2.75rem] text-lg font-bold tabular-nums">
+          {isExpired ? "0:00" : countdown}
+        </span>
       </div>
     </div>
   );

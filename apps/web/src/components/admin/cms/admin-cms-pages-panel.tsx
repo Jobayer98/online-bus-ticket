@@ -7,7 +7,29 @@ import { useGlobalLoading } from "@/components/global-loading-provider";
 import { apiGet, apiPatch, apiPost } from "@/lib/api-client";
 import { renderCmsMarkdown } from "@/lib/cms-markdown";
 import { CMS_PAGE_OPTIONS } from "./cms-shared";
-import "@/components/cms-markdown.css";
+import {
+  admCmsEditorPane,
+  admCmsEditorPaneLabel,
+  admCmsEditorSplit,
+  admCmsHint,
+  admCmsMarkdownPreview,
+  admCmsSlugTabBtn,
+  admCmsSlugTabBtnActive,
+  admCmsSlugTabs,
+  admCmsTextarea,
+  admFormActionsLabel,
+  admFormActionsWithLabel,
+  admFormCard,
+  admFormField,
+  admFormFieldInput,
+  admFormFieldLabel,
+  admFormFieldWide,
+  admMuted,
+  admPageTitle,
+  cmsMarkdownBody,
+} from "../admin-tw";
+import { cpSection } from "@/components/counter/counter-tw";
+import { spFilterSearch, spPanelError } from "@/components/search/search-tw";
 
 export function AdminCmsPagesPanel() {
   const [pages, setPages] = useState<ContentPageDto[]>([]);
@@ -122,30 +144,34 @@ export function AdminCmsPagesPanel() {
 
   if (loading && pages.length === 0 && !title) {
     return (
-      <div className="cp-section">
-        <p className="adm-muted">Loading pages…</p>
+      <div className={cpSection}>
+        <p className={admMuted}>Loading pages…</p>
       </div>
     );
   }
 
   return (
-    <div className="cp-section">
+    <div className={cpSection}>
       <CounterToast message={toast} onDismiss={() => setToast(null)} />
-      <h3 className="adm-page-title">CONTENT PAGES</h3>
+      <h3 className={admPageTitle}>CONTENT PAGES</h3>
       {error ? (
-        <p className="sp-panel-error" role="alert">
+        <p className={spPanelError} role="alert">
           {error}
         </p>
       ) : null}
 
-      <div className="adm-cms-slug-tabs" role="tablist" aria-label="Page slugs">
+      <div className={admCmsSlugTabs} role="tablist" aria-label="Page slugs">
         {CMS_PAGE_OPTIONS.map(({ slug, label }) => (
           <button
             key={slug}
             type="button"
             role="tab"
             aria-selected={activeSlug === slug}
-            className={activeSlug === slug ? "is-active" : undefined}
+            className={
+              activeSlug === slug
+                ? `${admCmsSlugTabBtn} ${admCmsSlugTabBtnActive}`
+                : admCmsSlugTabBtn
+            }
             onClick={() => setActiveSlug(slug)}
           >
             {label}
@@ -153,15 +179,16 @@ export function AdminCmsPagesPanel() {
         ))}
       </div>
 
-      <form className="adm-form-card" onSubmit={save}>
-        <p className="adm-muted adm-cms-hint">
+      <form className={admFormCard} onSubmit={save}>
+        <p className={`${admMuted} ${admCmsHint}`}>
           Public path: <strong>{activeMeta?.path}</strong>
           {hasDraft ? " · draft exists" : " · no draft yet (will create on save)"}
         </p>
-        <div className="adm-form-field adm-form-field--wide" style={{ maxWidth: "100%" }}>
-          <label htmlFor="cms-page-title">Title</label>
+        <div className={`${admFormField} ${admFormFieldWide}`} style={{ maxWidth: "100%" }}>
+          <label htmlFor="cms-page-title" className={admFormFieldLabel}>Title</label>
           <input
             id="cms-page-title"
+            className={admFormFieldInput}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             required
@@ -169,34 +196,34 @@ export function AdminCmsPagesPanel() {
           />
         </div>
 
-        <div className="adm-cms-editor-split">
-          <div className="adm-cms-editor-pane">
-            <label htmlFor="cms-page-body">Markdown body</label>
+        <div className={admCmsEditorSplit}>
+          <div className={admCmsEditorPane}>
+            <label htmlFor="cms-page-body" className={admFormFieldLabel}>Markdown body</label>
             <textarea
               id="cms-page-body"
-              className="adm-cms-textarea"
+              className={admCmsTextarea}
               value={bodyMarkdown}
               onChange={(e) => setBodyMarkdown(e.target.value)}
               required
               rows={16}
             />
           </div>
-          <div className="adm-cms-editor-pane">
-            <span className="adm-cms-editor-pane__label">Preview</span>
+          <div className={admCmsEditorPane}>
+            <span className={admCmsEditorPaneLabel}>Preview</span>
             <article
-              className="cms-markdown-body adm-cms-markdown-preview"
+              className={`${cmsMarkdownBody} ${admCmsMarkdownPreview}`}
               dangerouslySetInnerHTML={{
-                __html: previewHtml || "<p class=\"adm-muted\">Nothing to preview</p>",
+                __html: previewHtml || "<p class=\"text-[#666]\">Nothing to preview</p>",
               }}
             />
           </div>
         </div>
 
-        <div className="adm-form-actions adm-form-actions--with-label">
-          <span className="adm-form-actions__label" aria-hidden="true">
+        <div className={admFormActionsWithLabel}>
+          <span className={admFormActionsLabel} aria-hidden="true">
             &nbsp;
           </span>
-          <button type="submit" className="sp-filter-search" disabled={saving}>
+          <button type="submit" className={spFilterSearch} disabled={saving}>
             {saving ? "Saving…" : "Save draft"}
           </button>
         </div>

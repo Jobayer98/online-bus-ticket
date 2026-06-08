@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { apiGet, apiPost } from "@/lib/api-client";
 import {
-  clearActiveHoldId,
   clearHoldPaymentNavigation,
   releaseActiveHold,
   setActiveHoldId,
@@ -118,9 +117,9 @@ export function PaymentPageContent() {
         : "";
 
   return (
-    <div className="search-page payment-page">
+    <div className="min-h-screen bg-[#eceff1]">
       <HomeHeader />
-      <div className="payment-page__inner">
+      <div className="mx-auto max-w-[520px] px-4 pb-10 pt-4">
         {booking?.holdExpiresAt && (
           <SeatHoldTimer
             expiresAt={booking.holdExpiresAt}
@@ -129,57 +128,67 @@ export function PaymentPageContent() {
           />
         )}
 
-        <div className="payment-page__summary">
-          <h1 className="payment-page__heading">Complete payment</h1>
+        <div className="mb-4 rounded-md border border-[#cfd8dc] bg-white p-4 px-[1.15rem] shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
+          <h1 className="m-0 mb-3 text-[1.1rem] font-bold text-[#263238]">
+            Complete payment
+          </h1>
           {booking && (
-            <dl className="payment-page__meta">
+            <dl className="m-0 grid grid-cols-2 gap-x-4 gap-y-[0.65rem] text-[0.82rem]">
               <div>
-                <dt>Passenger</dt>
-                <dd>{booking.passengerName}</dd>
+                <dt className="m-0 font-semibold text-[#607d8b]">Passenger</dt>
+                <dd className="m-0 mt-[0.1rem] font-semibold text-[#263238]">
+                  {booking.passengerName}
+                </dd>
               </div>
               <div>
-                <dt>Phone</dt>
-                <dd>{booking.passengerPhone}</dd>
+                <dt className="m-0 font-semibold text-[#607d8b]">Phone</dt>
+                <dd className="m-0 mt-[0.1rem] font-semibold text-[#263238]">
+                  {booking.passengerPhone}
+                </dd>
               </div>
               {seatsLabel && (
                 <div>
-                  <dt>Seats</dt>
-                  <dd>{seatsLabel}</dd>
+                  <dt className="m-0 font-semibold text-[#607d8b]">Seats</dt>
+                  <dd className="m-0 mt-[0.1rem] font-semibold text-[#263238]">
+                    {seatsLabel}
+                  </dd>
                 </div>
               )}
               <div>
-                <dt>Amount</dt>
-                <dd>{formatMoneyBdt(booking.totalAmount)}</dd>
+                <dt className="m-0 font-semibold text-[#607d8b]">Amount</dt>
+                <dd className="m-0 mt-[0.1rem] font-semibold text-[#263238]">
+                  {formatMoneyBdt(booking.totalAmount)}
+                </dd>
               </div>
             </dl>
           )}
           {error && !booking && (
-            <p className="sp-panel-error payment-page__error">{error}</p>
+            <p className="mt-3 text-[0.75rem] text-[var(--danger)]">{error}</p>
           )}
         </div>
 
         {booking ? (
-          <div className="payment-page__gateways">
-            <p className="payment-page__gateway-hint">
+          <div className="rounded-md border border-[#cfd8dc] bg-white p-4">
+            <p className="m-0 mb-4 text-[0.85rem] text-[#607d8b]">
               Pay securely via {profile.companyName}&apos;s payment partner.
             </p>
             {gateways.length === 0 ? (
-              <p className="sp-panel-error" role="alert">
+              <p className="text-[0.75rem] text-[var(--danger)]" role="alert">
                 No payment gateways are configured. Please contact support.
               </p>
             ) : (
-              <ul className="payment-page__gateway-list">
+              <ul className="m-0 mb-4 flex list-none flex-col gap-3 p-0">
                 {gateways.map((g) => (
                   <li key={g.code}>
                     <button
                       type="button"
-                      className="payment-page__gateway-btn"
+                      className="w-full cursor-pointer rounded-md border-2 border-[#662d91] bg-white px-4 py-[0.85rem] font-bold text-[#263238] disabled:cursor-not-allowed disabled:opacity-50"
                       disabled={holdExpired || paying}
                       onClick={() => void handlePay(g.code)}
                     >
                       Pay with {g.displayName}
                       {g.settlementRoute === "SYSTEM" && (
-                        <span className="payment-page__gateway-badge">
+                        <span className="ml-2 inline-block text-[0.7rem] font-semibold text-[#607d8b]">
                           Platform
                         </span>
                       )}
@@ -190,7 +199,7 @@ export function PaymentPageContent() {
             )}
             <button
               type="button"
-              className="payment-page__cancel-btn"
+              className="w-full cursor-pointer rounded-md border border-[#cfd8dc] bg-transparent px-4 py-[0.65rem]"
               onClick={() => void cancelPayment()}
             >
               Cancel
@@ -199,13 +208,17 @@ export function PaymentPageContent() {
         ) : null}
 
         {error && booking && (
-          <p className="sp-panel-error payment-page__error" role="alert">
+          <p className="mt-3 text-[0.75rem] text-[var(--danger)]" role="alert">
             {error}
           </p>
         )}
 
-        <p className="payment-page__home">
-          <Link href="/" onClick={() => void releaseActiveHold()}>
+        <p className="mt-5 text-center text-[0.85rem]">
+          <Link
+            href="/"
+            className="text-[var(--primary-hover)]"
+            onClick={() => void releaseActiveHold()}
+          >
             ← Back to home
           </Link>
         </p>

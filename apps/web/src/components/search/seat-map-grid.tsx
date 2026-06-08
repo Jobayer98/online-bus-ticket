@@ -5,7 +5,6 @@ import { formatMoneyBdt } from "@/lib/format";
 import {
   groupSeatsByDeck,
   normalizeSeatMapSeats,
-  seatStatusClass,
   splitRowByAisle,
   type SeatCell,
 } from "@/lib/seat-layout";
@@ -18,9 +17,42 @@ type Props = {
   onToggle: (label: string, status: string) => void;
 };
 
+function seatTierClass(seatClass: string): string {
+  if (seatClass === "PREMIUM") {
+    return "after:absolute after:right-[3px] after:top-[3px] after:h-[5px] after:w-[5px] after:rounded-full after:bg-amber-600 after:content-['']";
+  }
+  if (seatClass === "BUSINESS") {
+    return "border-l-[3px] border-l-[var(--primary)]";
+  }
+  return "";
+}
+
+function seatStatusClasses(seat: SeatCell, isSelected: boolean): string {
+  const base =
+    "relative box-border h-8 w-9 rounded-[var(--radius-sm)] border border-[var(--green-600)] p-0 text-[0.62rem] font-bold font-inherit";
+  const tier = seatTierClass(seat.seatClass);
+
+  if (isSelected) {
+    return `${base} ${tier} cursor-pointer bg-[var(--primary)] text-[var(--text-on-primary,#fff)] border-[var(--green-800)]`;
+  }
+  if (seat.status === "HELD") {
+    return `${base} ${tier} cursor-not-allowed border-[var(--warning)] bg-amber-100 text-amber-900`;
+  }
+  if (seat.status === "SOLD") {
+    return `${base} ${tier} inline-flex cursor-not-allowed items-center justify-center border-gray-300 bg-gray-100 text-gray-400`;
+  }
+  return `${base} ${tier} cursor-pointer bg-[var(--green-50)] text-[var(--green-700)]`;
+}
+
 function EntryGateIcon() {
   return (
-    <span className="seat-map-entry-icon" aria-hidden>
+    <span
+      className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#ccc] text-[#555] shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]"
+      style={{
+        background: "linear-gradient(180deg, #fafafa 0%, #eee 100%)",
+      }}
+      aria-hidden
+    >
       <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
         <rect
           x="5"
@@ -51,7 +83,13 @@ function EntryGateIcon() {
 
 function SteeringIcon() {
   return (
-    <span className="seat-map-driver-icon" aria-hidden>
+    <span
+      className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#b8cfb8] text-[var(--primary-hover)] shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]"
+      style={{
+        background: "linear-gradient(180deg, #f4faf4 0%, #e2ede2 100%)",
+      }}
+      aria-hidden
+    >
       <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
         <circle
           cx="16"
@@ -88,7 +126,7 @@ function SeatButton({
   onToggle: (label: string, status: string) => void;
 }) {
   const isSelected = selectedLabels.includes(seat.label);
-  const className = `seat-cell seat-cell--${seat.seatClass.toLowerCase()} ${seatStatusClass(seat, isSelected)}`;
+  const className = seatStatusClasses(seat, isSelected);
   const title = `${seat.label} ${formatMoneyBdt(seat.price)}`;
 
   if (seat.status !== "AVAILABLE") {
@@ -134,8 +172,10 @@ function SeatRow({
   const isThreeCol = cols <= 3;
 
   return (
-    <div className={`seat-map-row${isThreeCol ? " seat-map-row--3col" : ""}`}>
-      <div className="seat-map-row-side seat-map-row-side--left">
+    <div
+      className={`grid items-center gap-1 ${isThreeCol ? "grid-cols-[1fr_28px_2fr]" : "grid-cols-[1fr_28px_1fr]"}`}
+    >
+      <div className="flex justify-end gap-[0.3rem]">
         {left.map((s) => (
           <SeatButton
             key={s.label}
@@ -145,8 +185,8 @@ function SeatRow({
           />
         ))}
       </div>
-      <span className="seat-map-aisle" aria-hidden />
-      <div className="seat-map-row-side seat-map-row-side--right">
+      <span className="block" aria-hidden />
+      <div className="flex justify-start gap-[0.3rem]">
         {right.map((s) => (
           <SeatButton
             key={s.label}
@@ -167,26 +207,38 @@ export function SeatMapGrid({ seats, rows, cols, selected, onToggle }: Props) {
   const decks = groupSeatsByDeck(normalized, layoutCols);
 
   return (
-    <div className="seat-map-grid">
-      <div className="seat-map-cabin">
-        <div className="seat-map-cabin-top">
-          <div className="seat-map-entry" title="Passenger entry">
+    <div className="mx-auto w-full max-w-[420px]">
+      <div className="border border-[#ccc] bg-white p-2 px-[0.65rem] pb-3">
+        <div className="mb-[0.65rem] flex items-end justify-between gap-2 border-b border-dashed border-[#ddd] px-1 pb-2 pt-[0.35rem]">
+          <div
+            className="flex min-w-[52px] flex-col items-center gap-[0.2rem]"
+            title="Passenger entry"
+          >
             <EntryGateIcon />
-            <span className="seat-map-cabin-label">Entry</span>
+            <span className="text-[0.58rem] font-bold uppercase leading-none tracking-[0.06em] text-[#777]">
+              Entry
+            </span>
           </div>
-          <div className="seat-map-cabin-top-spacer" aria-hidden />
-          <div className="seat-map-driver" title="Driver">
+          <div className="min-h-px flex-1" aria-hidden />
+          <div
+            className="flex min-w-[52px] flex-col items-center gap-[0.2rem]"
+            title="Driver"
+          >
             <SteeringIcon />
-            <span className="seat-map-cabin-label">Driver</span>
+            <span className="text-[0.58rem] font-bold uppercase leading-none tracking-[0.06em] text-[#777]">
+              Driver
+            </span>
           </div>
         </div>
 
         {decks.map((deck) => (
-          <div key={deck.id} className="seat-map-deck">
+          <div key={deck.id}>
             {deck.title && (
-              <div className="seat-map-deck-title">{deck.title}</div>
+              <div className="mb-2 bg-[var(--primary-hover)] px-2 py-[0.3rem] text-center text-[0.72rem] font-bold tracking-[0.06em] text-white">
+                {deck.title}
+              </div>
             )}
-            <div className="seat-map-deck-body">
+            <div className="flex flex-col gap-[0.35rem]">
               {deck.rows.map((rowSeats) => (
                 <SeatRow
                   key={rowSeats.map((s) => s.label).join("-")}

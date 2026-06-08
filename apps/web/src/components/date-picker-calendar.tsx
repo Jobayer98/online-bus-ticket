@@ -39,6 +39,36 @@ function ChevronRight() {
   );
 }
 
+const shortcutBtnClass =
+  "flex-1 cursor-pointer rounded border border-[#d5d5d5] bg-[#f8f8f8] px-2 py-1.5 font-[inherit] text-[0.8rem] font-semibold text-[#333] hover:border-[var(--primary)] hover:bg-[#eef5ee]";
+
+const shortcutSelectedClass =
+  "flex-1 cursor-pointer rounded border border-[var(--primary)] bg-[var(--primary)] px-2 py-1.5 font-[inherit] text-[0.8rem] font-semibold text-white";
+
+const navBtnClass =
+  "flex h-[30px] w-[30px] cursor-pointer items-center justify-center rounded border border-[#d5d5d5] bg-white p-0 text-[#444] hover:bg-[#f0f0f0] disabled:cursor-not-allowed disabled:opacity-35";
+
+const dayBaseClass =
+  "aspect-square min-h-[34px] cursor-pointer rounded border-0 bg-transparent p-0 font-[inherit] text-[0.82rem] text-[#333] hover:bg-[#e8f5e9] disabled:cursor-not-allowed";
+
+function dayCellClass(opts: {
+  inMonth: boolean;
+  disabled: boolean;
+  isToday: boolean;
+  isSelected: boolean;
+}): string {
+  const parts = [dayBaseClass];
+  if (!opts.inMonth) parts.push("text-[#bbb]");
+  if (opts.disabled) parts.push("text-[#ccc] hover:bg-transparent");
+  if (opts.isToday && !opts.isSelected) {
+    parts.push("font-bold text-[var(--primary-hover)] shadow-[inset_0_0_0_1px_var(--primary)]");
+  }
+  if (opts.isSelected) {
+    parts.push("bg-[var(--primary)] font-semibold text-white hover:bg-[var(--primary)]");
+  }
+  return parts.join(" ");
+}
+
 export type DatePickerCalendarPanelProps = {
   value: string;
   minDate: string;
@@ -87,37 +117,37 @@ export function DatePickerCalendarPanel({
 
   return (
     <>
-      <div className="home-date-shortcuts">
+      <div className="mb-3 flex gap-2">
         <button
           type="button"
-          className={value === todayIso ? "is-selected" : ""}
+          className={value === todayIso ? shortcutSelectedClass : shortcutBtnClass}
           onClick={() => selectDate(todayIso)}
         >
           Today
         </button>
         <button
           type="button"
-          className={value === tomorrowIso ? "is-selected" : ""}
+          className={value === tomorrowIso ? shortcutSelectedClass : shortcutBtnClass}
           onClick={() => selectDate(tomorrowIso)}
         >
           Tomorrow
         </button>
       </div>
 
-      <div className="home-date-cal-header">
+      <div className="mb-2 flex items-center justify-between">
         <button
           type="button"
-          className="home-date-nav"
+          className={navBtnClass}
           onClick={() => shiftMonth(-1)}
           disabled={!canGoPrev}
           aria-label="Previous month"
         >
           <ChevronLeft />
         </button>
-        <span className="home-date-month">{monthLabel}</span>
+        <span className="text-[0.9rem] font-semibold text-[#222]">{monthLabel}</span>
         <button
           type="button"
-          className="home-date-nav"
+          className={navBtnClass}
           onClick={() => shiftMonth(1)}
           aria-label="Next month"
         >
@@ -125,13 +155,18 @@ export function DatePickerCalendarPanel({
         </button>
       </div>
 
-      <div className="home-date-weekdays">
+      <div className="mb-1 grid grid-cols-7 gap-0.5">
         {WEEKDAYS.map((d) => (
-          <span key={d}>{d}</span>
+          <span
+            key={d}
+            className="py-0.5 text-center text-[0.7rem] font-semibold text-[#888]"
+          >
+            {d}
+          </span>
         ))}
       </div>
 
-      <div className="home-date-grid" role="grid">
+      <div className="grid grid-cols-7 gap-0.5" role="grid">
         {cells.map((cell) => {
           const disabled = compareIsoDates(cell.iso, minDate) < 0;
           const isToday = cell.iso === todayIso;
@@ -141,15 +176,12 @@ export function DatePickerCalendarPanel({
               key={cell.iso}
               type="button"
               role="gridcell"
-              className={[
-                "home-date-day",
-                !cell.inMonth && "is-outside",
-                disabled && "is-disabled",
-                isToday && "is-today",
-                isSelected && "is-selected",
-              ]
-                .filter(Boolean)
-                .join(" ")}
+              className={dayCellClass({
+                inMonth: cell.inMonth,
+                disabled,
+                isToday,
+                isSelected,
+              })}
               disabled={disabled}
               onClick={() => selectDate(cell.iso)}
               aria-label={cell.iso}
@@ -177,7 +209,7 @@ export function DatePickerCalendar({
   return (
     <div
       id={listboxId}
-      className="home-date-dropdown"
+      className="absolute top-[calc(100%+6px)] left-0 z-50 w-[min(300px,92vw)] rounded-md border border-[#d5d5d5] bg-white p-3 shadow-[0_8px_28px_rgba(0,0,0,0.16)]"
       role="dialog"
       aria-label={ariaLabel}
     >

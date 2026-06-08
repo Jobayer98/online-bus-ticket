@@ -5,6 +5,32 @@ import type { FeaturedRouteDto } from "@repo/shared";
 import { CounterToast } from "@/components/counter/counter-toast";
 import { useGlobalLoading } from "@/components/global-loading-provider";
 import { apiDelete, apiGet, apiPatch, apiPost } from "@/lib/api-client";
+import {
+  admCmsRowActions,
+  admFormActionsLabel,
+  admFormActionsWithLabel,
+  admFormCard,
+  admFormField,
+  admFormFieldInput,
+  admFormFieldLabel,
+  admFormFieldWide,
+  admFormRow,
+  admMuted,
+  admPageTitle,
+} from "../admin-tw";
+import {
+  cpSection,
+  cpTable,
+  cpTableCell,
+  cpTableHead,
+  cpTableRow,
+  cpTableWrap,
+} from "@/components/counter/counter-tw";
+import {
+  spBtnBack,
+  spFilterSearch,
+  spPanelError,
+} from "@/components/search/search-tw";
 
 type RouteOption = {
   id: string;
@@ -125,29 +151,30 @@ export function AdminCmsFeaturedRoutesPanel() {
 
   if (loading && featured.length === 0) {
     return (
-      <div className="cp-section">
-        <p className="adm-muted">Loading featured routes…</p>
+      <div className={cpSection}>
+        <p className={admMuted}>Loading featured routes…</p>
       </div>
     );
   }
 
   return (
-    <div className="cp-section">
+    <div className={cpSection}>
       <CounterToast message={toast} onDismiss={() => setToast(null)} />
-      <h3 className="adm-page-title">FEATURED ROUTES</h3>
+      <h3 className={admPageTitle}>FEATURED ROUTES</h3>
       {error ? (
-        <p className="sp-panel-error" role="alert">
+        <p className={spPanelError} role="alert">
           {error}
         </p>
       ) : null}
 
-      <form className="adm-form-card" onSubmit={addRoute}>
+      <form className={admFormCard} onSubmit={addRoute}>
         <h3>Add route to home</h3>
-        <div className="adm-form-row">
-          <div className="adm-form-field adm-form-field--wide">
-            <label htmlFor="cms-featured-route">Route</label>
+        <div className={admFormRow}>
+          <div className={`${admFormField} ${admFormFieldWide}`}>
+            <label htmlFor="cms-featured-route" className={admFormFieldLabel}>Route</label>
             <select
               id="cms-featured-route"
+              className={admFormFieldInput}
               value={routeId}
               onChange={(e) => setRouteId(e.target.value)}
             >
@@ -159,31 +186,31 @@ export function AdminCmsFeaturedRoutesPanel() {
               ))}
             </select>
           </div>
-          <div className="adm-form-actions adm-form-actions--with-label">
-            <span className="adm-form-actions__label" aria-hidden="true">
+          <div className={admFormActionsWithLabel}>
+            <span className={admFormActionsLabel} aria-hidden="true">
               &nbsp;
             </span>
-            <button type="submit" className="sp-filter-search" disabled={busy || !routeId}>
+            <button type="submit" className={spFilterSearch} disabled={busy || !routeId}>
               Add
             </button>
           </div>
         </div>
       </form>
 
-      <div className="cp-table-wrap">
-        <table className="cp-table">
+      <div className={cpTableWrap}>
+        <table className={cpTable}>
           <thead>
             <tr>
-              <th>Order</th>
-              <th>Route</th>
-              <th>Visible</th>
-              <th>Actions</th>
+              <th className={cpTableHead}>Order</th>
+              <th className={cpTableHead}>Route</th>
+              <th className={cpTableHead}>Visible</th>
+              <th className={cpTableHead}>Actions</th>
             </tr>
           </thead>
           <tbody>
             {sorted.length === 0 ? (
               <tr>
-                <td colSpan={4} className="adm-muted">
+                <td colSpan={4} className={`${cpTableCell} ${admMuted}`}>
                   No featured routes yet.
                 </td>
               </tr>
@@ -191,27 +218,27 @@ export function AdminCmsFeaturedRoutesPanel() {
               sorted.map((item, index) => {
                 const label = `${item.fromStop.city} → ${item.toStop.city}`;
                 return (
-                  <tr key={item.id}>
-                    <td>{index + 1}</td>
-                    <td>
+                  <tr key={item.id} className={cpTableRow}>
+                    <td className={cpTableCell}>{index + 1}</td>
+                    <td className={cpTableCell}>
                       <strong>{label}</strong>
                       <br />
-                      <span className="adm-muted">{item.routeSlug}</span>
+                      <span className={admMuted}>{item.routeSlug}</span>
                     </td>
-                    <td>
+                    <td className={cpTableCell}>
                       <button
                         type="button"
-                        className="sp-btn-back"
+                        className={spBtnBack}
                         onClick={() => toggleVisible(item)}
                       >
                         {item.isVisible ? "Visible" : "Hidden"}
                       </button>
                     </td>
-                    <td>
-                      <div className="adm-cms-row-actions">
+                    <td className={cpTableCell}>
+                      <div className={admCmsRowActions}>
                         <button
                           type="button"
-                          className="sp-btn-back"
+                          className={spBtnBack}
                           disabled={index === 0}
                           onClick={() => move(index, -1)}
                         >
@@ -219,7 +246,7 @@ export function AdminCmsFeaturedRoutesPanel() {
                         </button>
                         <button
                           type="button"
-                          className="sp-btn-back"
+                          className={spBtnBack}
                           disabled={index === sorted.length - 1}
                           onClick={() => move(index, 1)}
                         >
@@ -227,7 +254,7 @@ export function AdminCmsFeaturedRoutesPanel() {
                         </button>
                         <button
                           type="button"
-                          className="sp-btn-back"
+                          className={spBtnBack}
                           onClick={() => remove(item.id, label)}
                         >
                           Remove

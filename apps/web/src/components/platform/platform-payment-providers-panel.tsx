@@ -10,6 +10,16 @@ import type {
   SystemPaymentProviderDto,
   PaymentProviderCode,
 } from "@repo/shared";
+import {
+  cpSectionClass,
+  filterErrorClass,
+  platformBtnClass,
+  platformBtnPrimaryClass,
+  platformBtnSmClass,
+  platformFormClass,
+  platformTableClass,
+  platformTableWrapClass,
+} from "./platform-styles";
 
 export function PlatformPaymentProvidersPanel() {
   const [providers, setProviders] = useState<SystemPaymentProviderDto[]>([]);
@@ -67,54 +77,56 @@ export function PlatformPaymentProvidersPanel() {
   }
 
   return (
-    <div className="cp-section">
-      <h3>System payment providers</h3>
-      {error && <p className="sp-filter-error">{error}</p>}
-      <table className="platform-table">
-        <thead>
-          <tr>
-            <th>Provider</th>
-            <th>Enabled</th>
-            <th>Configured</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {providers.map((p) => (
-            <tr key={p.id}>
-              <td>{p.displayName}</td>
-              <td>{p.isEnabled ? "Yes" : "No"}</td>
-              <td>{p.configured ? p.credentialHint ?? "Yes" : "No"}</td>
-              <td>
-                <button
-                  type="button"
-                  className="platform-btn platform-btn--sm"
-                  onClick={() => {
-                    setEditing(p.code);
-                    setForm((f) => ({
-                      ...f,
-                      isEnabled: p.isEnabled,
-                      sandboxMode: p.sandboxMode,
-                    }));
-                  }}
-                >
-                  Edit
-                </button>
-              </td>
+    <div className={cpSectionClass}>
+      <h3 className="m-0 mb-4 text-base font-bold">System payment providers</h3>
+      {error && <p className={filterErrorClass}>{error}</p>}
+      <div className={platformTableWrapClass}>
+        <table className={platformTableClass}>
+          <thead>
+            <tr>
+              <th>Provider</th>
+              <th>Enabled</th>
+              <th>Configured</th>
+              <th>Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {providers.map((p) => (
+              <tr key={p.id}>
+                <td>{p.displayName}</td>
+                <td>{p.isEnabled ? "Yes" : "No"}</td>
+                <td>{p.configured ? p.credentialHint ?? "Yes" : "No"}</td>
+                <td>
+                  <button
+                    type="button"
+                    className={platformBtnSmClass}
+                    onClick={() => {
+                      setEditing(p.code);
+                      setForm((f) => ({
+                        ...f,
+                        isEnabled: p.isEnabled,
+                        sandboxMode: p.sandboxMode,
+                      }));
+                    }}
+                  >
+                    Edit
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       {editing && (
         <form
-          className="platform-form"
+          className={`${platformFormClass} mt-4`}
           onSubmit={(e) => {
             e.preventDefault();
             void save(editing);
           }}
         >
-          <h4>Edit {editing}</h4>
+          <h4 className="m-0 font-bold">Edit {editing}</h4>
           {editing === "SSLCOMMERZ" ? (
             <>
               <input
@@ -163,7 +175,7 @@ export function PlatformPaymentProvidersPanel() {
               />
             </>
           )}
-          <label>
+          <label className="flex-row! items-center gap-2 font-normal!">
             <input
               type="checkbox"
               checked={form.sandboxMode}
@@ -173,7 +185,7 @@ export function PlatformPaymentProvidersPanel() {
             />
             Sandbox
           </label>
-          <label>
+          <label className="flex-row! items-center gap-2 font-normal!">
             <input
               type="checkbox"
               checked={form.isEnabled}
@@ -183,16 +195,18 @@ export function PlatformPaymentProvidersPanel() {
             />
             Enabled for tenants
           </label>
-          <button type="submit" className="platform-btn platform-btn--primary">
-            Save
-          </button>
-          <button
-            type="button"
-            className="platform-btn"
-            onClick={() => setEditing(null)}
-          >
-            Cancel
-          </button>
+          <div className="flex gap-2">
+            <button type="submit" className={platformBtnPrimaryClass}>
+              Save
+            </button>
+            <button
+              type="button"
+              className={platformBtnClass}
+              onClick={() => setEditing(null)}
+            >
+              Cancel
+            </button>
+          </div>
         </form>
       )}
     </div>
@@ -253,61 +267,63 @@ export function PlatformWithdrawalsPanel() {
   }
 
   return (
-    <div className="cp-section">
-      <h3>Tenant withdrawal requests</h3>
-      {error && <p className="sp-filter-error">{error}</p>}
-      <table className="platform-table">
-        <thead>
-          <tr>
-            <th>Tenant</th>
-            <th>Amount</th>
-            <th>Bank</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {withdrawals.map((w) => (
-            <tr key={w.id}>
-              <td>{w.tenantName}</td>
-              <td>{(w.amountMinor / 100).toFixed(2)} BDT</td>
-              <td>
-                {w.bankName} {w.accountNumberMasked}
-              </td>
-              <td>{w.status}</td>
-              <td>
-                {w.status === "PENDING" && (
-                  <>
-                    <button
-                      type="button"
-                      className="platform-btn platform-btn--sm"
-                      onClick={() => void approve(w.id)}
-                    >
-                      Approve
-                    </button>
-                    <button
-                      type="button"
-                      className="platform-btn platform-btn--sm"
-                      onClick={() => void reject(w.id)}
-                    >
-                      Reject
-                    </button>
-                  </>
-                )}
-                {w.status === "APPROVED" && (
-                  <button
-                    type="button"
-                    className="platform-btn platform-btn--sm"
-                    onClick={() => void markPaid(w.id)}
-                  >
-                    Mark paid
-                  </button>
-                )}
-              </td>
+    <div className={cpSectionClass}>
+      <h3 className="m-0 mb-4 text-base font-bold">Tenant withdrawal requests</h3>
+      {error && <p className={filterErrorClass}>{error}</p>}
+      <div className={platformTableWrapClass}>
+        <table className={platformTableClass}>
+          <thead>
+            <tr>
+              <th>Tenant</th>
+              <th>Amount</th>
+              <th>Bank</th>
+              <th>Status</th>
+              <th>Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {withdrawals.map((w) => (
+              <tr key={w.id}>
+                <td>{w.tenantName}</td>
+                <td>{(w.amountMinor / 100).toFixed(2)} BDT</td>
+                <td>
+                  {w.bankName} {w.accountNumberMasked}
+                </td>
+                <td>{w.status}</td>
+                <td className="space-x-2">
+                  {w.status === "PENDING" && (
+                    <>
+                      <button
+                        type="button"
+                        className={platformBtnSmClass}
+                        onClick={() => void approve(w.id)}
+                      >
+                        Approve
+                      </button>
+                      <button
+                        type="button"
+                        className={platformBtnSmClass}
+                        onClick={() => void reject(w.id)}
+                      >
+                        Reject
+                      </button>
+                    </>
+                  )}
+                  {w.status === "APPROVED" && (
+                    <button
+                      type="button"
+                      className={platformBtnSmClass}
+                      onClick={() => void markPaid(w.id)}
+                    >
+                      Mark paid
+                    </button>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

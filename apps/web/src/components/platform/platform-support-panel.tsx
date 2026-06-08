@@ -11,6 +11,26 @@ import type {
   SupportTicketDetailDto,
   SupportTicketDto,
 } from "@repo/shared";
+import {
+  admPageTitleClass,
+  badgeClass,
+  cpSectionClass,
+  filterErrorClass,
+  platformBtnClass,
+  platformBtnPrimaryClass,
+  platformEmptyClass,
+  platformFiltersClass,
+  platformLoadingClass,
+  platformMetaClass,
+  platformModalActionsClass,
+  platformModalOverlayClass,
+  platformModalWideClass,
+  platformTableClass,
+  platformTableRowClickClass,
+  platformTableWrapClass,
+  platformTicketMessageClass,
+  platformTicketThreadClass,
+} from "./platform-styles";
 
 const PRIORITY_CLASS: Record<string, string> = {
   LOW: "badge-grey",
@@ -109,10 +129,10 @@ export function PlatformSupportPanel() {
   }
 
   return (
-    <div className="cp-section">
-      <h2 className="adm-page-title">Support tickets</h2>
+    <div className={cpSectionClass}>
+      <h2 className={admPageTitleClass}>Support tickets</h2>
 
-      <div className="platform-filters">
+      <div className={platformFiltersClass}>
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
@@ -126,12 +146,12 @@ export function PlatformSupportPanel() {
         </select>
       </div>
 
-      {error && <p className="sp-filter-error">{error}</p>}
-      {loading && <p className="platform-loading">Loading tickets…</p>}
+      {error && <p className={filterErrorClass}>{error}</p>}
+      {loading && <p className={platformLoadingClass}>Loading tickets…</p>}
 
       {!loading && (
-        <div className="platform-table-wrapper">
-          <table className="platform-table">
+        <div className={platformTableWrapClass}>
+          <table className={platformTableClass}>
             <thead>
               <tr>
                 <th>Tenant</th>
@@ -146,18 +166,18 @@ export function PlatformSupportPanel() {
               {tickets.map((t) => (
                 <tr
                   key={t.id}
-                  className="platform-table-row-click"
+                  className={platformTableRowClickClass}
                   onClick={() => void openTicket(t.id)}
                 >
                   <td>{t.tenantName}</td>
                   <td>{t.subject}</td>
                   <td>
-                    <span className={`badge ${STATUS_CLASS[t.status]}`}>
+                    <span className={badgeClass(STATUS_CLASS[t.status])}>
                       {t.status}
                     </span>
                   </td>
                   <td>
-                    <span className={`badge ${PRIORITY_CLASS[t.priority]}`}>
+                    <span className={badgeClass(PRIORITY_CLASS[t.priority])}>
                       {t.priority}
                     </span>
                   </td>
@@ -170,28 +190,28 @@ export function PlatformSupportPanel() {
             </tbody>
           </table>
           {tickets.length === 0 && (
-            <p className="platform-empty">No support tickets yet.</p>
+            <p className={platformEmptyClass}>No support tickets yet.</p>
           )}
         </div>
       )}
 
       {selected && (
         <div
-          className="platform-modal-overlay"
+          className={platformModalOverlayClass}
           onClick={() => !busy && setSelected(null)}
           role="presentation"
         >
           <div
-            className="platform-modal platform-modal--wide"
+            className={platformModalWideClass}
             onClick={(e) => e.stopPropagation()}
           >
             <h3>{selected.subject}</h3>
-            <p className="platform-meta">
+            <p className={platformMetaClass}>
               {selected.tenantName} · {selected.createdByName}
             </p>
-            <div className="platform-ticket-thread">
+            <div className={platformTicketThreadClass}>
               {selected.messages.map((m) => (
-                <div key={m.id} className="platform-ticket-message">
+                <div key={m.id} className={platformTicketMessageClass}>
                   <strong>
                     {m.authorName} ({m.authorType})
                   </strong>
@@ -212,14 +232,15 @@ export function PlatformSupportPanel() {
                 rows={3}
               />
             </label>
-            <div className="platform-modal-actions">
-              <button type="button" disabled={busy} onClick={() => setSelected(null)}>
+            <div className={platformModalActionsClass}>
+              <button type="button" className={platformBtnClass} disabled={busy} onClick={() => setSelected(null)}>
                 Close
               </button>
               {selected.status !== "CLOSED" && (
                 <>
                   <button
                     type="button"
+                    className={platformBtnClass}
                     disabled={busy}
                     onClick={() => updateStatus("RESOLVED")}
                   >
@@ -227,6 +248,7 @@ export function PlatformSupportPanel() {
                   </button>
                   <button
                     type="button"
+                    className={platformBtnClass}
                     disabled={busy}
                     onClick={() => updateStatus("CLOSED")}
                   >
@@ -236,7 +258,7 @@ export function PlatformSupportPanel() {
               )}
               <button
                 type="button"
-                className="platform-btn platform-btn--primary"
+                className={platformBtnPrimaryClass}
                 disabled={busy || !reply.trim()}
                 onClick={() => void sendReply()}
               >

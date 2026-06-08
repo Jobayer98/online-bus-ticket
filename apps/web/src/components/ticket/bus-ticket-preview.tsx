@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { btnBusyClass } from "@/components/brand-loading-overlay";
 import { downloadElementAsPng } from "@/lib/download-ticket-png";
 import { BusTicketCard } from "@/components/ticket/bus-ticket-card";
 import type { TicketDto } from "@repo/shared";
@@ -44,12 +45,12 @@ export function BusTicketPreview({
   }
 
   return (
-    <div className="ticket-preview-shell">
+    <div className="mx-auto w-full max-w-[520px] text-left">
       <BusTicketCard ticket={ticket} captureId={captureId} />
-      <div className="ticket-preview__actions">
+      <div className="mt-5 flex flex-col gap-2.5">
         <button
           type="button"
-          className={`ticket-preview__btn ticket-preview__btn--primary${downloading ? " btn-is-busy" : ""}`}
+          className={`box-border flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-md border-0 bg-gradient-to-b from-[var(--primary)] to-[var(--green-900,#14532d)] px-4 py-3 text-[0.95rem] font-bold text-white shadow-[0_3px_12px_rgba(27,94,32,0.3)] hover:brightness-105 disabled:cursor-wait disabled:opacity-65 ${downloading ? btnBusyClass : ""}`}
           disabled={downloading}
           aria-busy={downloading}
           onClick={() => void handleDownload()}
@@ -58,9 +59,13 @@ export function BusTicketPreview({
         </button>
         {children}
       </div>
-      {hint ? <p className="ticket-preview__hint">{hint}</p> : null}
+      {hint ? (
+        <p className="mt-3 mb-0 text-center text-[0.78rem] leading-snug text-[#78909c]">
+          {hint}
+        </p>
+      ) : null}
       {downloadError ? (
-        <p className="sp-panel-error ticket-preview__error" role="alert">
+        <p className="mt-3 text-center text-[0.9rem] text-[var(--danger)]" role="alert">
           {downloadError}
         </p>
       ) : null}

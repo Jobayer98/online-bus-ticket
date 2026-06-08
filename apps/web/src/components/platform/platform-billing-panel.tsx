@@ -15,6 +15,29 @@ import type {
   PlatformSubscriptionDto,
   PlatformInvoiceDto,
 } from "@repo/shared";
+import {
+  admKpiCardClass,
+  admKpiGridClass,
+  admPageTitleClass,
+  badgeClass,
+  cpSectionClass,
+  filterErrorClass,
+  platformAlertWarningClass,
+  platformEmptyClass,
+  platformLinkClass,
+  platformLoadingClass,
+  platformPlanBarFillClass,
+  platformPlanBarLabelClass,
+  platformPlanBarMetaClass,
+  platformPlanBarRowClass,
+  platformPlanBarsClass,
+  platformPlanBarTrackClass,
+  platformSectionTitleClass,
+  platformTableClass,
+  platformTableWrapClass,
+} from "./platform-styles";
+
+const linkBtnClass = `${platformLinkClass} mr-2 cursor-pointer border-0 bg-transparent p-0`;
 
 export function PlatformBillingPanel() {
   const [revenue, setRevenue] = useState<PlatformBillingRevenueDto | null>(
@@ -119,24 +142,24 @@ export function PlatformBillingPanel() {
   }
 
   return (
-    <div className="cp-section admin-dashboard">
-      <h2 className="adm-page-title">Billing & revenue</h2>
-      {error && <p className="sp-filter-error">{error}</p>}
-      {loading && !revenue && <p className="platform-loading">Loading billing…</p>}
+    <div className={cpSectionClass}>
+      <h2 className={admPageTitleClass}>Billing & revenue</h2>
+      {error && <p className={filterErrorClass}>{error}</p>}
+      {loading && !revenue && <p className={platformLoadingClass}>Loading billing…</p>}
 
       {revenue && (
         <>
-          <div className="adm-kpi-grid">
-            <div className="adm-kpi-card">
+          <div className={admKpiGridClass}>
+            <div className={admKpiCardClass}>
               <label>MRR</label>
               <strong>{formatMoneyBdt(revenue.mrr)}</strong>
               <span>ARR {formatMoneyBdt(revenue.arr)}</span>
             </div>
-            <div className="adm-kpi-card">
+            <div className={admKpiCardClass}>
               <label>Active subscriptions</label>
               <strong>{revenue.activeSubscriptions}</strong>
             </div>
-            <div className="adm-kpi-card">
+            <div className={admKpiCardClass}>
               <label>Churn (30d)</label>
               <strong>
                 {revenue.churnRatePct !== null
@@ -145,20 +168,20 @@ export function PlatformBillingPanel() {
               </strong>
               <span>{revenue.cancelledThisPeriod} cancelled</span>
             </div>
-            <div className="adm-kpi-card">
+            <div className={admKpiCardClass}>
               <label>Collection rate</label>
               <strong>{revenue.collectionRatePct}%</strong>
               <span>ARPU {formatMoneyBdt(revenue.arpu)}</span>
             </div>
           </div>
 
-          <div className="platform-plan-bars" style={{ marginBottom: "1.25rem" }}>
+          <div className={`${platformPlanBarsClass} mb-5`}>
             {revenue.planDistribution.map((p) => (
-              <div key={p.planTier} className="platform-plan-bar-row">
-                <span className="platform-plan-bar-label">{p.planTier}</span>
-                <div className="platform-plan-bar-track">
+              <div key={p.planTier} className={platformPlanBarRowClass}>
+                <span className={platformPlanBarLabelClass}>{p.planTier}</span>
+                <div className={platformPlanBarTrackClass}>
                   <div
-                    className="platform-plan-bar-fill"
+                    className={platformPlanBarFillClass}
                     style={{
                       width: revenue.mrr
                         ? `${(p.mrr / revenue.mrr) * 100}%`
@@ -167,15 +190,15 @@ export function PlatformBillingPanel() {
                     }}
                   />
                 </div>
-                <span className="platform-plan-bar-meta">
+                <span className={platformPlanBarMetaClass}>
                   {p.count} · {formatMoneyBdt(p.mrr)}
                 </span>
               </div>
             ))}
           </div>
 
-          <div className="platform-table-wrapper">
-            <table className="platform-table">
+          <div className={platformTableWrapClass}>
+            <table className={platformTableClass}>
               <thead>
                 <tr>
                   <th>Tenant</th>
@@ -194,7 +217,7 @@ export function PlatformBillingPanel() {
                         {s.tenantName}
                       </Link>
                       {s.churnRisk && (
-                        <small className="platform-alert platform-alert--warning" style={{ display: "block", marginTop: "0.25rem" }}>
+                        <small className={`${platformAlertWarningClass} mt-1 block`}>
                           At risk
                         </small>
                       )}
@@ -203,13 +226,13 @@ export function PlatformBillingPanel() {
                     <td>{formatMoneyBdt(s.monthlyPriceMinor)}</td>
                     <td>
                       <span
-                        className={`badge ${
+                        className={badgeClass(
                           s.status === "ACTIVE"
                             ? "badge-green"
                             : s.status === "PAST_DUE"
                               ? "badge-yellow"
-                              : "badge-grey"
-                        }`}
+                              : "badge-grey",
+                        )}
                       >
                         {s.status}
                       </span>
@@ -223,8 +246,7 @@ export function PlatformBillingPanel() {
                       {s.planTier !== "PRO" && (
                         <button
                           type="button"
-                          className="platform-link"
-                          style={{ background: "none", border: "none", cursor: "pointer", marginRight: "0.5rem" }}
+                          className={linkBtnClass}
                           disabled={updating === s.id}
                           onClick={() => upgrade(s.id, "PRO")}
                         >
@@ -234,8 +256,7 @@ export function PlatformBillingPanel() {
                       {s.status !== "SUSPENDED" && (
                         <button
                           type="button"
-                          className="platform-link"
-                          style={{ background: "none", border: "none", cursor: "pointer" }}
+                          className={linkBtnClass}
                           disabled={updating === s.id}
                           onClick={() => suspend(s.id)}
                         >
@@ -249,9 +270,9 @@ export function PlatformBillingPanel() {
             </table>
           </div>
 
-          <div className="platform-table-wrapper" style={{ marginTop: "1.25rem" }}>
-            <h3 className="platform-section-title">Invoices</h3>
-            <table className="platform-table">
+          <div className={`${platformTableWrapClass} mt-5`}>
+            <h3 className={platformSectionTitleClass}>Invoices</h3>
+            <table className={platformTableClass}>
               <thead>
                 <tr>
                   <th>Invoice #</th>
@@ -270,13 +291,13 @@ export function PlatformBillingPanel() {
                     <td>{formatMoneyBdt(inv.amountMinor)}</td>
                     <td>
                       <span
-                        className={`badge ${
+                        className={badgeClass(
                           inv.status === "PAID"
                             ? "badge-green"
                             : inv.status === "FAILED"
                               ? "badge-red"
-                              : "badge-yellow"
-                        }`}
+                              : "badge-yellow",
+                        )}
                       >
                         {inv.status}
                       </span>
@@ -288,8 +309,7 @@ export function PlatformBillingPanel() {
                     <td>
                       <button
                         type="button"
-                        className="platform-link"
-                        style={{ background: "none", border: "none", cursor: "pointer", marginRight: "0.5rem" }}
+                        className={linkBtnClass}
                         onClick={() => downloadInvoice(inv.id, inv.invoiceNumber)}
                       >
                         Download
@@ -298,8 +318,7 @@ export function PlatformBillingPanel() {
                         <>
                           <button
                             type="button"
-                            className="platform-link"
-                            style={{ background: "none", border: "none", cursor: "pointer", marginRight: "0.5rem" }}
+                            className={linkBtnClass}
                             disabled={updating === inv.id}
                             onClick={() => payInvoice(inv.id, "SSLCOMMERZ")}
                           >
@@ -307,8 +326,7 @@ export function PlatformBillingPanel() {
                           </button>
                           <button
                             type="button"
-                            className="platform-link"
-                            style={{ background: "none", border: "none", cursor: "pointer" }}
+                            className={linkBtnClass}
                             disabled={updating === inv.id}
                             onClick={() => payInvoice(inv.id, "BKASH")}
                           >
@@ -322,7 +340,7 @@ export function PlatformBillingPanel() {
               </tbody>
             </table>
             {invoices.length === 0 && (
-              <p className="platform-empty">No invoices yet.</p>
+              <p className={platformEmptyClass}>No invoices yet.</p>
             )}
           </div>
         </>

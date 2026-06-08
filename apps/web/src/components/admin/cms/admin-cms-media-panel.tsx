@@ -7,6 +7,19 @@ import { CounterToast } from "@/components/counter/counter-toast";
 import { useGlobalLoading } from "@/components/global-loading-provider";
 import { apiDelete, apiGet, apiPatch, apiPost } from "@/lib/api-client";
 import { apiUploadCmsAsset, resolveCmsAssetUrl } from "@/lib/cms-admin-api";
+import {
+  admCmsGalleryItem,
+  admCmsGalleryItemActions,
+  admCmsGalleryList,
+  admCmsHint,
+  admCmsInlineBtn,
+  admCmsMediaThumb,
+  admFormCard,
+  admMuted,
+  admPageTitle,
+} from "../admin-tw";
+import { cpSection } from "@/components/counter/counter-tw";
+import { spBtnBack, spPanelError } from "@/components/search/search-tw";
 
 export function AdminCmsMediaPanel() {
   const [items, setItems] = useState<SiteMediaDto[]>([]);
@@ -99,23 +112,23 @@ export function AdminCmsMediaPanel() {
 
   if (loading && items.length === 0) {
     return (
-      <div className="cp-section">
-        <p className="adm-muted">Loading media…</p>
+      <div className={cpSection}>
+        <p className={admMuted}>Loading media…</p>
       </div>
     );
   }
 
   return (
-    <div className="cp-section adm-cms-media-panel">
+    <div className={cpSection}>
       <CounterToast message={toast} onDismiss={() => setToast(null)} />
-      <h3 className="adm-page-title">SITE MEDIA</h3>
+      <h3 className={admPageTitle}>SITE MEDIA</h3>
       {error ? (
-        <p className="sp-panel-error" role="alert">
+        <p className={spPanelError} role="alert">
           {error}
         </p>
       ) : null}
 
-      <section className="adm-form-card">
+      <section className={admFormCard}>
         <CmsImageUploadField
           label="Hero image"
           currentUrl={hero?.url}
@@ -126,7 +139,7 @@ export function AdminCmsMediaPanel() {
         {hero ? (
           <button
             type="button"
-            className="sp-btn-back adm-cms-inline-btn"
+            className={`${spBtnBack} ${admCmsInlineBtn}`}
             onClick={() => removeMedia(hero.id)}
           >
             Remove hero
@@ -134,20 +147,20 @@ export function AdminCmsMediaPanel() {
         ) : null}
       </section>
 
-      <section className="adm-form-card">
+      <section className={admFormCard}>
         <h3>Featured gallery</h3>
-        <p className="adm-muted adm-cms-hint">Use arrows to reorder. Upload adds to the end.</p>
-        <ul className="adm-cms-gallery-list">
+        <p className={`${admMuted} ${admCmsHint}`}>Use arrows to reorder. Upload adds to the end.</p>
+        <ul className={admCmsGalleryList}>
           {featured.map((m, index) => (
-            <li key={m.id} className="adm-cms-gallery-item">
-              <div className="adm-cms-media-thumb">
+            <li key={m.id} className={admCmsGalleryItem}>
+              <div className={admCmsMediaThumb}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={resolveCmsAssetUrl(m.url) ?? ""} alt={m.alt} />
               </div>
-              <div className="adm-cms-gallery-item__actions">
+              <div className={admCmsGalleryItemActions}>
                 <button
                   type="button"
-                  className="sp-btn-back"
+                  className={spBtnBack}
                   disabled={index === 0}
                   onClick={() => moveFeatured(index, -1)}
                   aria-label="Move up"
@@ -156,14 +169,14 @@ export function AdminCmsMediaPanel() {
                 </button>
                 <button
                   type="button"
-                  className="sp-btn-back"
+                  className={spBtnBack}
                   disabled={index === featured.length - 1}
                   onClick={() => moveFeatured(index, 1)}
                   aria-label="Move down"
                 >
                   ↓
                 </button>
-                <button type="button" className="sp-btn-back" onClick={() => removeMedia(m.id)}>
+                <button type="button" className={spBtnBack} onClick={() => removeMedia(m.id)}>
                   Remove
                 </button>
               </div>
@@ -179,7 +192,7 @@ export function AdminCmsMediaPanel() {
         />
       </section>
 
-      <section className="adm-form-card">
+      <section className={admFormCard}>
         <CmsImageUploadField
           label="Footer payment banner"
           wide
@@ -191,7 +204,7 @@ export function AdminCmsMediaPanel() {
         {footerPayment ? (
           <button
             type="button"
-            className="sp-btn-back adm-cms-inline-btn"
+            className={`${spBtnBack} ${admCmsInlineBtn}`}
             onClick={() => removeMedia(footerPayment.id)}
           >
             Remove banner
