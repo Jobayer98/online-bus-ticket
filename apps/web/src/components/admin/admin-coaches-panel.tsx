@@ -1,10 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import type { ImportResultDto } from "@repo/shared";
 import { apiDelete, apiGet, apiPatch, apiPost } from "@/lib/api-client";
+import { parseCsvToObjects } from "@/lib/csv-parse";
 import { useGlobalLoading } from "@/components/global-loading-provider";
 import { formatBusTypeLabel } from "@/lib/format";
 import { CounterToast } from "@/components/counter/counter-toast";
+import { AdminCsvImport } from "@/components/admin/admin-csv-import";
 
 type Layout = { id: string; name: string };
 type Coach = {
@@ -21,6 +24,12 @@ const emptyForm = {
   seatLayoutId: "",
 };
 
+const COACH_CSV_TEMPLATE = `coachNumber,busType,seatLayoutName
+DH-2001,AC,40 Seat Standard
+DH-2002,NON_AC,`;
+
+const COACH_CSV_HEADERS = ["coachNumber", "busType", "seatLayoutName"] as const;
+
 export function AdminCoachesPanel() {
   const [coaches, setCoaches] = useState<Coach[]>([]);
   const [layouts, setLayouts] = useState<Layout[]>([]);
@@ -29,7 +38,9 @@ export function AdminCoachesPanel() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [toast, setToast] = useState<string | null>(null);
-  useGlobalLoading(loading);
+  const [importing, setImporting] = useState(false);
+  const [importErrors, setImportErrors] = useState<string[]>([]);
+  useGlobalLoading(loading || importing);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -74,6 +85,35 @@ export function AdminCoachesPanel() {
       load();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Save failed");
+    }
+  }
+
+  async function importCsv(text: string) {
+    setImportErrors([]);
+    setImporting(true);
+    try {
+      const { rows } = parseCsvToObjects(text, COACH_CSV_HEADERS);
+      const payload = {
+        rows: rows.map((r) => ({
+          coachNumber: r.coachNumber.trim(),
+          busType: r.busType.trim(),
+          seatLayoutName: r.seatLayoutName.trim() || undefined,
+        })),
+        skipDuplicates: true,
+      };
+      const res = await apiPost<ImportResultDto>("/admin/coaches/import", payload);
+      const { created, skipped, errors } = res.data;
+      setToast(`Imported ${created} coach(es)${skipped ? `, ${skipped} skipped` : ""}`);
+      if (errors.length > 0) {
+        setImportErrors(errors.map((e) => `Row ${e.row}: ${e.message}`));
+      }
+      load();
+    } catch (err) {
+      setImportErrors([
+        err instanceof Error ? err.message : "Import failed",
+      ]);
+    } finally {
+      setImporting(false);
     }
   }
 
@@ -159,6 +199,16 @@ export function AdminCoachesPanel() {
         </div>
         {error && <p className="sp-panel-error">{error}</p>}
       </form>
+
+      <AdminCsvImport
+        title="Import coaches from CSV"
+        templateFilename="coaches-template.csv"
+        templateContent={COACH_CSV_TEMPLATE}
+        previewHeaders={[...COACH_CSV_HEADERS]}
+        onImport={importCsv}
+        importing={importing}
+        importErrors={importErrors}
+      />
 
       {!loading && (
         <div className="cp-table-wrap">

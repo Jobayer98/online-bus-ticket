@@ -1,15 +1,33 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import type { ImportResultDto } from "@repo/shared";
 import { apiGet, apiPatch, apiPost } from "@/lib/api-client";
+import { parseCsvToObjects } from "@/lib/csv-parse";
+import { AdminCsvImport } from "@/components/admin/admin-csv-import";
 import { useGlobalLoading } from "@/components/global-loading-provider";
-import { formatDateDdMmYyyy, formatMoneyBdt, formatTime12h } from "@/lib/format";
+import {
+  formatDateDdMmYyyy,
+  formatMoneyBdt,
+  formatScheduleClassLine,
+  formatTime12h,
+} from "@/lib/format";
+import { seatClassesFromTemplates } from "@repo/shared";
 import { CounterToast } from "@/components/counter/counter-toast";
 import { HomeDateTimePicker } from "@/components/home-datetime-picker";
 import { getTodayIso } from "@/lib/trip-date";
 
 type Route = { id: string; slug: string; fromStop: { city: string }; toStop: { city: string } };
-type Coach = { id: string; coachNumber: string };
+type Coach = {
+  id: string;
+  coachNumber: string;
+  busType: "AC" | "NON_AC";
+  seatLayoutId: string | null;
+  seatLayout: {
+    name: string;
+    templates?: { seatClass: string }[];
+  } | null;
+};
 type Schedule = {
   id: string;
   status: string;
@@ -20,6 +38,12 @@ type Schedule = {
   coach: Coach;
 };
 
+function formatCoachLabel(coach: Coach): string {
+  const seatClasses = seatClassesFromTemplates(coach.seatLayout?.templates);
+  const typeLine = formatScheduleClassLine(coach.busType, seatClasses);
+  return `${coach.coachNumber} · ${typeLine}`;
+}
+
 function toDatetimeLocal(iso: string): string {
   const d = new Date(iso);
   const pad = (n: number) => String(n).padStart(2, "0");
@@ -29,6 +53,17 @@ function toDatetimeLocal(iso: string): string {
 function fromDatetimeLocal(value: string): string {
   return new Date(value).toISOString();
 }
+
+const SCHEDULE_CSV_TEMPLATE = `routeSlug,coachNumber,departureAt,estimatedArrivalAt,baseFareTaka
+dhaka-pabna,DH-1001,2026-06-10T06:00:00+06:00,2026-06-10T11:30:00+06:00,850`;
+
+const SCHEDULE_CSV_HEADERS = [
+  "routeSlug",
+  "coachNumber",
+  "departureAt",
+  "estimatedArrivalAt",
+  "baseFareTaka",
+] as const;
 
 export function AdminSchedulesPanel() {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
@@ -46,7 +81,9 @@ export function AdminSchedulesPanel() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [toast, setToast] = useState<string | null>(null);
-  useGlobalLoading(loading);
+  const [importing, setImporting] = useState(false);
+  const [importErrors, setImportErrors] = useState<string[]>([]);
+  useGlobalLoading(loading || importing);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -67,6 +104,39 @@ export function AdminSchedulesPanel() {
   useEffect(() => {
     load();
   }, [load]);
+
+  async function importCsv(text: string) {
+    setImportErrors([]);
+    setImporting(true);
+    try {
+      const { rows } = parseCsvToObjects(text, SCHEDULE_CSV_HEADERS);
+      const payload = {
+        rows: rows.map((r) => ({
+          routeSlug: r.routeSlug.trim(),
+          coachNumber: r.coachNumber.trim(),
+          departureAt: r.departureAt.trim(),
+          estimatedArrivalAt: r.estimatedArrivalAt.trim(),
+          baseFareTaka: Number(r.baseFareTaka.trim()),
+        })),
+      };
+      const res = await apiPost<ImportResultDto>(
+        "/admin/schedules/import",
+        payload,
+      );
+      const { created, errors } = res.data;
+      setToast(`Imported ${created} schedule(s)`);
+      if (errors.length > 0) {
+        setImportErrors(errors.map((e) => `Row ${e.row}: ${e.message}`));
+      }
+      load();
+    } catch (err) {
+      setImportErrors([
+        err instanceof Error ? err.message : "Import failed",
+      ]);
+    } finally {
+      setImporting(false);
+    }
+  }
 
   async function createSchedule(e: React.FormEvent) {
     e.preventDefault();
@@ -163,7 +233,8 @@ export function AdminSchedulesPanel() {
               <option value="">Select</option>
               {coaches.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.coachNumber}
+                  {formatCoachLabel(c)}
+                  {!c.seatLayoutId ? " (no layout)" : ""}
                 </option>
               ))}
             </select>
@@ -206,8 +277,25 @@ export function AdminSchedulesPanel() {
             </div>
           </div>
         </div>
+        {coachId &&
+          coaches.find((c) => c.id === coachId && !c.seatLayoutId) && (
+            <p className="sp-panel-error">
+              Selected coach has no seat layout — assign one on the Coaches tab
+              before creating a schedule.
+            </p>
+          )}
         {error && <p className="sp-panel-error">{error}</p>}
       </form>
+
+      <AdminCsvImport
+        title="Import schedules from CSV"
+        templateFilename="schedules-template.csv"
+        templateContent={SCHEDULE_CSV_TEMPLATE}
+        previewHeaders={[...SCHEDULE_CSV_HEADERS]}
+        onImport={importCsv}
+        importing={importing}
+        importErrors={importErrors}
+      />
 
       {rescheduleId && (
         <form className="adm-form-card" onSubmit={submitReschedule}>
@@ -276,7 +364,7 @@ export function AdminSchedulesPanel() {
               {schedules.map((s) => (
                 <tr key={s.id}>
                   <td>{s.route.slug}</td>
-                  <td>{s.coach.coachNumber}</td>
+                  <td>{formatCoachLabel(s.coach)}</td>
                   <td>{formatDateDdMmYyyy(s.departureAt.slice(0, 10))}</td>
                   <td>{formatTime12h(s.departureAt)}</td>
                   <td>{formatMoneyBdt(s.baseFare)}</td>

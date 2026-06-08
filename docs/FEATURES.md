@@ -61,6 +61,8 @@ Each **Epic** is independently deliverable. Each **micro-task** should be one PR
 | [x] E02-07 | Web admin: stops/routes/coaches management UI | web | Basic tables + forms |
 | [x] E02-08 | Seed script: sample Dhaka–Pabna route | db | Dev data |
 | [x] E02-09 | Admin API + UI: boarding points per route | api/web | CRUD under `/admin/routes/:routeId/boarding-points` |
+| [x] E02-10 | Show coach bus type + seat classes in schedule form & table | web/api | Coach dropdown shows AC/Non AC and seat classes |
+| [x] E02-11 | CSV import coaches | shared/api/web | Template download + bulk create with per-row errors |
 
 ---
 
@@ -92,6 +94,7 @@ Each **Epic** is independently deliverable. Each **micro-task** should be one PR
 | [x] E04-05 | `PATCH /api/v1/admin/schedules/:id/cancel` | api | Cannot book cancelled |
 | [x] E04-06 | Counter UI: create schedule form | web | Seller can create |
 | [x] E04-07 | Counter UI: reschedule / cancel actions | web | Confirmation modal |
+| [x] E04-08 | CSV import schedules | shared/api/web | Template download + transactional bulk create |
 
 ---
 

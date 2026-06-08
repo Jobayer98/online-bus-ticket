@@ -5,15 +5,20 @@ import {
   ErrorCode,
   coachIdParamsSchema,
   createCoachSchema,
+  importCoachesSchema,
+  importResultDtoSchema,
   successResponse,
   updateCoachSchema,
 } from "@repo/shared";
 import { authenticateRequired, requireRole } from "../../middleware/auth.js";
+import { importCoaches } from "./coaches-import.service.js";
 
 export const adminCoachesRouter = Router();
 adminCoachesRouter.use(authenticateRequired, requireRole("ADMIN", "COUNTER_SELLER"));
 
-const coachInclude = { seatLayout: true } as const;
+export const coachInclude = {
+  seatLayout: { include: { templates: { select: { seatClass: true } } } },
+} as const;
 
 adminCoachesRouter.get("/", async (req, res, next) => {
   try {
@@ -27,6 +32,20 @@ adminCoachesRouter.get("/", async (req, res, next) => {
     next(e);
   }
 });
+
+adminCoachesRouter.post(
+  "/import",
+  requireRole("ADMIN"),
+  async (req, res, next) => {
+    try {
+      const input = importCoachesSchema.parse(req.body);
+      const result = await importCoaches(input, req.tenant?.id);
+      res.json(successResponse(importResultDtoSchema.parse(result)));
+    } catch (e) {
+      next(e);
+    }
+  },
+);
 
 adminCoachesRouter.post("/", requireRole("ADMIN"), async (req, res, next) => {
   try {

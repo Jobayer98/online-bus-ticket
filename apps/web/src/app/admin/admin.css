@@ -1331,3 +1331,36 @@
   opacity: 0.7;
   cursor: not-allowed;
 }
+
+.adm-csv-import {
+  margin-top: 1rem;
+}
+
+.adm-csv-import__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.adm-csv-import__file {
+  font-size: 0.875rem;
+}
+
+.adm-csv-import__errors {
+  margin: 0 0 0.75rem;
+  padding-left: 1.25rem;
+  color: #c62828;
+  font-size: 0.875rem;
+}
+
+.adm-csv-import__preview {
+  margin-top: 0.5rem;
+}
+
+.adm-csv-import__hint {
+  margin: 0.35rem 0 0;
+  font-size: 0.8rem;
+  color: #666;
+}
