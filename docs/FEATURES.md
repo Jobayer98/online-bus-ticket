@@ -479,7 +479,7 @@ E16-01 → E16-02 → E16-03 → E16-04 → E16-05 → E16-06 → E16-07 → E16
 ## Epic E20 — Platform Admin Dashboard (Phase 1 MVP)
 
 **Goal:** Professional SaaS platform admin: tabbed dashboard, overview KPIs, enhanced tenant CRUD, audit trail.  
-**Depends on:** E16. See `docs/SAAS-PLATFORM-ADMIN-*.md`.
+**Depends on:** E16. See `docs/contracts/platform/` and Epic E16 below.
 
 | ID | Task | Layer | Acceptance |
 |----|------|-------|------------|
@@ -602,7 +602,7 @@ E18-02 → E18-01 → E18-03 → E18-04 → E18-05 → E18-07 → E18-08 → E18
 
 ## Epic E19 — Public Site UI Redesign
 
-Align tenant public site with [docs/UI-DESIGN-GUIDE.md](UI-DESIGN-GUIDE.md). Admin/counter/platform out of scope.
+Align tenant public site with [DESIGN-PRINCIPLES.md](DESIGN-PRINCIPLES.md) and Tailwind tokens in `apps/web/src/app/globals.css`. Admin/counter/platform out of scope.
 
 | ID | Task | Area | Done when |
 |----|------|------|-----------|
@@ -613,7 +613,7 @@ Align tenant public site with [docs/UI-DESIGN-GUIDE.md](UI-DESIGN-GUIDE.md). Adm
 | [x] E19-05 | Seat map states/animation; hold timer SVG ring; checkout form tokens | web | Seat class visual distinction |
 | [x] E19-06 | Booking, payment, confirmation page visual alignment | web | Two-column checkout layout CSS |
 | [x] E19-07 | E-ticket boarding pass; ticket lookup; customer dashboard empty state | web | CMS company name on ticket |
-| [x] E19-08 | Shared `ui/form.css` primitives; Lucide sweep; `FEATURES.md` epic | web | Global reduced-motion rule |
+| [x] E19-08 | Shared form/Tailwind primitives; Lucide sweep; `FEATURES.md` epic | web | Global reduced-motion rule |
 
 ---
 
