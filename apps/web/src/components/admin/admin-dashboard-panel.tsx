@@ -5,6 +5,26 @@ import { apiGet } from "@/lib/api-client";
 import { useGlobalLoading } from "@/components/global-loading-provider";
 import { formatMoneyBdt } from "@/lib/format";
 import type { AnalyticsOverviewDto, SalesReportDto } from "@repo/shared";
+import {
+  admDashboardCards,
+  admKpiCard,
+  admKpiCardLabel,
+  admKpiCardSpan,
+  admKpiCardStrong,
+  admKpiGrid,
+  admPageTitle,
+  admStatCard,
+  admStatCardHead,
+} from "./admin-tw";
+import {
+  cpSection,
+  cpTable,
+  cpTableCell,
+  cpTableHead,
+  cpTableRow,
+  cpTableWrap,
+} from "@/components/counter/counter-tw";
+import { spFilterError } from "@/components/search/search-tw";
 
 export function AdminDashboardPanel() {
   const [overview, setOverview] = useState<AnalyticsOverviewDto | null>(null);
@@ -28,77 +48,77 @@ export function AdminDashboardPanel() {
   }, []);
 
   return (
-    <div className="cp-section admin-dashboard">
-      <h2 className="adm-page-title">Dashboard — last 30 days</h2>
-      {error && <p className="sp-filter-error">{error}</p>}
+    <div className={`${cpSection} admin-dashboard`}>
+      <h2 className={admPageTitle}>Dashboard — last 30 days</h2>
+      {error && <p className={spFilterError}>{error}</p>}
 
       {overview && (
-        <div className="adm-kpi-grid">
-          <div className="adm-kpi-card">
-            <label>Net revenue (30d)</label>
-            <strong>{formatMoneyBdt(overview.netRevenue30d)}</strong>
-            <span>
+        <div className={admKpiGrid}>
+          <div className={admKpiCard}>
+            <label className={admKpiCardLabel}>Net revenue (30d)</label>
+            <strong className={admKpiCardStrong}>{formatMoneyBdt(overview.netRevenue30d)}</strong>
+            <span className={admKpiCardSpan}>
               Gross {formatMoneyBdt(overview.grossRevenue30d)} · Refunds{" "}
               {formatMoneyBdt(overview.refundTotal30d)}
             </span>
           </div>
-          <div className="adm-kpi-card">
-            <label>Tickets sold (30d)</label>
-            <strong>{overview.ticketsSold30d}</strong>
+          <div className={admKpiCard}>
+            <label className={admKpiCardLabel}>Tickets sold (30d)</label>
+            <strong className={admKpiCardStrong}>{overview.ticketsSold30d}</strong>
             {overview.refundCount30d > 0 && (
-              <span>{overview.refundCount30d} refunds</span>
+              <span className={admKpiCardSpan}>{overview.refundCount30d} refunds</span>
             )}
           </div>
-          <div className="adm-kpi-card">
-            <label>Upcoming trips</label>
-            <strong>{overview.upcomingSchedules}</strong>
-            <span>Scheduled, not yet departed</span>
+          <div className={admKpiCard}>
+            <label className={admKpiCardLabel}>Upcoming trips</label>
+            <strong className={admKpiCardStrong}>{overview.upcomingSchedules}</strong>
+            <span className={admKpiCardSpan}>Scheduled, not yet departed</span>
           </div>
-          <div className="adm-kpi-card">
-            <label>Avg ticket (30d)</label>
-            <strong>{formatMoneyBdt(overview.avgTicketValue)}</strong>
-            <span>{overview.seatsSold30d} seats sold</span>
+          <div className={admKpiCard}>
+            <label className={admKpiCardLabel}>Avg ticket (30d)</label>
+            <strong className={admKpiCardStrong}>{formatMoneyBdt(overview.avgTicketValue)}</strong>
+            <span className={admKpiCardSpan}>{overview.seatsSold30d} seats sold</span>
           </div>
         </div>
       )}
 
       {sales && (
-        <div className="adm-dashboard-cards">
-          <article className="adm-stat-card">
-            <div className="adm-stat-card__head">Sales by channel</div>
-            <div className="cp-table-wrap">
-              <table className="cp-table">
+        <div className={admDashboardCards}>
+          <article className={admStatCard}>
+            <div className={admStatCardHead}>Sales by channel</div>
+            <div className={cpTableWrap}>
+              <table className={cpTable}>
                 <tbody>
-                  <tr>
-                    <th scope="row">Online</th>
-                    <td>
+                  <tr className={cpTableRow}>
+                    <th scope="row" className={cpTableHead}>Online</th>
+                    <td className={cpTableCell}>
                       {sales.online.count} tickets ·{" "}
                       {formatMoneyBdt(sales.online.grossRevenue)}
                     </td>
                   </tr>
-                  <tr>
-                    <th scope="row">Counter</th>
-                    <td>
+                  <tr className={cpTableRow}>
+                    <th scope="row" className={cpTableHead}>Counter</th>
+                    <td className={cpTableCell}>
                       {sales.counter.count} tickets ·{" "}
                       {formatMoneyBdt(sales.counter.grossRevenue)}
                     </td>
                   </tr>
-                  <tr>
-                    <th scope="row">Gross</th>
-                    <td>
+                  <tr className={cpTableRow}>
+                    <th scope="row" className={cpTableHead}>Gross</th>
+                    <td className={cpTableCell}>
                       {sales.ticketCount} tickets ·{" "}
                       {formatMoneyBdt(sales.grossRevenue)}
                     </td>
                   </tr>
-                  <tr>
-                    <th scope="row">Refunds</th>
-                    <td>
+                  <tr className={cpTableRow}>
+                    <th scope="row" className={cpTableHead}>Refunds</th>
+                    <td className={cpTableCell}>
                       {sales.refundCount} · {formatMoneyBdt(sales.refundTotal)}
                     </td>
                   </tr>
-                  <tr>
-                    <th scope="row">Net</th>
-                    <td>
+                  <tr className={cpTableRow}>
+                    <th scope="row" className={cpTableHead}>Net</th>
+                    <td className={cpTableCell}>
                       <strong>{formatMoneyBdt(sales.netRevenue)}</strong>
                     </td>
                   </tr>
@@ -107,30 +127,30 @@ export function AdminDashboardPanel() {
             </div>
           </article>
 
-          <article className="adm-stat-card">
-            <div className="adm-stat-card__head">Top routes</div>
-            <div className="cp-table-wrap">
-              <table className="cp-table">
+          <article className={admStatCard}>
+            <div className={admStatCardHead}>Top routes</div>
+            <div className={cpTableWrap}>
+              <table className={cpTable}>
                 <thead>
                   <tr>
-                    <th>Route</th>
-                    <th>Tickets</th>
-                    <th>Gross</th>
+                    <th className={cpTableHead}>Route</th>
+                    <th className={cpTableHead}>Tickets</th>
+                    <th className={cpTableHead}>Gross</th>
                   </tr>
                 </thead>
                 <tbody>
                   {sales.byRoute.length === 0 ? (
                     <tr>
-                      <td colSpan={3} style={{ textAlign: "center", color: "#666" }}>
+                      <td colSpan={3} className={`${cpTableCell} text-center text-[#666]`}>
                         No route data
                       </td>
                     </tr>
                   ) : (
                     sales.byRoute.map((r) => (
-                      <tr key={r.routeSlug}>
-                        <td>{r.routeSlug}</td>
-                        <td>{r.count}</td>
-                        <td>{formatMoneyBdt(r.grossRevenue)}</td>
+                      <tr key={r.routeSlug} className={cpTableRow}>
+                        <td className={cpTableCell}>{r.routeSlug}</td>
+                        <td className={cpTableCell}>{r.count}</td>
+                        <td className={cpTableCell}>{formatMoneyBdt(r.grossRevenue)}</td>
                       </tr>
                     ))
                   )}

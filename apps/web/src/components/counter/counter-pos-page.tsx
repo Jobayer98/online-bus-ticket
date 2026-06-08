@@ -10,9 +10,16 @@ import { useGlobalLoading } from "@/components/global-loading-provider";
 import { CounterSellFlow } from "./counter-sell-flow";
 import { CounterHistoryPanel } from "./counter-history-panel";
 import { CounterManagePanel } from "./counter-manage-panel";
-import "../../app/home.css";
-import "../../app/search/search.css";
-import "../../app/counter/counter.css";
+import {
+  opsHeader,
+  opsHeaderLink,
+  opsHeaderLogo,
+  opsHeaderMain,
+  opsHeaderTop,
+  opsHeaderTopRight,
+  opsPage,
+} from "@/components/admin/admin-tw";
+import { cpHero, cpNav, cpNavBtn, cpNavBtnActive } from "./counter-tw";
 
 type Tab = "sell" | "history" | "manage";
 
@@ -58,26 +65,26 @@ export function CounterPosPage() {
   }
 
   if (!ready) {
-    return <div className="search-page counter-page" aria-busy="true" />;
+    return <div className={opsPage} aria-busy="true" />;
   }
 
   return (
-    <div className="search-page counter-page">
-      <header className="home-header">
-        <div className="home-header-top">
-          <span style={{ fontSize: "0.875rem", color: "#666" }}>
-            Counter point of sale
-          </span>
-          <div className="home-header-top__right">
+    <div className={opsPage}>
+      <header className={opsHeader}>
+        <div className={opsHeaderTop}>
+          <span className="text-[0.875rem] text-[#666]">Counter point of sale</span>
+          <div className={opsHeaderTopRight}>
             <span>{clock}</span>
-            <Link href="/">Public site</Link>
-            <button type="button" className="home-header-top__logout" onClick={logout}>
+            <Link href="/" className={opsHeaderLink}>
+              Public site
+            </Link>
+            <button type="button" className={opsHeaderLink} onClick={logout}>
               Logout
             </button>
           </div>
         </div>
-        <div className="home-header-main">
-          <BrandLogo className="brand-logo home-logo" />
+        <div className={opsHeaderMain}>
+          <BrandLogo className={opsHeaderLogo} />
           <MobileNavMenu
             menuLabel="Counter navigation"
             items={[
@@ -101,7 +108,7 @@ export function CounterPosPage() {
               },
             ]}
           />
-          <nav className="cp-nav" aria-label="Counter">
+          <nav className={cpNav} aria-label="Counter">
             {(
               [
                 ["sell", "Sell ticket"],
@@ -112,7 +119,7 @@ export function CounterPosPage() {
               <button
                 key={id}
                 type="button"
-                className={tab === id ? "is-active" : undefined}
+                className={`${cpNavBtn} ${tab === id ? cpNavBtnActive : ""}`}
                 onClick={() => setTab(id)}
               >
                 {label}
@@ -123,7 +130,7 @@ export function CounterPosPage() {
       </header>
 
       <div
-        className="cp-hero sp-hero"
+        className={cpHero}
         style={{ backgroundImage: "url(/images/home/hero.jpg)" }}
       />
 

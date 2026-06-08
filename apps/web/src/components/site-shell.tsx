@@ -24,6 +24,19 @@ const SHELL_LINKS = [
   { href: "/admin", label: "Admin" },
 ] as const;
 
+function hasTenantSlugCookie(): boolean {
+  if (typeof document === "undefined") return false;
+  return /(?:^|;\s*)tenant-slug=/.test(document.cookie);
+}
+
+function isPlatformMarketingRoute(pathname: string): boolean {
+  const isPlatformPath =
+    pathname === "/" ||
+    pathname === "/platform-landing" ||
+    pathname === "/onboarding";
+  return isPlatformPath && !hasTenantSlugCookie();
+}
+
 function isPublicMotionRoute(pathname: string): boolean {
   const isSearch =
     pathname.startsWith("/search") ||
@@ -57,6 +70,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
   const isCounter = pathname.startsWith("/counter");
   const isAdmin = pathname.startsWith("/admin");
   const isPlatform = pathname.startsWith("/platform");
+  const isPlatformMarketing = isPlatformMarketingRoute(pathname);
   const isHome = pathname === "/";
   const isMarketing =
     isHome ||
@@ -70,28 +84,36 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
     pathname === "/privacy-policy";
 
   const showFallbackNav =
-    !isSearch && !isMarketing && !isCounter && !isAdmin && !isPlatform;
+    !isSearch &&
+    !isMarketing &&
+    !isCounter &&
+    !isAdmin &&
+    !isPlatform &&
+    !isPlatformMarketing;
 
   const useMotion = isPublicMotionRoute(pathname);
 
-  const mainContent = (
-    <main
-      className={
-        isSearch || isMarketing || isCounter || isAdmin || isPlatform
-          ? "site-main site-main--flush"
-          : "site-main"
-      }
-    >
-      {children}
-    </main>
-  );
+  const mainClass =
+    isSearch ||
+    isMarketing ||
+    isCounter ||
+    isAdmin ||
+    isPlatform ||
+    isPlatformMarketing
+      ? "min-h-screen"
+      : "min-h-[calc(100vh-57px)]";
+
+  const mainContent = <main className={mainClass}>{children}</main>;
 
   return (
     <>
       {showFallbackNav && (
-        <nav className="nav">
-          <div className="nav-inner">
-            <Link href="/" className="brand">
+        <nav className="border-b border-[var(--border)] bg-[var(--card)] px-4 py-3">
+          <div className="mx-auto flex max-w-[var(--container-public)] flex-wrap items-center gap-4 max-md:flex-nowrap max-md:justify-between">
+            <Link
+              href="/"
+              className="mr-auto font-bold text-[var(--primary)] no-underline max-md:mr-0 max-md:min-w-0 max-md:flex-1"
+            >
               BusTicket
             </Link>
             <MobileNavMenu
@@ -103,12 +125,12 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
                 active: pathname === href,
               }))}
             />
-            <div className="site-nav">
+            <div className="flex flex-wrap items-center gap-4 max-md:hidden">
               {SHELL_LINKS.map(({ href, label }) => (
                 <Link
                   key={href}
                   href={href}
-                  className={pathname === href ? "is-active" : undefined}
+                  className={`no-underline ${pathname === href ? "font-semibold text-[var(--primary)]" : "text-[var(--text)]"}`}
                 >
                   {label}
                 </Link>

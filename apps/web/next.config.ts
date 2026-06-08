@@ -29,6 +29,12 @@ function cmsRemotePatterns() {
     pathname: "/**",
   });
 
+  patterns.push({
+    protocol: "https",
+    hostname: "lh3.googleusercontent.com",
+    pathname: "/**",
+  });
+
   return patterns;
 }
 

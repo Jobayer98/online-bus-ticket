@@ -7,6 +7,20 @@ import { CounterToast } from "@/components/counter/counter-toast";
 import { useGlobalLoading } from "@/components/global-loading-provider";
 import { apiGet, apiPatch } from "@/lib/api-client";
 import { apiUploadCmsAsset, resolveCmsAssetUrl } from "@/lib/cms-admin-api";
+import {
+  admFormActionsLabel,
+  admFormActionsWithLabel,
+  admFormCard,
+  admFormField,
+  admFormFieldInput,
+  admFormFieldLabel,
+  admFormFieldWide,
+  admFormRow,
+  admMuted,
+  admPageTitle,
+} from "../admin-tw";
+import { cpSection } from "@/components/counter/counter-tw";
+import { spFilterSearch, spPanelError } from "@/components/search/search-tw";
 
 export function AdminCmsProfilePanel() {
   const [profile, setProfile] = useState<SiteProfileDto | null>(null);
@@ -76,48 +90,51 @@ export function AdminCmsProfilePanel() {
 
   if (loading && !profile) {
     return (
-      <div className="cp-section">
-        <p className="adm-muted">Loading profile…</p>
+      <div className={cpSection}>
+        <p className={admMuted}>Loading profile…</p>
       </div>
     );
   }
 
   return (
-    <div className="cp-section">
+    <div className={cpSection}>
       <CounterToast message={toast} onDismiss={() => setToast(null)} />
-      <h3 className="adm-page-title">SITE PROFILE</h3>
+      <h3 className={admPageTitle}>SITE PROFILE</h3>
       {error ? (
-        <p className="sp-panel-error" role="alert">
+        <p className={spPanelError} role="alert">
           {error}
         </p>
       ) : null}
 
-      <form className="adm-form-card" onSubmit={submit}>
-        <div className="adm-form-row">
-          <div className="adm-form-field adm-form-field--wide">
-            <label htmlFor="cms-company-name">Company name</label>
+      <form className={admFormCard} onSubmit={submit}>
+        <div className={admFormRow}>
+          <div className={`${admFormField} ${admFormFieldWide}`}>
+            <label htmlFor="cms-company-name" className={admFormFieldLabel}>Company name</label>
             <input
               id="cms-company-name"
+              className={admFormFieldInput}
               value={companyName}
               onChange={(e) => setCompanyName(e.target.value)}
               required
               maxLength={120}
             />
           </div>
-          <div className="adm-form-field adm-form-field--wide">
-            <label htmlFor="cms-tagline">Tagline</label>
+          <div className={`${admFormField} ${admFormFieldWide}`}>
+            <label htmlFor="cms-tagline" className={admFormFieldLabel}>Tagline</label>
             <input
               id="cms-tagline"
+              className={admFormFieldInput}
               value={tagline}
               onChange={(e) => setTagline(e.target.value)}
               maxLength={200}
               placeholder="TRAVELS"
             />
           </div>
-          <div className="adm-form-field">
-            <label htmlFor="cms-trade-license">Trade license no.</label>
+          <div className={admFormField}>
+            <label htmlFor="cms-trade-license" className={admFormFieldLabel}>Trade license no.</label>
             <input
               id="cms-trade-license"
+              className={admFormFieldInput}
               value={tradeLicenseNo}
               onChange={(e) => setTradeLicenseNo(e.target.value)}
               maxLength={80}
@@ -134,11 +151,11 @@ export function AdminCmsProfilePanel() {
           onFileSelected={(file) => onLogoSelected(file)}
         />
 
-        <div className="adm-form-actions adm-form-actions--with-label">
-          <span className="adm-form-actions__label" aria-hidden="true">
+        <div className={admFormActionsWithLabel}>
+          <span className={admFormActionsLabel} aria-hidden="true">
             &nbsp;
           </span>
-          <button type="submit" className="sp-filter-search" disabled={saving}>
+          <button type="submit" className={spFilterSearch} disabled={saving}>
             {saving ? "Saving…" : "Save draft"}
           </button>
         </div>

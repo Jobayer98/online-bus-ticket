@@ -1,5 +1,4 @@
 import { CmsMarkdownPage, generateCmsPageMetadata } from "@/components/cms-markdown-page";
-import "./about.css";
 
 export async function generateMetadata() {
   return generateCmsPageMetadata({

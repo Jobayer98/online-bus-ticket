@@ -2,41 +2,18 @@ import { Router } from "express";
 import { prisma } from "@repo/database";
 import {
   createScheduleSchema,
+  importResultDtoSchema,
+  importSchedulesSchema,
   rescheduleSchema,
   successResponse,
   AppError,
   ErrorCode,
-  priceForScheduleSeat,
 } from "@repo/shared";
 import { authenticateRequired, requireRole } from "../../middleware/auth.js";
 import { requireSchedulePlanLimit } from "../../middleware/plan-limits.middleware.js";
-
-async function initScheduleSeats(
-  scheduleId: string,
-  coachId: string,
-  baseFare: number,
-) {
-  const coach = await prisma.coach.findUnique({
-    where: { id: coachId },
-    include: { seatLayout: { include: { templates: true } } },
-  });
-  if (!coach?.seatLayout) {
-    throw new AppError(
-      ErrorCode.VALIDATION_ERROR,
-      "Coach has no seat layout",
-      400,
-    );
-  }
-  await prisma.scheduleSeat.createMany({
-    data: coach.seatLayout.templates.map((t) => ({
-      scheduleId,
-      label: t.label,
-      seatClass: t.seatClass,
-      status: "AVAILABLE",
-      price: priceForScheduleSeat(baseFare),
-    })),
-  });
-}
+import { coachInclude } from "./coaches.routes.js";
+import { createScheduleWithSeats } from "./schedules-admin.service.js";
+import { importSchedules } from "./schedules-import.service.js";
 
 export const adminSchedulesRouter = Router();
 adminSchedulesRouter.use(authenticateRequired);
@@ -48,10 +25,28 @@ adminSchedulesRouter.get(
     try {
       const schedules = await prisma.schedule.findMany({
         where: { tenantId: req.tenant?.id },
-        include: { route: true, coach: true },
+        include: { route: true, coach: { include: coachInclude } },
         orderBy: { departureAt: "asc" },
       });
       res.json(successResponse(schedules));
+    } catch (e) {
+      next(e);
+    }
+  },
+);
+
+adminSchedulesRouter.post(
+  "/import",
+  requireRole("ADMIN"),
+  async (req, res, next) => {
+    try {
+      const input = importSchedulesSchema.parse(req.body);
+      const result = await importSchedules(
+        input,
+        req.tenant?.id,
+        req.tenant?.planTier,
+      );
+      res.json(successResponse(importResultDtoSchema.parse(result)));
     } catch (e) {
       next(e);
     }
@@ -65,17 +60,14 @@ adminSchedulesRouter.post(
   async (req, res, next) => {
     try {
       const input = createScheduleSchema.parse(req.body);
-      const schedule = await prisma.schedule.create({
-        data: {
-          routeId: input.routeId,
-          coachId: input.coachId,
-          departureAt: new Date(input.departureAt),
-          estimatedArrivalAt: new Date(input.estimatedArrivalAt),
-          baseFare: input.baseFare,
-          tenantId: req.tenant?.id,
-        },
+      const schedule = await createScheduleWithSeats({
+        routeId: input.routeId,
+        coachId: input.coachId,
+        departureAt: new Date(input.departureAt),
+        estimatedArrivalAt: new Date(input.estimatedArrivalAt),
+        baseFare: input.baseFare,
+        tenantId: req.tenant?.id,
       });
-      await initScheduleSeats(schedule.id, schedule.coachId, schedule.baseFare);
       res.status(201).json(successResponse(schedule));
     } catch (e) {
       next(e);

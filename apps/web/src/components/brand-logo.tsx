@@ -25,7 +25,10 @@ function brandNameLines(companyName: string, tagline: string | null) {
   return { main: companyName.toUpperCase(), sub: null as string | null };
 }
 
-export function BrandLogo({ className = "brand-logo" }: Props) {
+const logoLinkClass =
+  "inline-flex shrink-0 items-center gap-2 no-underline text-[#222]";
+
+export function BrandLogo({ className = logoLinkClass }: Props) {
   const { profile } = useSiteTheme();
   const resolvedLogo = resolveCmsAssetUrl(profile.logoUrl);
   const isExternal = resolvedLogo?.startsWith("http") ?? false;
@@ -39,13 +42,18 @@ export function BrandLogo({ className = "brand-logo" }: Props) {
           alt=""
           width={56}
           height={56}
-          className="brand-logo__img"
+          className="block h-[52px] w-auto shrink-0 max-[560px]:h-11"
           priority
           unoptimized={isExternal}
         />
       ) : (
-        <span className="brand-logo__placeholder" aria-hidden>
-          <svg viewBox="0 0 56 56" width={56} height={56} className="brand-logo__img">
+        <span aria-hidden>
+          <svg
+            viewBox="0 0 56 56"
+            width={56}
+            height={56}
+            className="block h-[52px] w-auto shrink-0 max-[560px]:h-11"
+          >
             <rect width="56" height="56" rx="8" fill="var(--primary-muted, #e8f5e9)" />
             <path
               d="M12 36h32l-4-12H16l-4 12zm6-16h20l3 8H15l3-8z"
@@ -54,9 +62,13 @@ export function BrandLogo({ className = "brand-logo" }: Props) {
           </svg>
         </span>
       )}
-      <span className="brand-logo__text">
+      <span className="text-[1.05rem] font-bold leading-tight tracking-wide max-[560px]:text-[0.95rem]">
         {main}
-        {sub ? <small>{sub}</small> : null}
+        {sub ? (
+          <small className="mt-0 block text-[0.7rem] font-medium tracking-widest text-[#666] max-[560px]:text-[0.65rem]">
+            {sub}
+          </small>
+        ) : null}
       </span>
     </Link>
   );

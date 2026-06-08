@@ -7,13 +7,11 @@ import { useSiteTheme } from "@/components/site-theme-provider";
 import { HomeSectionHeader } from "@/components/home-section-header";
 import {
   defaultViewport,
-  heroTaglineVariants,
   heroWidgetVariants,
   staggerContainerVariants,
   staggerItemVariants,
 } from "@/components/motion/variants";
 import { resolveCmsAssetUrl } from "@/lib/cms-client";
-import { HOME_TAGLINE_FALLBACK } from "@/lib/home-defaults";
 import { getTodayIso } from "@/lib/trip-date";
 
 export function HomeAvailableRoutes() {
@@ -26,8 +24,8 @@ export function HomeAvailableRoutes() {
   if (routes.length === 0) return null;
 
   return (
-    <section className="home-routes" aria-labelledby="home-routes-title">
-      <div className="home-section-inner">
+    <section className="bg-[#fafaf9] px-0 py-14" aria-labelledby="home-routes-title">
+      <div className="mx-auto max-w-[1100px] px-4">
         <HomeSectionHeader
           id="home-routes-title"
           title="Popular routes"
@@ -35,7 +33,7 @@ export function HomeAvailableRoutes() {
         />
 
         <m.ul
-          className="home-routes-grid"
+          className="m-0 grid list-none grid-cols-3 gap-4 p-0 max-[900px]:grid-cols-2 max-[560px]:grid-cols-1"
           variants={staggerContainerVariants}
           initial="hidden"
           whileInView="visible"
@@ -46,13 +44,22 @@ export function HomeAvailableRoutes() {
 
             return (
               <m.li key={route.id} variants={staggerItemVariants}>
-                <Link href={href} className="home-route-card">
-                  <span className="home-route-card__cities">
-                    <span className="home-route-city">{route.fromStop.city}</span>
-                    <Bus className="home-route-bus" size={20} aria-hidden />
-                    <span className="home-route-city">{route.toStop.city}</span>
+                <Link
+                  href={href}
+                  className="flex min-h-24 w-full flex-col gap-3.5 rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 text-inherit no-underline shadow-[var(--shadow-xs)] transition-[border-color,box-shadow] hover:border-[var(--primary)] hover:shadow-[var(--shadow-md)]"
+                >
+                  <span className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+                    <span className="truncate text-left text-[0.9375rem] font-semibold tracking-tight text-[var(--text)]">
+                      {route.fromStop.city}
+                    </span>
+                    <Bus className="shrink-0 justify-self-center text-[var(--primary)]" size={20} aria-hidden />
+                    <span className="truncate text-right text-[0.9375rem] font-semibold tracking-tight text-[var(--text)]">
+                      {route.toStop.city}
+                    </span>
                   </span>
-                  <span className="home-route-card__action">View schedules</span>
+                  <span className="text-[0.8125rem] font-semibold text-[var(--primary)]">
+                    View schedules
+                  </span>
                 </Link>
               </m.li>
             );
@@ -64,35 +71,17 @@ export function HomeAvailableRoutes() {
 }
 
 export function HomeHero({ children }: { children: React.ReactNode }) {
-  const { media, profile } = useSiteTheme();
-  const heroUrl = resolveCmsAssetUrl(media.hero?.url ?? null) ?? "/images/home/hero.jpg";
-  const tagline = profile.tagline?.trim() || HOME_TAGLINE_FALLBACK;
+  const { media } = useSiteTheme();
+  const heroUrl =
+    resolveCmsAssetUrl(media.hero?.url ?? null) ?? "/images/home/hero.jpg";
 
   return (
     <section
-      className="home-hero"
+      className="relative flex min-h-[520px] flex-col items-center justify-end bg-[#052e16] bg-cover bg-center bg-no-repeat px-4 pb-0 max-[900px]:min-h-[420px] max-md:min-h-[260px] after:pointer-events-none after:absolute after:inset-0 after:bg-gradient-to-b after:from-[rgba(5,46,22,0.15)] after:to-[rgba(5,46,22,0.72)] after:content-['']"
       style={{ backgroundImage: `url(${heroUrl})` }}
     >
-      <div className="home-hero__content">
-        <m.p
-          className="home-hero__eyebrow"
-          variants={heroTaglineVariants}
-          initial="initial"
-          animate="animate"
-        >
-          {profile.companyName}
-        </m.p>
-        <m.h1
-          className="home-hero__headline"
-          variants={heroTaglineVariants}
-          initial="initial"
-          animate="animate"
-        >
-          {tagline}
-        </m.h1>
-      </div>
       <m.div
-        className="home-search-wrap"
+        className="relative z-[1] mx-auto w-full max-w-[var(--container-public)] translate-y-1/2 max-[900px]:translate-y-[40%] max-md:px-2"
         variants={heroWidgetVariants}
         initial="initial"
         animate="animate"

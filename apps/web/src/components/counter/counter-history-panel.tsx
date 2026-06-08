@@ -4,6 +4,22 @@ import { useCallback, useEffect, useState } from "react";
 import { apiGet } from "@/lib/api-client";
 import { useGlobalLoading } from "@/components/global-loading-provider";
 import { formatMoneyBdt } from "@/lib/format";
+import {
+  cpBadgeBase,
+  cpBadgeCancel,
+  cpBadgeChange,
+  cpBadgeRefund,
+  cpBadgeSell,
+  cpHistoryBar,
+  cpSection,
+  cpSectionTitle,
+  cpTable,
+  cpTableCell,
+  cpTableHead,
+  cpTableRow,
+  cpTableWrap,
+} from "./counter-tw";
+import { spFilterError, spFilterSearch } from "@/components/search/search-tw";
 
 type CounterTxn = {
   id: string;
@@ -40,10 +56,10 @@ function formatPaymentPaid(payment: CounterTxn["booking"]["payment"]) {
 }
 
 function badgeClass(type: CounterTxn["type"]) {
-  if (type === "SELL") return "cp-badge cp-badge--sell";
-  if (type === "REFUND") return "cp-badge cp-badge--refund";
-  if (type === "CHANGE") return "cp-badge cp-badge--change";
-  return "cp-badge cp-badge--cancel";
+  if (type === "SELL") return `${cpBadgeBase} ${cpBadgeSell}`;
+  if (type === "REFUND") return `${cpBadgeBase} ${cpBadgeRefund}`;
+  if (type === "CHANGE") return `${cpBadgeBase} ${cpBadgeChange}`;
+  return `${cpBadgeBase} ${cpBadgeCancel}`;
 }
 
 type Props = {
@@ -80,13 +96,13 @@ export function CounterHistoryPanel({ refreshKey = 0 }: Props) {
     .reduce((s, t) => s + Math.abs(t.amount), 0);
 
   return (
-    <div className="cp-section">
-      <h2 className="cp-section-title">TODAY&apos;S COUNTER TRANSACTIONS</h2>
+    <div className={cpSection}>
+      <h2 className={cpSectionTitle}>TODAY&apos;S COUNTER TRANSACTIONS</h2>
 
-      <div className="cp-history-bar">
+      <div className={cpHistoryBar}>
         <button
           type="button"
-          className="sp-filter-search"
+          className={spFilterSearch}
           style={{ padding: "0.4rem 0.85rem" }}
           onClick={load}
         >
@@ -103,34 +119,34 @@ export function CounterHistoryPanel({ refreshKey = 0 }: Props) {
         <span>{txns.length} transaction(s)</span>
       </div>
 
-      {error && <p className="sp-filter-error">{error}</p>}
+      {error && <p className={spFilterError}>{error}</p>}
 
       {!loading && !error && (
-        <div className="cp-table-wrap">
-          <table className="cp-table">
+        <div className={cpTableWrap}>
+          <table className={cpTable}>
             <thead>
               <tr>
-                <th>Time</th>
-                <th>Type</th>
-                <th>Passenger #</th>
-                <th>Name</th>
-                <th>Phone</th>
-                <th>Payment</th>
-                <th>Amount</th>
-                <th>Note</th>
+                <th className={cpTableHead}>Time</th>
+                <th className={cpTableHead}>Type</th>
+                <th className={cpTableHead}>Passenger #</th>
+                <th className={cpTableHead}>Name</th>
+                <th className={cpTableHead}>Phone</th>
+                <th className={cpTableHead}>Payment</th>
+                <th className={cpTableHead}>Amount</th>
+                <th className={cpTableHead}>Note</th>
               </tr>
             </thead>
             <tbody>
               {txns.length === 0 ? (
                 <tr>
-                  <td colSpan={8} style={{ textAlign: "center", color: "#666" }}>
+                  <td colSpan={8} className={`${cpTableCell} text-center text-[#666]`}>
                     No transactions yet today
                   </td>
                 </tr>
               ) : (
                 txns.map((t) => (
-                  <tr key={t.id}>
-                    <td>
+                  <tr key={t.id} className={cpTableRow}>
+                    <td className={cpTableCell}>
                       {new Date(t.createdAt).toLocaleTimeString("en-US", {
                         hour: "numeric",
                         minute: "2-digit",
@@ -138,19 +154,19 @@ export function CounterHistoryPanel({ refreshKey = 0 }: Props) {
                         timeZone: "Asia/Dhaka",
                       })}
                     </td>
-                    <td>
+                    <td className={cpTableCell}>
                       <span className={badgeClass(t.type)}>{t.type}</span>
                     </td>
-                    <td>{t.booking.ticket?.passengerNumber ?? "—"}</td>
-                    <td>{t.booking.passengerName}</td>
-                    <td>{t.booking.passengerPhone}</td>
-                    <td>{formatPaymentPaid(t.booking.payment)}</td>
-                    <td>
+                    <td className={cpTableCell}>{t.booking.ticket?.passengerNumber ?? "—"}</td>
+                    <td className={cpTableCell}>{t.booking.passengerName}</td>
+                    <td className={cpTableCell}>{t.booking.passengerPhone}</td>
+                    <td className={cpTableCell}>{formatPaymentPaid(t.booking.payment)}</td>
+                    <td className={cpTableCell}>
                       {t.amount >= 0
                         ? formatMoneyBdt(t.amount)
                         : `−${formatMoneyBdt(-t.amount)}`}
                     </td>
-                    <td>{t.note ?? "—"}</td>
+                    <td className={cpTableCell}>{t.note ?? "—"}</td>
                   </tr>
                 ))
               )}

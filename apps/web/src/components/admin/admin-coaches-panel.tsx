@@ -1,10 +1,38 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import type { ImportResultDto } from "@repo/shared";
 import { apiDelete, apiGet, apiPatch, apiPost } from "@/lib/api-client";
+import { parseCsvToObjects } from "@/lib/csv-parse";
 import { useGlobalLoading } from "@/components/global-loading-provider";
 import { formatBusTypeLabel } from "@/lib/format";
 import { CounterToast } from "@/components/counter/counter-toast";
+import { AdminCsvImport } from "@/components/admin/admin-csv-import";
+import {
+  admBtnDelete,
+  admBtnEdit,
+  admFormActionsButtons,
+  admFormActionsSpacer,
+  admFormActionsWithLabel,
+  admFormCard,
+  admFormRow,
+  admRowActions,
+} from "./admin-tw";
+import {
+  cpSection,
+  cpSectionTitle,
+  cpTable,
+  cpTableCell,
+  cpTableHead,
+  cpTableRow,
+  cpTableWrap,
+} from "@/components/counter/counter-tw";
+import {
+  spBtnBack,
+  spCheckoutField,
+  spFilterSearch,
+  spPanelError,
+} from "@/components/search/search-tw";
 
 type Layout = { id: string; name: string };
 type Coach = {
@@ -21,6 +49,12 @@ const emptyForm = {
   seatLayoutId: "",
 };
 
+const COACH_CSV_TEMPLATE = `coachNumber,busType,seatLayoutName
+DH-2001,AC,40 Seat Standard
+DH-2002,NON_AC,`;
+
+const COACH_CSV_HEADERS = ["coachNumber", "busType", "seatLayoutName"] as const;
+
 export function AdminCoachesPanel() {
   const [coaches, setCoaches] = useState<Coach[]>([]);
   const [layouts, setLayouts] = useState<Layout[]>([]);
@@ -29,7 +63,9 @@ export function AdminCoachesPanel() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [toast, setToast] = useState<string | null>(null);
-  useGlobalLoading(loading);
+  const [importing, setImporting] = useState(false);
+  const [importErrors, setImportErrors] = useState<string[]>([]);
+  useGlobalLoading(loading || importing);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -77,6 +113,35 @@ export function AdminCoachesPanel() {
     }
   }
 
+  async function importCsv(text: string) {
+    setImportErrors([]);
+    setImporting(true);
+    try {
+      const { rows } = parseCsvToObjects(text, COACH_CSV_HEADERS);
+      const payload = {
+        rows: rows.map((r) => ({
+          coachNumber: r.coachNumber.trim(),
+          busType: r.busType.trim(),
+          seatLayoutName: r.seatLayoutName.trim() || undefined,
+        })),
+        skipDuplicates: true,
+      };
+      const res = await apiPost<ImportResultDto>("/admin/coaches/import", payload);
+      const { created, skipped, errors } = res.data;
+      setToast(`Imported ${created} coach(es)${skipped ? `, ${skipped} skipped` : ""}`);
+      if (errors.length > 0) {
+        setImportErrors(errors.map((e) => `Row ${e.row}: ${e.message}`));
+      }
+      load();
+    } catch (err) {
+      setImportErrors([
+        err instanceof Error ? err.message : "Import failed",
+      ]);
+    } finally {
+      setImporting(false);
+    }
+  }
+
   async function remove(id: string, coachNumber: string) {
     if (!window.confirm(`Delete coach "${coachNumber}"?`)) return;
     try {
@@ -90,14 +155,14 @@ export function AdminCoachesPanel() {
   }
 
   return (
-    <div className="cp-section">
+    <div className={cpSection}>
       <CounterToast message={toast} onDismiss={() => setToast(null)} />
-      <h2 className="cp-section-title">COACHES</h2>
+      <h2 className={cpSectionTitle}>COACHES</h2>
 
-      <form className="adm-form-card" onSubmit={submit}>
+      <form className={admFormCard} onSubmit={submit}>
         <h3>{editId ? "Edit coach" : "Add coach"}</h3>
-        <div className="adm-form-row">
-          <div className="sp-checkout-field">
+        <div className={admFormRow}>
+          <div className={spCheckoutField}>
             <label htmlFor="coach-num">Coach number</label>
             <input
               id="coach-num"
@@ -108,7 +173,7 @@ export function AdminCoachesPanel() {
               required
             />
           </div>
-          <div className="sp-checkout-field">
+          <div className={spCheckoutField}>
             <label htmlFor="coach-type">Bus type</label>
             <select
               id="coach-type"
@@ -124,7 +189,7 @@ export function AdminCoachesPanel() {
               <option value="NON_AC">Non AC</option>
             </select>
           </div>
-          <div className="sp-checkout-field">
+          <div className={spCheckoutField}>
             <label htmlFor="coach-layout">Seat layout</label>
             <select
               id="coach-layout"
@@ -141,47 +206,57 @@ export function AdminCoachesPanel() {
               ))}
             </select>
           </div>
-          <div className="adm-form-actions adm-form-actions--with-label">
-            <span className="adm-form-actions__spacer" aria-hidden="true">
+          <div className={admFormActionsWithLabel}>
+            <span className={admFormActionsSpacer} aria-hidden="true">
               Actions
             </span>
-            <div className="adm-form-actions__buttons">
-              <button type="submit" className="sp-filter-search">
+            <div className={admFormActionsButtons}>
+              <button type="submit" className={spFilterSearch}>
                 {editId ? "Update" : "Add"}
               </button>
               {editId && (
-                <button type="button" className="sp-btn-back" onClick={resetForm}>
+                <button type="button" className={spBtnBack} onClick={resetForm}>
                   Cancel
                 </button>
               )}
             </div>
           </div>
         </div>
-        {error && <p className="sp-panel-error">{error}</p>}
+        {error && <p className={spPanelError}>{error}</p>}
       </form>
 
+      <AdminCsvImport
+        title="Import coaches from CSV"
+        templateFilename="coaches-template.csv"
+        templateContent={COACH_CSV_TEMPLATE}
+        previewHeaders={[...COACH_CSV_HEADERS]}
+        onImport={importCsv}
+        importing={importing}
+        importErrors={importErrors}
+      />
+
       {!loading && (
-        <div className="cp-table-wrap">
-          <table className="cp-table">
+        <div className={cpTableWrap}>
+          <table className={cpTable}>
             <thead>
               <tr>
-                <th>Coach #</th>
-                <th>Type</th>
-                <th>Layout</th>
-                <th>Actions</th>
+                <th className={cpTableHead}>Coach #</th>
+                <th className={cpTableHead}>Type</th>
+                <th className={cpTableHead}>Layout</th>
+                <th className={cpTableHead}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {coaches.map((c) => (
-                <tr key={c.id}>
-                  <td>{c.coachNumber}</td>
-                  <td>{formatBusTypeLabel(c.busType)}</td>
-                  <td>{c.seatLayout?.name ?? "—"}</td>
-                  <td>
-                    <div className="adm-row-actions">
+                <tr key={c.id} className={cpTableRow}>
+                  <td className={cpTableCell}>{c.coachNumber}</td>
+                  <td className={cpTableCell}>{formatBusTypeLabel(c.busType)}</td>
+                  <td className={cpTableCell}>{c.seatLayout?.name ?? "—"}</td>
+                  <td className={cpTableCell}>
+                    <div className={admRowActions}>
                       <button
                         type="button"
-                        className="adm-btn-edit"
+                        className={admBtnEdit}
                         onClick={() => {
                           setEditId(c.id);
                           setForm({
@@ -195,7 +270,7 @@ export function AdminCoachesPanel() {
                       </button>
                       <button
                         type="button"
-                        className="adm-btn-delete"
+                        className={admBtnDelete}
                         onClick={() => remove(c.id, c.coachNumber)}
                       >
                         Delete

@@ -3,21 +3,20 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { m, useScroll, useSpring, useTransform } from "framer-motion";
-import { ChevronDown, Store } from "lucide-react";
 import { BrandLogo } from "@/components/brand-logo";
 import { MobileNavMenu, type MobileNavItem } from "@/components/mobile-nav-menu";
+
+const navLinkClass =
+  "relative pb-[0.35rem] text-[0.833rem] font-medium text-[var(--text)] no-underline transition-colors hover:text-[var(--primary)] after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:scale-x-0 after:bg-[var(--primary)] after:transition-transform after:duration-200 after:content-[''] hover:after:scale-x-100";
+
+const navLinkActiveClass = `${navLinkClass} text-[var(--primary)] after:scale-x-100`;
 
 export function HomeHeader() {
   const pathname = usePathname();
   const isHome = pathname === "/";
-  const isAbout = pathname === "/about";
   const isContact = pathname === "/contact";
   const isTicket = pathname === "/ticket";
-  const isReturnPolicy = pathname === "/return-policy";
-  const isTerms = pathname === "/terms-and-conditions";
-  const isPrivacy = pathname === "/privacy-policy";
   const isLogin = pathname === "/login";
-  const isContentsActive = isReturnPolicy || isTerms || isPrivacy;
 
   const { scrollY } = useScroll();
   const shadowOpacity = useTransform(scrollY, [0, 80], [0, 1]);
@@ -33,86 +32,43 @@ export function HomeHeader() {
 
   const mobileItems: MobileNavItem[] = [
     { type: "link", href: "/", label: "Home", active: isHome },
-    { type: "link", href: "/about", label: "About Us", active: isAbout },
     { type: "link", href: "/contact", label: "Contact Us", active: isContact },
     { type: "link", href: "/ticket", label: "Download Ticket", active: isTicket },
     { type: "link", href: "/#counters", label: "Our Counters" },
-    { type: "link", href: "/return-policy", label: "Return Policy", active: isReturnPolicy },
-    {
-      type: "link",
-      href: "/terms-and-conditions",
-      label: "Terms & Conditions",
-      active: isTerms,
-    },
-    { type: "link", href: "/privacy-policy", label: "Privacy Policy", active: isPrivacy },
     { type: "link", href: "/login", label: "Login", active: isLogin },
   ];
 
   return (
-    <m.header className="home-header" style={{ boxShadow }}>
-      <div className="home-header-main">
-        <m.div className="home-logo-wrap" style={{ scale: logoScale }}>
-          <BrandLogo className="brand-logo home-logo" />
+    <m.header
+      className="sticky top-0 z-50 border-b border-[var(--border)] bg-white"
+      style={{ boxShadow }}
+    >
+      <div className="mx-auto flex min-h-16 max-w-[var(--container-public)] items-center justify-between gap-4 px-4 py-2 max-md:flex-nowrap max-md:px-3">
+        <m.div className="origin-left shrink-0" style={{ scale: logoScale }}>
+          <BrandLogo />
         </m.div>
         <MobileNavMenu items={mobileItems} menuLabel="Main navigation" />
-        <nav className="home-nav" aria-label="Main">
-          <Link href="/" className={isHome ? "is-active" : undefined}>
+        <nav className="ml-auto flex flex-wrap items-center gap-x-5 gap-y-0.5 max-md:hidden" aria-label="Main">
+          <Link href="/" className={isHome ? navLinkActiveClass : navLinkClass}>
             Home
           </Link>
-          <Link href="/about" className={isAbout ? "is-active" : undefined}>
-            About Us
-          </Link>
-          <Link href="/ticket" className={isTicket ? "is-active" : undefined}>
+          <Link href="/ticket" className={isTicket ? navLinkActiveClass : navLinkClass}>
             Download Ticket
           </Link>
-          <div
-            className={`home-nav-dropdown${isContentsActive ? " is-open-section" : ""}`}
-          >
-            <button
-              type="button"
-              className={`home-nav-dropdown-trigger${isContentsActive ? " is-active" : ""}`}
-              aria-haspopup="true"
-              aria-current={isContentsActive ? "page" : undefined}
-            >
-              Contents
-              <ChevronDown className="home-nav-dropdown-chevron" size={14} aria-hidden />
-            </button>
-            <ul className="home-nav-dropdown-menu">
-              <li>
-                <Link
-                  href="/return-policy"
-                  className={isReturnPolicy ? "is-active" : undefined}
-                >
-                  Return Policy
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/terms-and-conditions"
-                  className={isTerms ? "is-active" : undefined}
-                >
-                  Terms &amp; Conditions
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/privacy-policy"
-                  className={isPrivacy ? "is-active" : undefined}
-                >
-                  Privacy Policy
-                </Link>
-              </li>
-            </ul>
-          </div>
-          <Link href="/contact" className={isContact ? "is-active" : undefined}>
+          <Link href="/contact" className={isContact ? navLinkActiveClass : navLinkClass}>
             Contact Us
           </Link>
-          <Link href="/#counters" className="home-nav-counters">
-            <Store size={15} aria-hidden />
+          <Link
+            href="/#counters"
+            className={`${navLinkClass} inline-flex items-center gap-1.5 max-[767px]:hidden`}
+          >
             Our Counters
           </Link>
         </nav>
-        <Link href="/login" className="home-header-login">
+        <Link
+          href="/login"
+          className="inline-flex h-9 shrink-0 items-center justify-center rounded-full bg-[var(--primary)] px-[1.1rem] text-[0.722rem] font-semibold text-[var(--text-on-primary,#fff)] no-underline transition-colors hover:bg-[var(--primary-hover)] max-md:hidden after:hidden"
+        >
           Login
         </Link>
       </div>

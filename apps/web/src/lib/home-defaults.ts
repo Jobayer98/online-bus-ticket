@@ -1,4 +1,4 @@
-/** Default home-page copy until CMS home-sections epic (see UI-DESIGN-GUIDE §5.17–5.18). */
+/** Default home-page copy until CMS home-sections epic (see docs/FEATURES.md). */
 
 export type HomeStatItem = {
   value: string;

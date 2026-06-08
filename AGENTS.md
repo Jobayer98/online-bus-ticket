@@ -201,6 +201,7 @@ apps/web/src/
 | [docs/contracts/](docs/contracts/) | Per-endpoint contract specs |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Boundaries, flows, data model |
 | [docs/DESIGN-PRINCIPLES.md](docs/DESIGN-PRINCIPLES.md) | Quality bar |
+| [docs/README.md](docs/README.md) | Documentation index |
 | [docs/FEATURES.md](docs/FEATURES.md) | What to build next |
 | [docs/GIT-WORKFLOW.md](docs/GIT-WORKFLOW.md) | Commits and PRs |
 

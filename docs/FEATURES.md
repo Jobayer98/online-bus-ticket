@@ -61,6 +61,8 @@ Each **Epic** is independently deliverable. Each **micro-task** should be one PR
 | [x] E02-07 | Web admin: stops/routes/coaches management UI | web | Basic tables + forms |
 | [x] E02-08 | Seed script: sample Dhaka–Pabna route | db | Dev data |
 | [x] E02-09 | Admin API + UI: boarding points per route | api/web | CRUD under `/admin/routes/:routeId/boarding-points` |
+| [x] E02-10 | Show coach bus type + seat classes in schedule form & table | web/api | Coach dropdown shows AC/Non AC and seat classes |
+| [x] E02-11 | CSV import coaches | shared/api/web | Template download + bulk create with per-row errors |
 
 ---
 
@@ -92,6 +94,7 @@ Each **Epic** is independently deliverable. Each **micro-task** should be one PR
 | [x] E04-05 | `PATCH /api/v1/admin/schedules/:id/cancel` | api | Cannot book cancelled |
 | [x] E04-06 | Counter UI: create schedule form | web | Seller can create |
 | [x] E04-07 | Counter UI: reschedule / cancel actions | web | Confirmation modal |
+| [x] E04-08 | CSV import schedules | shared/api/web | Template download + transactional bulk create |
 
 ---
 
@@ -476,7 +479,7 @@ E16-01 → E16-02 → E16-03 → E16-04 → E16-05 → E16-06 → E16-07 → E16
 ## Epic E20 — Platform Admin Dashboard (Phase 1 MVP)
 
 **Goal:** Professional SaaS platform admin: tabbed dashboard, overview KPIs, enhanced tenant CRUD, audit trail.  
-**Depends on:** E16. See `docs/SAAS-PLATFORM-ADMIN-*.md`.
+**Depends on:** E16. See `docs/contracts/platform/` and Epic E16 below.
 
 | ID | Task | Layer | Acceptance |
 |----|------|-------|------------|
@@ -599,7 +602,7 @@ E18-02 → E18-01 → E18-03 → E18-04 → E18-05 → E18-07 → E18-08 → E18
 
 ## Epic E19 — Public Site UI Redesign
 
-Align tenant public site with [docs/UI-DESIGN-GUIDE.md](UI-DESIGN-GUIDE.md). Admin/counter/platform out of scope.
+Align tenant public site with [DESIGN-PRINCIPLES.md](DESIGN-PRINCIPLES.md) and Tailwind tokens in `apps/web/src/app/globals.css`. Admin/counter/platform out of scope.
 
 | ID | Task | Area | Done when |
 |----|------|------|-----------|
@@ -610,7 +613,7 @@ Align tenant public site with [docs/UI-DESIGN-GUIDE.md](UI-DESIGN-GUIDE.md). Adm
 | [x] E19-05 | Seat map states/animation; hold timer SVG ring; checkout form tokens | web | Seat class visual distinction |
 | [x] E19-06 | Booking, payment, confirmation page visual alignment | web | Two-column checkout layout CSS |
 | [x] E19-07 | E-ticket boarding pass; ticket lookup; customer dashboard empty state | web | CMS company name on ticket |
-| [x] E19-08 | Shared `ui/form.css` primitives; Lucide sweep; `FEATURES.md` epic | web | Global reduced-motion rule |
+| [x] E19-08 | Shared form/Tailwind primitives; Lucide sweep; `FEATURES.md` epic | web | Global reduced-motion rule |
 
 ---
 

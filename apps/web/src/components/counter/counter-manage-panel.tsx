@@ -5,6 +5,24 @@ import { useGlobalLoading } from "@/components/global-loading-provider";
 import { apiGet, apiPost } from "@/lib/api-client";
 import { formatMoneyBdt, formatTime12h } from "@/lib/format";
 import type { TicketDto } from "@repo/shared";
+import {
+  cpManageBody,
+  cpManageGrid,
+  cpManageHeading,
+  cpManageHint,
+  cpManageSection,
+  cpSection,
+  cpSectionTitle,
+} from "./counter-tw";
+import {
+  spBtnBack,
+  spCheckoutActions,
+  spCheckoutField,
+  spCheckoutTable,
+  spEmpty,
+  spFilterSearch,
+  spPanelError,
+} from "@/components/search/search-tw";
 
 export function CounterManagePanel() {
   const [passengerNumber, setPassengerNumber] = useState("");
@@ -70,15 +88,15 @@ export function CounterManagePanel() {
   }
 
   return (
-    <div className="cp-section">
-      <h2 className="cp-section-title">REFUND / CHANGE</h2>
+    <div className={cpSection}>
+      <h2 className={cpSectionTitle}>REFUND / CHANGE</h2>
 
-      <div className="cp-manage-grid">
-        <section>
-          <h3>Find ticket</h3>
-          <div className="cp-manage-body">
+      <div className={cpManageGrid}>
+        <section className={cpManageSection}>
+          <h3 className={cpManageHeading}>Find ticket</h3>
+          <div className={cpManageBody}>
             <form onSubmit={lookup}>
-              <div className="sp-checkout-field" style={{ padding: 0 }}>
+              <div className={spCheckoutField} style={{ padding: 0 }}>
                 <label htmlFor="mgmt-pn">Passenger number</label>
                 <input
                   id="mgmt-pn"
@@ -88,7 +106,7 @@ export function CounterManagePanel() {
                   required
                 />
               </div>
-              <div className="sp-checkout-field" style={{ padding: 0 }}>
+              <div className={spCheckoutField} style={{ padding: 0 }}>
                 <label htmlFor="mgmt-phone">Phone on booking</label>
                 <input
                   id="mgmt-phone"
@@ -99,13 +117,13 @@ export function CounterManagePanel() {
                 />
               </div>
               {lookupError && (
-                <p className="sp-panel-error" style={{ marginBottom: "0.5rem" }}>
+                <p className={spPanelError} style={{ marginBottom: "0.5rem" }}>
                   {lookupError}
                 </p>
               )}
               <button
                 type="submit"
-                className="sp-filter-search"
+                className={spFilterSearch}
                 style={{ width: "100%", marginTop: "0.25rem" }}
                 disabled={loading}
               >
@@ -115,17 +133,17 @@ export function CounterManagePanel() {
           </div>
         </section>
 
-        <section>
-          <h3>Booking actions</h3>
-          <div className="cp-manage-body">
+        <section className={cpManageSection}>
+          <h3 className={cpManageHeading}>Booking actions</h3>
+          <div className={cpManageBody}>
             {!ticket && (
-              <p className="sp-empty" style={{ border: "none", padding: "1.5rem 0" }}>
+              <p className={spEmpty} style={{ border: "none", padding: "1.5rem 0" }}>
                 Lookup a paid ticket to refund or log a change
               </p>
             )}
             {ticket && (
               <>
-                <table className="sp-checkout-table" style={{ width: "100%", margin: "0 0 0.75rem" }}>
+                <table className={spCheckoutTable} style={{ width: "100%", margin: "0 0 0.75rem" }}>
                   <tbody>
                     <tr>
                       <th>Passenger #</th>
@@ -162,7 +180,7 @@ export function CounterManagePanel() {
                   </tbody>
                 </table>
 
-                <div className="sp-checkout-field" style={{ padding: 0 }}>
+                <div className={spCheckoutField} style={{ padding: 0 }}>
                   <label htmlFor="mgmt-note">Note (optional)</label>
                   <input
                     id="mgmt-note"
@@ -172,7 +190,7 @@ export function CounterManagePanel() {
                   />
                 </div>
 
-                {actionError && <p className="sp-panel-error">{actionError}</p>}
+                {actionError && <p className={spPanelError}>{actionError}</p>}
                 {actionMessage && (
                   <p
                     style={{
@@ -185,10 +203,10 @@ export function CounterManagePanel() {
                   </p>
                 )}
 
-                <div className="sp-checkout-actions" style={{ justifyContent: "flex-start" }}>
+                <div className={spCheckoutActions} style={{ justifyContent: "flex-start" }}>
                   <button
                     type="button"
-                    className="sp-btn-back"
+                    className={spBtnBack}
                     disabled={acting}
                     onClick={() => runAction("/counter/refund", "Refund")}
                   >
@@ -196,14 +214,14 @@ export function CounterManagePanel() {
                   </button>
                   <button
                     type="button"
-                    className="sp-filter-search"
+                    className={spFilterSearch}
                     disabled={acting}
                     onClick={() => runAction("/counter/change", "Log change")}
                   >
                     Log change
                   </button>
                 </div>
-                <p className="cp-manage-hint" style={{ fontSize: "0.8rem", marginTop: "0.75rem", opacity: 0.85 }}>
+                <p className={cpManageHint}>
                   Unpaid holds are cancelled automatically on expiry. Paid tickets must
                   be refunded — not cancelled.
                 </p>

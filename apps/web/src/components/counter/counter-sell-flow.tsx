@@ -12,6 +12,34 @@ import {
 } from "@/lib/format";
 import { useGlobalLoading } from "@/components/global-loading-provider";
 import { CounterToast } from "./counter-toast";
+import {
+  cpSuccess,
+  cpSuccessActions,
+  cpSuccessCard,
+  cpSuccessHeading,
+  cpSuccessHint,
+  cpSuccessNumber,
+} from "./counter-tw";
+import {
+  spBtnBack,
+  spCheckoutActions,
+  spCheckoutCol,
+  spCheckoutColHeading,
+  spCheckoutError,
+  spCheckoutField,
+  spCheckoutGrid,
+  spCheckoutOperator,
+  spCheckoutOperatorSpacer,
+  spCheckoutTable,
+  spCheckoutTitle,
+  spCheckoutTotalRow,
+  spCheckoutWrap,
+  spEmpty,
+  spFilterSearch,
+  spPanelError,
+  spReq,
+  spResultsList,
+} from "@/components/search/search-tw";
 import type { CounterSellInput, ScheduleCardDto, SeatMapDto } from "@repo/shared";
 
 const PHONE_11 = /^\d{11}$/;
@@ -213,18 +241,18 @@ export function CounterSellFlow({ onSold }: Props) {
     return (
       <>
         <CounterToast message={toast} onDismiss={() => setToast(null)} />
-        <div className="cp-success">
-          <div className="cp-success-card">
-            <h2>TICKET SOLD — SHAHZADPUR TRAVELS</h2>
-            <p className="cp-success-number">{sellResult.ticket.passengerNumber}</p>
-            <p className="cp-success-hint">
+        <div className={cpSuccess}>
+          <div className={cpSuccessCard}>
+            <h2 className={cpSuccessHeading}>TICKET SOLD — SHAHZADPUR TRAVELS</h2>
+            <p className={cpSuccessNumber}>{sellResult.ticket.passengerNumber}</p>
+            <p className={cpSuccessHint}>
               Give this passenger number and phone to the customer for ticket download.
             </p>
-            <div className="cp-success-actions">
-              <button type="button" className="sp-filter-search" onClick={resetSale}>
+            <div className={cpSuccessActions}>
+              <button type="button" className={spFilterSearch} onClick={resetSale}>
                 New sale
               </button>
-              <button type="button" className="sp-btn-back" onClick={handleSuccessBack}>
+              <button type="button" className={spBtnBack} onClick={handleSuccessBack}>
                 Back to search
               </button>
             </div>
@@ -241,14 +269,14 @@ export function CounterSellFlow({ onSold }: Props) {
     return (
       <>
         <CounterToast message={toast} onDismiss={() => setToast(null)} />
-        <div className="sp-checkout">
-        <h2 className="sp-checkout-title">COUNTER SALE — PASSENGER DETAILS</h2>
+        <div className={spCheckoutWrap}>
+        <h2 className={spCheckoutTitle}>COUNTER SALE — PASSENGER DETAILS</h2>
 
-        <div className="sp-checkout-grid">
-          <section className="sp-checkout-col sp-checkout-col--journey">
-            <h3>Journey Details</h3>
-            <p className="sp-checkout-operator">SHAHZADPUR TRAVELS</p>
-            <table className="sp-checkout-table">
+        <div className={spCheckoutGrid}>
+          <section className={spCheckoutCol}>
+            <h3 className={spCheckoutColHeading}>Journey Details</h3>
+            <p className={spCheckoutOperator}>SHAHZADPUR TRAVELS</p>
+            <table className={spCheckoutTable}>
               <tbody>
                 <tr>
                   <th>Route</th>
@@ -276,12 +304,12 @@ export function CounterSellFlow({ onSold }: Props) {
             </table>
           </section>
 
-          <section className="sp-checkout-col sp-checkout-col--fare">
-            <h3>Fare Details</h3>
-            <p className="sp-checkout-operator-spacer" aria-hidden="true">
+          <section className={spCheckoutCol}>
+            <h3 className={spCheckoutColHeading}>Fare Details</h3>
+            <p className={spCheckoutOperatorSpacer} aria-hidden="true">
               &nbsp;
             </p>
-            <table className="sp-checkout-table">
+            <table className={spCheckoutTable}>
               <tbody>
                 <tr>
                   <th>Total Fare</th>
@@ -291,7 +319,7 @@ export function CounterSellFlow({ onSold }: Props) {
                   <th>Payment</th>
                   <td>{method === "CASH" ? "Cash" : "Online"}</td>
                 </tr>
-                <tr className="sp-checkout-total-row">
+                <tr className={spCheckoutTotalRow}>
                   <th>Amount Due</th>
                   <td>
                     <strong>{formatMoneyBdt(totalAmount)}</strong>
@@ -301,14 +329,14 @@ export function CounterSellFlow({ onSold }: Props) {
             </table>
           </section>
 
-          <section className="sp-checkout-col sp-checkout-col--passenger">
-            <h3>Passenger Details</h3>
-            <p className="sp-checkout-operator-spacer" aria-hidden="true">
+          <section className={spCheckoutCol}>
+            <h3 className={spCheckoutColHeading}>Passenger Details</h3>
+            <p className={spCheckoutOperatorSpacer} aria-hidden="true">
               &nbsp;
             </p>
-            <div className="sp-checkout-field">
+            <div className={spCheckoutField}>
               <label htmlFor="cp-name">
-                Name <span className="sp-req">*</span>
+                Name <span className={spReq}>*</span>
               </label>
               <input
                 id="cp-name"
@@ -317,9 +345,9 @@ export function CounterSellFlow({ onSold }: Props) {
                 autoComplete="name"
               />
             </div>
-            <div className="sp-checkout-field">
+            <div className={spCheckoutField}>
               <label htmlFor="cp-phone">
-                Mobile (11 digits) <span className="sp-req">*</span>
+                Mobile (11 digits) <span className={spReq}>*</span>
               </label>
               <input
                 id="cp-phone"
@@ -333,7 +361,7 @@ export function CounterSellFlow({ onSold }: Props) {
                 title="11-digit mobile number"
               />
             </div>
-            <div className="sp-checkout-field">
+            <div className={spCheckoutField}>
               <label htmlFor="cp-method">Payment method</label>
               <select
                 id="cp-method"
@@ -350,13 +378,13 @@ export function CounterSellFlow({ onSold }: Props) {
         </div>
 
         {sellError && (
-          <p className="sp-checkout-error sp-panel-error">{sellError}</p>
+          <p className={`${spCheckoutError} ${spPanelError}`}>{sellError}</p>
         )}
 
-        <div className="sp-checkout-actions">
+        <div className={spCheckoutActions}>
           <button
             type="button"
-            className="sp-btn-back"
+            className={spBtnBack}
             onClick={() => {
               setExpandedId(checkout.schedule.scheduleId);
               setSelectedSeats(checkout.seatLabels);
@@ -369,7 +397,7 @@ export function CounterSellFlow({ onSold }: Props) {
           </button>
           <button
             type="button"
-            className="sp-filter-search"
+            className={spFilterSearch}
             disabled={selling}
             onClick={handleSell}
           >
@@ -403,12 +431,12 @@ export function CounterSellFlow({ onSold }: Props) {
       />
 
       {sellError && !checkout && (
-        <p className="sp-checkout-error sp-panel-error">{sellError}</p>
+        <p className={`${spCheckoutError} ${spPanelError}`}>{sellError}</p>
       )}
 
-      <div className="sp-results-list">
+      <div className={spResultsList}>
         {!loadingSearch && schedules.length === 0 && !searchError && (
-          <div className="sp-empty">No buses found for this date.</div>
+          <div className={spEmpty}>No buses found for this date.</div>
         )}
         {!loadingSearch &&
           schedules.map((s) => (

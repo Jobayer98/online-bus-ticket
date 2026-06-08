@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { btnBusyClass } from "@/components/brand-loading-overlay";
 import { useGlobalLoading } from "@/components/global-loading-provider";
 import { apiPost } from "@/lib/api-client";
 import { setAuthSession, type AuthUser } from "@/lib/auth-session";
@@ -66,11 +67,11 @@ export function LoginForm() {
   }
 
   return (
-    <div className="auth-card">
-      <div className="auth-card__tabs">
+    <div className="w-full max-w-[360px]">
+      <div className="mb-5 grid grid-cols-2 overflow-hidden rounded border border-[#d0d0d0]">
         <button
           type="button"
-          className={mode === "login" ? "is-active" : undefined}
+          className={`cursor-pointer border-0 px-3 py-2.5 font-[inherit] text-[0.9rem] font-semibold ${mode === "login" ? "bg-[var(--primary-hover)] text-white" : "bg-[#f8f8f8] text-[#555]"}`}
           onClick={() => {
             setMode("login");
             setError("");
@@ -80,7 +81,7 @@ export function LoginForm() {
         </button>
         <button
           type="button"
-          className={mode === "register" ? "is-active" : undefined}
+          className={`cursor-pointer border-0 px-3 py-2.5 font-[inherit] text-[0.9rem] font-semibold ${mode === "register" ? "bg-[var(--primary-hover)] text-white" : "bg-[#f8f8f8] text-[#555]"}`}
           onClick={() => {
             setMode("register");
             setError("");
@@ -90,16 +91,18 @@ export function LoginForm() {
         </button>
       </div>
 
-      <form className="auth-form" onSubmit={submit} noValidate>
-        <p className="auth-form__lead">
+      <form onSubmit={submit} noValidate>
+        <p className="mb-4 text-left text-[0.88rem] leading-relaxed text-[#555]">
           {mode === "login"
             ? "Sign in to view your bookings and manage your account."
             : "Create an account to book tickets faster next time."}
         </p>
 
         {mode === "register" && (
-          <div className="auth-field">
-            <label htmlFor="auth-name">Full name</label>
+          <div className="mb-3.5 text-left">
+            <label htmlFor="auth-name" className="mb-1 block text-[0.8rem] font-semibold text-[#444]">
+              Full name
+            </label>
             <input
               id="auth-name"
               type="text"
@@ -107,12 +110,15 @@ export function LoginForm() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Your name"
+              className="box-border h-[42px] w-full rounded border border-[#c5c5c5] px-3 text-base focus:border-[var(--primary)] focus:shadow-[0_0_0_2px_rgba(46,125,50,0.15)] focus:outline-none"
             />
           </div>
         )}
 
-        <div className="auth-field">
-          <label htmlFor="auth-phone">Mobile number</label>
+        <div className="mb-3.5 text-left">
+          <label htmlFor="auth-phone" className="mb-1 block text-[0.8rem] font-semibold text-[#444]">
+            Mobile number
+          </label>
           <input
             id="auth-phone"
             type="tel"
@@ -122,11 +128,14 @@ export function LoginForm() {
             value={phone}
             onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 11))}
             placeholder="01XXXXXXXXX"
+            className="box-border h-[42px] w-full rounded border border-[#c5c5c5] px-3 text-base focus:border-[var(--primary)] focus:shadow-[0_0_0_2px_rgba(46,125,50,0.15)] focus:outline-none"
           />
         </div>
 
-        <div className="auth-field">
-          <label htmlFor="auth-password">Password</label>
+        <div className="mb-3.5 text-left">
+          <label htmlFor="auth-password" className="mb-1 block text-[0.8rem] font-semibold text-[#444]">
+            Password
+          </label>
           <input
             id="auth-password"
             type="password"
@@ -134,14 +143,15 @@ export function LoginForm() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="••••••••"
+            className="box-border h-[42px] w-full rounded border border-[#c5c5c5] px-3 text-base focus:border-[var(--primary)] focus:shadow-[0_0_0_2px_rgba(46,125,50,0.15)] focus:outline-none"
           />
         </div>
 
-        {error && <p className="auth-form__error">{error}</p>}
+        {error && <p className="mb-3 text-[0.88rem] font-medium text-[#c62828]">{error}</p>}
 
         <button
           type="submit"
-          className={`auth-form__submit${loading ? " btn-is-busy" : ""}`}
+          className={`mt-1 h-11 w-full cursor-pointer rounded border-0 bg-[var(--primary-hover)] font-[inherit] text-[0.9rem] font-bold tracking-widest text-white hover:bg-[#145214] disabled:cursor-not-allowed disabled:opacity-65 ${loading ? btnBusyClass : ""}`}
           disabled={loading}
           aria-busy={loading}
         >
@@ -153,13 +163,17 @@ export function LoginForm() {
         </button>
       </form>
 
-      <p className="auth-card__footer">
-        <Link href="/">← Back to home</Link>
-        <span className="auth-card__sep">·</span>
-        <Link href="/ticket">Download ticket</Link>
+      <p className="mt-5 text-center text-[0.85rem]">
+        <Link href="/" className="font-medium text-[var(--primary)] no-underline hover:underline">
+          ← Back to home
+        </Link>
+        <span className="mx-1.5 text-[#bbb]">·</span>
+        <Link href="/ticket" className="font-medium text-[var(--primary)] no-underline hover:underline">
+          Download ticket
+        </Link>
       </p>
 
-      <p className="auth-card__demo" aria-label="Demo accounts">
+      <p className="mt-4 border-t border-dashed border-[#e0e0e0] pt-3.5 text-center text-[0.72rem] leading-snug text-[#888]" aria-label="Demo accounts">
         Staff: 01700000001 (admin) or 01700000002 (counter) · password123.
         Customers can register here.
       </p>

@@ -315,10 +315,10 @@ export function SearchResultsContent() {
   const stopsReady = stops.length > 0 && Boolean(route);
 
   return (
-    <div className="search-page">
+    <div className="min-h-screen bg-[var(--bg)]">
       <HomeHeader />
       <div
-        className="sp-hero"
+        className="h-[140px] bg-[#333] bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: "url(/images/home/hero.jpg)" }}
       />
 
@@ -364,14 +364,20 @@ export function SearchResultsContent() {
           onHoldExpired={handleHoldExpired}
         />
       ) : (
-        <div className="sp-results-list">
+        <div className="mx-auto flex max-w-[1200px] flex-col gap-[0.65rem] px-4 pb-6 max-[767px]:px-3">
           {loading &&
             Array.from({ length: 3 }).map((_, i) => (
               <ScheduleCardSkeleton key={i} />
             ))}
-          {error && <div className="sp-empty sp-panel-error">{error}</div>}
+          {error && (
+            <div className="border border-[var(--border)] bg-white p-8 text-center text-[0.75rem] text-[var(--danger)]">
+              {error}
+            </div>
+          )}
           {!loading && !error && schedules.length === 0 && (
-            <div className="sp-empty">No buses found for this date.</div>
+            <div className="border border-[var(--border)] bg-white p-8 text-center text-[#666]">
+              No buses found for this date.
+            </div>
           )}
           {!loading &&
             !error &&

@@ -8,6 +8,27 @@ import { useGlobalLoading } from "@/components/global-loading-provider";
 import { apiGet, apiPatch } from "@/lib/api-client";
 import { apiUploadCmsAsset, resolveCmsAssetUrl } from "@/lib/cms-admin-api";
 import { CMS_CONTACT_ICONS } from "./cms-shared";
+import {
+  admCmsHint,
+  admCmsInlineBtn,
+  admCmsRepeatRow,
+  admFormActionsLabel,
+  admFormActionsWithLabel,
+  admFormCard,
+  admFormField,
+  admFormFieldInput,
+  admFormFieldLabel,
+  admFormFieldWide,
+  admFormRow,
+  admMuted,
+  admPageTitle,
+} from "../admin-tw";
+import { cpSection } from "@/components/counter/counter-tw";
+import {
+  spBtnBack,
+  spFilterSearch,
+  spPanelError,
+} from "@/components/search/search-tw";
 
 const emptyLine = (): ContactLineInput => ({ icon: "pin", text: "" });
 const emptyLink = (): FooterBarLinkInput => ({ label: "", href: "" });
@@ -97,30 +118,31 @@ export function AdminCmsFooterPanel() {
 
   if (loading && !footer) {
     return (
-      <div className="cp-section">
-        <p className="adm-muted">Loading footer…</p>
+      <div className={cpSection}>
+        <p className={admMuted}>Loading footer…</p>
       </div>
     );
   }
 
   return (
-    <div className="cp-section">
+    <div className={cpSection}>
       <CounterToast message={toast} onDismiss={() => setToast(null)} />
-      <h3 className="adm-page-title">FOOTER</h3>
+      <h3 className={admPageTitle}>FOOTER</h3>
       {error ? (
-        <p className="sp-panel-error" role="alert">
+        <p className={spPanelError} role="alert">
           {error}
         </p>
       ) : null}
 
-      <form className="adm-form-card" onSubmit={submit}>
+      <form className={admFormCard} onSubmit={submit}>
         <h3>Contact lines</h3>
         {contactLines.map((line, i) => (
-          <div key={i} className="adm-form-row adm-cms-repeat-row">
-            <div className="adm-form-field">
-              <label htmlFor={`cms-contact-icon-${i}`}>Icon</label>
+          <div key={i} className={`${admFormRow} ${admCmsRepeatRow}`}>
+            <div className={admFormField}>
+              <label htmlFor={`cms-contact-icon-${i}`} className={admFormFieldLabel}>Icon</label>
               <select
                 id={`cms-contact-icon-${i}`}
+                className={admFormFieldInput}
                 value={line.icon}
                 onChange={(e) =>
                   setContactLines((rows) =>
@@ -139,10 +161,11 @@ export function AdminCmsFooterPanel() {
                 ))}
               </select>
             </div>
-            <div className="adm-form-field adm-form-field--wide">
-              <label htmlFor={`cms-contact-text-${i}`}>Text</label>
+            <div className={`${admFormField} ${admFormFieldWide}`}>
+              <label htmlFor={`cms-contact-text-${i}`} className={admFormFieldLabel}>Text</label>
               <input
                 id={`cms-contact-text-${i}`}
+                className={admFormFieldInput}
                 value={line.text}
                 onChange={(e) =>
                   setContactLines((rows) =>
@@ -154,7 +177,7 @@ export function AdminCmsFooterPanel() {
             </div>
             <button
               type="button"
-              className="sp-btn-back"
+              className={spBtnBack}
               onClick={() =>
                 setContactLines((rows) => rows.filter((_, j) => j !== i))
               }
@@ -166,18 +189,19 @@ export function AdminCmsFooterPanel() {
         ))}
         <button
           type="button"
-          className="sp-btn-back adm-cms-inline-btn"
+          className={`${spBtnBack} ${admCmsInlineBtn}`}
           onClick={() => setContactLines((rows) => [...rows, emptyLine()])}
         >
           + Contact line
         </button>
 
-        <div className="adm-form-row" style={{ marginTop: "1rem" }}>
-          <div className="adm-form-field adm-form-field--wide">
-            <label htmlFor="cms-footer-email">Email</label>
+        <div className={admFormRow} style={{ marginTop: "1rem" }}>
+          <div className={`${admFormField} ${admFormFieldWide}`}>
+            <label htmlFor="cms-footer-email" className={admFormFieldLabel}>Email</label>
             <input
               id="cms-footer-email"
               type="email"
+              className={admFormFieldInput}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -187,11 +211,12 @@ export function AdminCmsFooterPanel() {
 
         <h3 style={{ marginTop: "1.25rem" }}>Footer bar links</h3>
         {barLinks.map((link, i) => (
-          <div key={i} className="adm-form-row adm-cms-repeat-row">
-            <div className="adm-form-field">
-              <label htmlFor={`cms-link-label-${i}`}>Label</label>
+          <div key={i} className={`${admFormRow} ${admCmsRepeatRow}`}>
+            <div className={admFormField}>
+              <label htmlFor={`cms-link-label-${i}`} className={admFormFieldLabel}>Label</label>
               <input
                 id={`cms-link-label-${i}`}
+                className={admFormFieldInput}
                 value={link.label}
                 onChange={(e) =>
                   setBarLinks((rows) =>
@@ -201,10 +226,11 @@ export function AdminCmsFooterPanel() {
                 maxLength={80}
               />
             </div>
-            <div className="adm-form-field adm-form-field--wide">
-              <label htmlFor={`cms-link-href-${i}`}>Href</label>
+            <div className={`${admFormField} ${admFormFieldWide}`}>
+              <label htmlFor={`cms-link-href-${i}`} className={admFormFieldLabel}>Href</label>
               <input
                 id={`cms-link-href-${i}`}
+                className={admFormFieldInput}
                 value={link.href}
                 onChange={(e) =>
                   setBarLinks((rows) =>
@@ -217,7 +243,7 @@ export function AdminCmsFooterPanel() {
             </div>
             <button
               type="button"
-              className="sp-btn-back"
+              className={spBtnBack}
               onClick={() => setBarLinks((rows) => rows.filter((_, j) => j !== i))}
               disabled={barLinks.length <= 1}
             >
@@ -227,16 +253,17 @@ export function AdminCmsFooterPanel() {
         ))}
         <button
           type="button"
-          className="sp-btn-back adm-cms-inline-btn"
+          className={`${spBtnBack} ${admCmsInlineBtn}`}
           onClick={() => setBarLinks((rows) => [...rows, emptyLink()])}
         >
           + Link
         </button>
 
-        <div className="adm-form-field adm-form-field--wide" style={{ marginTop: "1rem" }}>
-          <label htmlFor="cms-powered-by">Powered-by text</label>
+        <div className={`${admFormField} ${admFormFieldWide}`} style={{ marginTop: "1rem" }}>
+          <label htmlFor="cms-powered-by" className={admFormFieldLabel}>Powered-by text</label>
           <input
             id="cms-powered-by"
+            className={admFormFieldInput}
             value={poweredByText}
             onChange={(e) => setPoweredByText(e.target.value)}
             maxLength={120}
@@ -252,16 +279,16 @@ export function AdminCmsFooterPanel() {
           onFileSelected={(file) => onBannerSelected(file)}
         />
 
-        <div className="adm-form-actions adm-form-actions--with-label" style={{ marginTop: "1rem" }}>
-          <span className="adm-form-actions__label" aria-hidden="true">
+        <div className={admFormActionsWithLabel} style={{ marginTop: "1rem" }}>
+          <span className={admFormActionsLabel} aria-hidden="true">
             &nbsp;
           </span>
-          <button type="submit" className="sp-filter-search" disabled={saving}>
+          <button type="submit" className={spFilterSearch} disabled={saving}>
             {saving ? "Saving…" : "Save draft"}
           </button>
         </div>
         {footer ? (
-          <p className="adm-muted adm-cms-hint">Status: {footer.status}</p>
+          <p className={`${admMuted} ${admCmsHint}`}>Status: {footer.status}</p>
         ) : null}
       </form>
     </div>

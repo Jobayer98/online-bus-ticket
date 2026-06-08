@@ -10,18 +10,22 @@ export function PaymentCancelContent() {
   const bookingId = searchParams.get("bookingId");
 
   return (
-    <div className="search-page payment-page">
+    <div className="min-h-screen bg-[#eceff1]">
       <HomeHeader />
-      <div className="payment-page__inner">
-        <h1 className="payment-page__heading">Payment cancelled</h1>
+      <div className="mx-auto max-w-[520px] px-4 pb-10 pt-4">
+        <h1 className="m-0 mb-3 text-[1.1rem] font-bold text-[#263238]">
+          Payment cancelled
+        </h1>
         <p>Your payment was not completed. Seats may still be held briefly.</p>
         {bookingId && (
-          <p className="payment-page__meta">
+          <p className="grid grid-cols-2 gap-x-4 gap-y-[0.65rem] text-[0.82rem]">
             Reference: {bookingId.slice(-8).toUpperCase()}
           </p>
         )}
-        <p className="payment-page__home">
-          <Link href="/">← Back to home</Link>
+        <p className="mt-5 text-center text-[0.85rem]">
+          <Link href="/" className="text-[var(--primary-hover)]">
+            ← Back to home
+          </Link>
         </p>
       </div>
       <SearchFooter />

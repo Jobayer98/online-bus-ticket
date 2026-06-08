@@ -17,10 +17,19 @@ import { AdminReportsPanel } from "./admin-reports-panel";
 import { AdminCmsPanel } from "./cms/admin-cms-panel";
 import { AdminTenantSettingsPanel } from "./admin-tenant-settings-panel";
 import { AdminPaymentsPanel } from "./admin-payments-panel";
-import "../../app/home.css";
-import "../../app/search/search.css";
-import "../../app/counter/counter.css";
-import "../../app/admin/admin.css";
+import {
+  admHero,
+  admNav,
+  admNavBtn,
+  admNavBtnActive,
+  opsHeader,
+  opsHeaderLink,
+  opsHeaderLogo,
+  opsHeaderMain,
+  opsHeaderTop,
+  opsHeaderTopRight,
+  opsPage,
+} from "./admin-tw";
 
 type Tab =
   | "dashboard"
@@ -86,25 +95,29 @@ export function AdminPage() {
   }
 
   if (!ready) {
-    return <div className="search-page admin-page" aria-busy="true" />;
+    return <div className={opsPage} aria-busy="true" />;
   }
 
   return (
-    <div className="search-page admin-page">
-      <header className="home-header">
-        <div className="home-header-top">
-          <span style={{ fontSize: "0.875rem", color: "#666" }}>Administration</span>
-          <div className="home-header-top__right">
+    <div className={opsPage}>
+      <header className={opsHeader}>
+        <div className={opsHeaderTop}>
+          <span className="text-[0.875rem] text-[#666]">Administration</span>
+          <div className={opsHeaderTopRight}>
             <span>{clock}</span>
-            <Link href="/counter">Counter</Link>
-            <Link href="/">Public site</Link>
-            <button type="button" className="home-header-top__logout" onClick={logout}>
+            <Link href="/counter" className={opsHeaderLink}>
+              Counter
+            </Link>
+            <Link href="/" className={opsHeaderLink}>
+              Public site
+            </Link>
+            <button type="button" className={opsHeaderLink} onClick={logout}>
               Logout
             </button>
           </div>
         </div>
-        <div className="home-header-main">
-          <BrandLogo className="brand-logo home-logo" />
+        <div className={opsHeaderMain}>
+          <BrandLogo className={opsHeaderLogo} />
           <MobileNavMenu
             menuLabel="Admin navigation"
             items={TABS.map(({ id, label }) => ({
@@ -114,12 +127,12 @@ export function AdminPage() {
               onClick: () => setTab(id),
             }))}
           />
-          <nav className="adm-nav" aria-label="Admin">
+          <nav className={admNav} aria-label="Admin">
             {TABS.map(({ id, label }) => (
               <button
                 key={id}
                 type="button"
-                className={tab === id ? "is-active" : undefined}
+                className={`${admNavBtn} ${tab === id ? admNavBtnActive : ""}`}
                 onClick={() => setTab(id)}
               >
                 {label}
@@ -130,7 +143,7 @@ export function AdminPage() {
       </header>
 
       <div
-        className="adm-hero sp-hero"
+        className={admHero}
         style={{ backgroundImage: "url(/images/home/hero.jpg)" }}
       />
 

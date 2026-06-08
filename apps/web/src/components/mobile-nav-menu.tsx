@@ -24,6 +24,11 @@ type MobileNavMenuProps = {
   menuLabel?: string;
 };
 
+const listItemClass =
+  "block w-full border-b border-[#f0f0f0] bg-transparent px-5 py-3 text-left text-base font-medium text-[#222] no-underline transition-colors hover:bg-[#f5f5f5] hover:text-[var(--primary)]";
+
+const listItemActiveClass = `${listItemClass} border-l-[3px] border-l-[#c62828] bg-[#f0f7f0] pl-[calc(1.25rem-3px)] font-bold text-[var(--primary)]`;
+
 function HamburgerIcon({ open }: { open: boolean }) {
   return (
     <svg
@@ -32,24 +37,24 @@ function HamburgerIcon({ open }: { open: boolean }) {
       viewBox="0 0 24 24"
       fill="none"
       aria-hidden
-      className={`nav-hamburger__icon${open ? " is-open" : ""}`}
+      className={open ? "is-open" : ""}
     >
       <path
-        className="nav-hamburger__line nav-hamburger__line--top"
+        className={`origin-center transition-all duration-200 ${open ? "translate-y-[5px] rotate-45" : ""}`}
         d="M4 7h16"
         stroke="currentColor"
         strokeWidth="2"
         strokeLinecap="round"
       />
       <path
-        className="nav-hamburger__line nav-hamburger__line--mid"
+        className={`transition-opacity duration-200 ${open ? "opacity-0" : ""}`}
         d="M4 12h16"
         stroke="currentColor"
         strokeWidth="2"
         strokeLinecap="round"
       />
       <path
-        className="nav-hamburger__line nav-hamburger__line--bot"
+        className={`origin-center transition-all duration-200 ${open ? "-translate-y-[5px] -rotate-45" : ""}`}
         d="M4 17h16"
         stroke="currentColor"
         strokeWidth="2"
@@ -82,10 +87,10 @@ export function MobileNavMenu({ items, menuLabel = "Menu" }: MobileNavMenuProps)
   }
 
   return (
-    <div className="mobile-nav">
+    <div className="hidden shrink-0 max-md:block">
       <button
         type="button"
-        className={`nav-hamburger${open ? " is-open" : ""}`}
+        className="flex h-[42px] w-[42px] items-center justify-center rounded border border-[var(--border)] bg-white p-0 font-[inherit] text-[#333] hover:border-[var(--primary)] hover:text-[var(--primary)]"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
         aria-controls={panelId}
@@ -97,7 +102,7 @@ export function MobileNavMenu({ items, menuLabel = "Menu" }: MobileNavMenuProps)
       {open && (
         <button
           type="button"
-          className="mobile-nav__backdrop"
+          className="fixed inset-0 z-[90] cursor-pointer border-0 bg-black/45 p-0"
           aria-label="Close menu"
           onClick={close}
         />
@@ -105,17 +110,17 @@ export function MobileNavMenu({ items, menuLabel = "Menu" }: MobileNavMenuProps)
 
       <nav
         id={panelId}
-        className={`mobile-nav__panel${open ? " is-open" : ""}`}
+        className={`fixed top-0 right-0 z-[100] m-0 h-dvh w-[min(280px,88vw)] overflow-y-auto border-l border-[var(--border)] bg-white py-4 shadow-[-4px_0_24px_rgba(0,0,0,0.12)] transition-transform duration-250 ease-out ${open ? "pointer-events-auto translate-x-0" : "pointer-events-none translate-x-full"}`}
         aria-label={menuLabel}
         aria-hidden={!open}
       >
-        <ul className="mobile-nav__list">
+        <ul className="m-0 list-none p-0">
           {items.map((item) => (
             <li key={`${item.type}-${item.label}`}>
               {item.type === "link" ? (
                 <Link
                   href={item.href}
-                  className={item.active ? "is-active" : undefined}
+                  className={item.active ? listItemActiveClass : listItemClass}
                   onClick={close}
                 >
                   {item.label}
@@ -123,7 +128,7 @@ export function MobileNavMenu({ items, menuLabel = "Menu" }: MobileNavMenuProps)
               ) : (
                 <button
                   type="button"
-                  className={item.active ? "is-active" : undefined}
+                  className={item.active ? listItemActiveClass : listItemClass}
                   onClick={() => {
                     item.onClick();
                     close();

@@ -6,6 +6,27 @@ import { useGlobalLoading } from "@/components/global-loading-provider";
 import { platformApiGet } from "@/lib/platform-api-client";
 import { formatMoneyBdt } from "@/lib/format";
 import type { PlatformDashboardOverviewDto } from "@repo/shared";
+import {
+  admKpiCardClass,
+  admKpiGridClass,
+  admPageTitleClass,
+  alertClass,
+  cpSectionClass,
+  cpTableClass,
+  cpTableWrapClass,
+  filterErrorClass,
+  platformAlertListClass,
+  platformAlertsClass,
+  platformLoadingClass,
+  platformPlanBarFillClass,
+  platformPlanBarLabelClass,
+  platformPlanBarMetaClass,
+  platformPlanBarRowClass,
+  platformPlanBarsClass,
+  platformPlanBarTrackClass,
+  platformSectionTitleClass,
+  platformTwoColClass,
+} from "./platform-styles";
 
 const PLAN_COLORS: Record<string, string> = {
   FREE: "#9ca3af",
@@ -29,26 +50,26 @@ export function PlatformOverviewPanel() {
 
   if (loading && !data) {
     return (
-      <div className="cp-section">
-        <p className="platform-loading">Loading overview…</p>
+      <div className={cpSectionClass}>
+        <p className={platformLoadingClass}>Loading overview…</p>
       </div>
     );
   }
 
   return (
-    <div className="cp-section admin-dashboard">
-      <h2 className="adm-page-title">Platform overview</h2>
-      {error && <p className="sp-filter-error">{error}</p>}
+    <div className={cpSectionClass}>
+      <h2 className={admPageTitleClass}>Platform overview</h2>
+      {error && <p className={filterErrorClass}>{error}</p>}
 
       {data && (
         <>
-          <div className="adm-kpi-grid">
-            <div className="adm-kpi-card">
+          <div className={admKpiGridClass}>
+            <div className={admKpiCardClass}>
               <label>Total MRR</label>
               <strong>{formatMoneyBdt(data.totalMrr)}</strong>
               <span>Active paid subscriptions</span>
             </div>
-            <div className="adm-kpi-card">
+            <div className={admKpiCardClass}>
               <label>Active tenants</label>
               <strong>
                 {data.activeTenants} / {data.licensedCapacity}
@@ -58,7 +79,7 @@ export function PlatformOverviewPanel() {
                 capacity
               </span>
             </div>
-            <div className="adm-kpi-card">
+            <div className={admKpiCardClass}>
               <label>Bookings this month</label>
               <strong>{data.monthlyBookings}</strong>
               {data.bookingsGrowthPct !== null && (
@@ -68,12 +89,12 @@ export function PlatformOverviewPanel() {
                 </span>
               )}
             </div>
-            <div className="adm-kpi-card">
+            <div className={admKpiCardClass}>
               <label>Platform revenue (30d)</label>
               <strong>{formatMoneyBdt(data.platformRevenue30d)}</strong>
               <span>Gross ticket sales all tenants</span>
             </div>
-            <div className="adm-kpi-card">
+            <div className={admKpiCardClass}>
               <label>Platform uptime</label>
               <strong>{data.platformUptimePct}%</strong>
               <span>Last 30 days (stub until E24)</span>
@@ -81,13 +102,13 @@ export function PlatformOverviewPanel() {
           </div>
 
           {data.alerts.length > 0 && (
-            <div className="platform-alerts">
-              <h3 className="platform-section-title">Alerts</h3>
-              <ul className="platform-alert-list">
+            <div className={platformAlertsClass}>
+              <h3 className={platformSectionTitleClass}>Alerts</h3>
+              <ul className={platformAlertListClass}>
                 {data.alerts.map((a) => (
                   <li
                     key={`${a.tenantId}-${a.message}`}
-                    className={`platform-alert platform-alert--${a.severity}`}
+                    className={alertClass(a.severity)}
                   >
                     {a.tenantId ? (
                       <Link href={`/platform/tenants/${a.tenantId}`}>
@@ -102,11 +123,11 @@ export function PlatformOverviewPanel() {
             </div>
           )}
 
-          <div className="platform-two-col">
+          <div className={platformTwoColClass}>
             <div>
-              <h3 className="platform-section-title">Top tenants by revenue</h3>
-              <div className="cp-table-wrap">
-                <table className="cp-table">
+              <h3 className={platformSectionTitleClass}>Top tenants by revenue</h3>
+              <div className={cpTableWrapClass}>
+                <table className={cpTableClass}>
                   <thead>
                     <tr>
                       <th>Tenant</th>
@@ -139,21 +160,21 @@ export function PlatformOverviewPanel() {
             </div>
 
             <div>
-              <h3 className="platform-section-title">Plan distribution</h3>
-              <div className="platform-plan-bars">
+              <h3 className={platformSectionTitleClass}>Plan distribution</h3>
+              <div className={platformPlanBarsClass}>
                 {data.planDistribution.map((p) => (
-                  <div key={p.planTier} className="platform-plan-bar-row">
-                    <span className="platform-plan-bar-label">{p.planTier}</span>
-                    <div className="platform-plan-bar-track">
+                  <div key={p.planTier} className={platformPlanBarRowClass}>
+                    <span className={platformPlanBarLabelClass}>{p.planTier}</span>
+                    <div className={platformPlanBarTrackClass}>
                       <div
-                        className="platform-plan-bar-fill"
+                        className={platformPlanBarFillClass}
                         style={{
                           width: `${p.percentage}%`,
                           backgroundColor: PLAN_COLORS[p.planTier],
                         }}
                       />
                     </div>
-                    <span className="platform-plan-bar-meta">
+                    <span className={platformPlanBarMetaClass}>
                       {p.count} ({p.percentage}%)
                     </span>
                   </div>

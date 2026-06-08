@@ -11,6 +11,30 @@ import { CounterToast } from "@/components/counter/counter-toast";
 import { useGlobalLoading } from "@/components/global-loading-provider";
 import { apiGet, apiPatch } from "@/lib/api-client";
 import { CMS_FONT_OPTIONS } from "./cms-shared";
+import {
+  admCmsColorRow,
+  admCmsHexInput,
+  admCmsHint,
+  admCmsPaletteGrid,
+  admCmsSwatch,
+  admCmsSwatchChip,
+  admCmsSwatchLabel,
+  admCmsThemePreview,
+  admCmsThemePreviewBar,
+  admCmsThemePreviewBody,
+  admCmsThemePreviewBtn,
+  admFormActionsLabel,
+  admFormActionsWithLabel,
+  admFormCard,
+  admFormField,
+  admFormFieldInput,
+  admFormFieldLabel,
+  admFormRow,
+  admMuted,
+  admPageTitle,
+} from "../admin-tw";
+import { cpSection } from "@/components/counter/counter-tw";
+import { spFilterSearch, spPanelError } from "@/components/search/search-tw";
 
 const PALETTE_KEYS: (keyof BrandPaletteDto)[] = [
   "primary",
@@ -91,27 +115,27 @@ export function AdminCmsThemePanel() {
 
   if (loading && !theme) {
     return (
-      <div className="cp-section">
-        <p className="adm-muted">Loading theme…</p>
+      <div className={cpSection}>
+        <p className={admMuted}>Loading theme…</p>
       </div>
     );
   }
 
   return (
-    <div className="cp-section">
+    <div className={cpSection}>
       <CounterToast message={toast} onDismiss={() => setToast(null)} />
-      <h3 className="adm-page-title">BRAND THEME</h3>
+      <h3 className={admPageTitle}>BRAND THEME</h3>
       {error ? (
-        <p className="sp-panel-error" role="alert">
+        <p className={spPanelError} role="alert">
           {error}
         </p>
       ) : null}
 
-      <form className="adm-form-card" onSubmit={submit}>
-        <div className="adm-form-row">
-          <div className="adm-form-field">
-            <label htmlFor="cms-primary-color">Primary color</label>
-            <div className="adm-cms-color-row">
+      <form className={admFormCard} onSubmit={submit}>
+        <div className={admFormRow}>
+          <div className={admFormField}>
+            <label htmlFor="cms-primary-color" className={admFormFieldLabel}>Primary color</label>
+            <div className={admCmsColorRow}>
               <input
                 id="cms-primary-color"
                 type="color"
@@ -125,14 +149,15 @@ export function AdminCmsThemePanel() {
                 onChange={(e) => setPrimaryColor(e.target.value)}
                 pattern="^#[0-9a-fA-F]{6}$"
                 maxLength={7}
-                className="adm-cms-hex-input"
+                className={`${admFormFieldInput} ${admCmsHexInput}`}
               />
             </div>
           </div>
-          <div className="adm-form-field">
-            <label htmlFor="cms-font-family">Font family</label>
+          <div className={admFormField}>
+            <label htmlFor="cms-font-family" className={admFormFieldLabel}>Font family</label>
             <select
               id="cms-font-family"
+              className={admFormFieldInput}
               value={fontFamily}
               onChange={(e) => setFontFamily(e.target.value)}
             >
@@ -145,31 +170,31 @@ export function AdminCmsThemePanel() {
           </div>
         </div>
 
-        <p className="adm-muted adm-cms-hint">
+        <p className={`${admMuted} ${admCmsHint}`}>
           Palette preview {theme ? `(saved: ${theme.status})` : "(unsaved)"}
         </p>
-        <div className="adm-cms-palette-grid" role="list" aria-label="Brand palette">
+        <div className={admCmsPaletteGrid} role="list" aria-label="Brand palette">
           {PALETTE_KEYS.map((key) => (
-            <div key={key} className="adm-cms-swatch" role="listitem">
+            <div key={key} className={admCmsSwatch} role="listitem">
               <span
-                className="adm-cms-swatch__chip"
+                className={admCmsSwatchChip}
                 style={{ background: displayPalette[key] }}
                 title={displayPalette[key]}
               />
-              <span className="adm-cms-swatch__label">{key}</span>
+              <span className={admCmsSwatchLabel}>{key}</span>
             </div>
           ))}
         </div>
 
         <div
-          className="adm-cms-theme-preview"
+          className={admCmsThemePreview}
           style={{
             ...previewVars,
             fontFamily: `"${fontFamily}", system-ui, sans-serif`,
           } as React.CSSProperties}
         >
           <div
-            className="adm-cms-theme-preview__bar"
+            className={admCmsThemePreviewBar}
             style={{
               background: previewPalette.primary,
               color: previewPalette.textOnPrimary,
@@ -177,10 +202,10 @@ export function AdminCmsThemePanel() {
           >
             {companyPreviewLabel()}
           </div>
-          <div className="adm-cms-theme-preview__body">
+          <div className={admCmsThemePreviewBody}>
             <button
               type="button"
-              className="adm-cms-theme-preview__btn"
+              className={admCmsThemePreviewBtn}
               style={{
                 background: previewPalette.primary,
                 color: previewPalette.textOnPrimary,
@@ -194,11 +219,11 @@ export function AdminCmsThemePanel() {
           </div>
         </div>
 
-        <div className="adm-form-actions adm-form-actions--with-label">
-          <span className="adm-form-actions__label" aria-hidden="true">
+        <div className={admFormActionsWithLabel}>
+          <span className={admFormActionsLabel} aria-hidden="true">
             &nbsp;
           </span>
-          <button type="submit" className="sp-filter-search" disabled={saving}>
+          <button type="submit" className={spFilterSearch} disabled={saving}>
             {saving ? "Saving…" : "Save draft"}
           </button>
         </div>

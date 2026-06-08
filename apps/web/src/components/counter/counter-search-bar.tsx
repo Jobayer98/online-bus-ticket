@@ -1,6 +1,18 @@
 "use client";
 
 import { HomeDatePicker } from "@/components/home-date-picker";
+import {
+  spFilterAc,
+  spFilterAcGroup,
+  spFilterAcOn,
+  spFilterCard,
+  spFilterDateField,
+  spFilterError,
+  spFilterRow,
+  spFilterSearch,
+  spFilterSection,
+  spFilterSelect,
+} from "@/components/search/search-tw";
 
 type Stop = { id: string; name: string; city: string; code: string };
 
@@ -63,11 +75,11 @@ export function CounterSearchBar({
   onSearch,
 }: Props) {
   return (
-    <section className="sp-filter-section">
-      <div className="sp-filter-card">
-        <div className="sp-filter-row">
+    <section className={spFilterSection}>
+      <div className={spFilterCard}>
+        <div className={spFilterRow}>
           <select
-            className="sp-filter-select"
+            className={spFilterSelect}
             value={fromStopId}
             onChange={(e) => onFromChange(e.target.value)}
             aria-label="From"
@@ -81,7 +93,7 @@ export function CounterSearchBar({
           </select>
 
           <select
-            className="sp-filter-select"
+            className={spFilterSelect}
             value={toStopId}
             onChange={(e) => onToChange(e.target.value)}
             aria-label="To"
@@ -94,21 +106,21 @@ export function CounterSearchBar({
             ))}
           </select>
 
-          <div className="home-date-field sp-filter-date-field">
+          <div className={spFilterDateField}>
             <HomeDatePicker value={date} onChange={onDateChange} minDate={minDate} />
           </div>
 
-          <div className="sp-filter-ac-group">
+          <div className={spFilterAcGroup}>
             <button
               type="button"
-              className={`sp-filter-ac${acOn ? " is-on" : ""}`}
+              className={`${spFilterAc}${acOn ? ` ${spFilterAcOn}` : ""}`}
               onClick={onAcToggle}
             >
               {acOn && <CheckIcon />} AC
             </button>
             <button
               type="button"
-              className={`sp-filter-ac${nonAcOn ? " is-on" : ""}`}
+              className={`${spFilterAc}${nonAcOn ? ` ${spFilterAcOn}` : ""}`}
               onClick={onNonAcToggle}
             >
               {nonAcOn && <CheckIcon />} Non AC
@@ -117,7 +129,7 @@ export function CounterSearchBar({
 
           <button
             type="button"
-            className="sp-filter-search"
+            className={spFilterSearch}
             onClick={onSearch}
             disabled={loading}
           >
@@ -125,7 +137,7 @@ export function CounterSearchBar({
             SEARCH
           </button>
         </div>
-        {filterError && <p className="sp-filter-error">{filterError}</p>}
+        {filterError && <p className={spFilterError}>{filterError}</p>}
       </div>
     </section>
   );
