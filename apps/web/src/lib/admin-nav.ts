@@ -111,5 +111,5 @@ export const ADMIN_TAB_DESCRIPTION: Partial<Record<AdminTab, string>> = {
   reports: "Sales analytics and exportable reports.",
   content: "CMS for your public booking site.",
   payments: "Payment settings and transaction history.",
-  settings: "Tenant configuration and preferences.",
+  settings: "Organization details, plan, and team member access.",
 };
