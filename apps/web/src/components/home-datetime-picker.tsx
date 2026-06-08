@@ -5,6 +5,7 @@ import {
   DatePickerCalendarPanel,
   useCalendarView,
 } from "@/components/date-picker-calendar";
+import { FloatingPickerPanel } from "@/components/floating-picker-panel";
 import { formatTripDateDisplay, getTodayIso } from "@/lib/trip-date";
 
 type HomeDateTimePickerProps = {
@@ -97,6 +98,7 @@ export function HomeDateTimePicker({
 }: HomeDateTimePickerProps) {
   const listboxId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<Step>("date");
   const [draftDate, setDraftDate] = useState("");
@@ -117,7 +119,11 @@ export function HomeDateTimePicker({
   useEffect(() => {
     if (!open) return;
     function onPointerDown(e: MouseEvent) {
-      if (!rootRef.current?.contains(e.target as Node)) {
+      const target = e.target as Node;
+      if (
+        !rootRef.current?.contains(target) &&
+        !panelRef.current?.contains(target)
+      ) {
         setOpen(false);
       }
     }
@@ -160,7 +166,7 @@ export function HomeDateTimePicker({
   const displayTime = value && date ? time : "";
 
   return (
-    <div className="relative z-[2] w-full" ref={rootRef}>
+    <div className="relative w-full" ref={rootRef}>
       <button
         type="button"
         className={`${triggerClass} ${open ? "border-[var(--primary)] shadow-[0_0_0_2px_rgba(46,125,50,0.15)]" : ""}`}
@@ -190,13 +196,15 @@ export function HomeDateTimePicker({
         </span>
       </button>
 
-      {open && (
-        <div
-          id={listboxId}
-          className="absolute top-[calc(100%+6px)] left-0 z-50 w-[min(320px,92vw)] rounded-md border border-[#d5d5d5] bg-white p-3 shadow-[0_8px_28px_rgba(0,0,0,0.16)]"
-          role="dialog"
-          aria-label={step === "date" ? "Select date" : "Select time"}
-        >
+      <FloatingPickerPanel
+        open={open}
+        anchorRef={rootRef}
+        panelRef={panelRef}
+        listboxId={listboxId}
+        ariaLabel={step === "date" ? "Select date" : "Select time"}
+        width={320}
+        estimatedHeight={step === "date" ? 360 : 420}
+      >
           <div className="mb-2.5 flex items-center justify-between border-b border-[#eee] pb-2">
             {step === "time" ? (
               <button
@@ -285,8 +293,7 @@ export function HomeDateTimePicker({
               </button>
             </div>
           )}
-        </div>
-      )}
+      </FloatingPickerPanel>
     </div>
   );
 }

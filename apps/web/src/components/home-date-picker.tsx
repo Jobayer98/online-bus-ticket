@@ -43,13 +43,18 @@ export function HomeDatePicker({
 }: HomeDatePickerProps) {
   const listboxId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const { viewYear, viewMonth, setView } = useCalendarView(value, minDate);
 
   useEffect(() => {
     if (!open) return;
     function onPointerDown(e: MouseEvent) {
-      if (!rootRef.current?.contains(e.target as Node)) {
+      const target = e.target as Node;
+      if (
+        !rootRef.current?.contains(target) &&
+        !panelRef.current?.contains(target)
+      ) {
         setOpen(false);
       }
     }
@@ -69,7 +74,7 @@ export function HomeDatePicker({
     : { dayName: "", datePart: "" };
 
   return (
-    <div className="relative z-[2] w-full" ref={rootRef}>
+    <div className="relative w-full" ref={rootRef}>
       <button
         type="button"
         className={`${triggerClass} ${open ? "border-[var(--primary)] shadow-[0_0_0_2px_rgba(46,125,50,0.15)]" : ""}`}
@@ -93,19 +98,20 @@ export function HomeDatePicker({
         </span>
       </button>
 
-      {open && (
-        <DatePickerCalendar
-          listboxId={listboxId}
-          value={value}
-          minDate={minDate}
-          onSelectDate={onChange}
-          closeOnSelect
-          onClose={() => setOpen(false)}
-          viewYear={viewYear}
-          viewMonth={viewMonth}
-          onViewChange={setView}
-        />
-      )}
+      <DatePickerCalendar
+        open={open}
+        anchorRef={rootRef}
+        panelRef={panelRef}
+        listboxId={listboxId}
+        value={value}
+        minDate={minDate}
+        onSelectDate={onChange}
+        closeOnSelect
+        onClose={() => setOpen(false)}
+        viewYear={viewYear}
+        viewMonth={viewMonth}
+        onViewChange={setView}
+      />
     </div>
   );
 }
