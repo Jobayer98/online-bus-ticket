@@ -17,15 +17,16 @@ import {
   admFormRow,
   admMuted,
   admPageTitle,
+  admPanel,
 } from "../admin-tw";
 import {
-  cpSection,
-  cpTable,
-  cpTableCell,
-  cpTableHead,
-  cpTableRow,
-  cpTableWrap,
-} from "@/components/counter/counter-tw";
+  AdminTable,
+  AdminTableRow,
+  admTableCell,
+  admTableCellMuted,
+  admTableHeadCell,
+  admTableHeadRow,
+} from "../admin-table";
 import {
   spBtnBack,
   spFilterSearch,
@@ -151,14 +152,14 @@ export function AdminCmsFeaturedRoutesPanel() {
 
   if (loading && featured.length === 0) {
     return (
-      <div className={cpSection}>
+      <div className={admPanel}>
         <p className={admMuted}>Loading featured routes…</p>
       </div>
     );
   }
 
   return (
-    <div className={cpSection}>
+    <div className={admPanel}>
       <CounterToast message={toast} onDismiss={() => setToast(null)} />
       <h3 className={admPageTitle}>FEATURED ROUTES</h3>
       {error ? (
@@ -197,20 +198,19 @@ export function AdminCmsFeaturedRoutesPanel() {
         </div>
       </form>
 
-      <div className={cpTableWrap}>
-        <table className={cpTable}>
+      <AdminTable>
           <thead>
-            <tr>
-              <th className={cpTableHead}>Order</th>
-              <th className={cpTableHead}>Route</th>
-              <th className={cpTableHead}>Visible</th>
-              <th className={cpTableHead}>Actions</th>
+            <tr className={admTableHeadRow}>
+              <th className={admTableHeadCell}>Order</th>
+              <th className={admTableHeadCell}>Route</th>
+              <th className={admTableHeadCell}>Visible</th>
+              <th className={admTableHeadCell}>Actions</th>
             </tr>
           </thead>
           <tbody>
             {sorted.length === 0 ? (
               <tr>
-                <td colSpan={4} className={`${cpTableCell} ${admMuted}`}>
+                <td colSpan={4} className={admTableCellMuted}>
                   No featured routes yet.
                 </td>
               </tr>
@@ -218,14 +218,14 @@ export function AdminCmsFeaturedRoutesPanel() {
               sorted.map((item, index) => {
                 const label = `${item.fromStop.city} → ${item.toStop.city}`;
                 return (
-                  <tr key={item.id} className={cpTableRow}>
-                    <td className={cpTableCell}>{index + 1}</td>
-                    <td className={cpTableCell}>
+                  <AdminTableRow key={item.id}>
+                    <td className={admTableCell}>{index + 1}</td>
+                    <td className={admTableCell}>
                       <strong>{label}</strong>
                       <br />
                       <span className={admMuted}>{item.routeSlug}</span>
                     </td>
-                    <td className={cpTableCell}>
+                    <td className={admTableCell}>
                       <button
                         type="button"
                         className={spBtnBack}
@@ -234,7 +234,7 @@ export function AdminCmsFeaturedRoutesPanel() {
                         {item.isVisible ? "Visible" : "Hidden"}
                       </button>
                     </td>
-                    <td className={cpTableCell}>
+                    <td className={admTableCell}>
                       <div className={admCmsRowActions}>
                         <button
                           type="button"
@@ -261,13 +261,12 @@ export function AdminCmsFeaturedRoutesPanel() {
                         </button>
                       </div>
                     </td>
-                  </tr>
+                  </AdminTableRow>
                 );
               })
             )}
           </tbody>
-        </table>
-      </div>
+      </AdminTable>
     </div>
   );
 }

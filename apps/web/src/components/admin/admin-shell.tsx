@@ -32,7 +32,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div className="flex min-h-screen bg-[var(--bg)]">
       <AdminSidebar
         onLogout={logout}
         className="hidden w-64 shrink-0 flex-col border-r border-[var(--border)] bg-white lg:flex"

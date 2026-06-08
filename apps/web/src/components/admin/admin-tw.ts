@@ -119,13 +119,31 @@ export const admFormActionsLabel =
 export const admFormActionsButtons =
   "ml-auto flex flex-wrap gap-2";
 
-export const admRowActions = "flex gap-2";
+export const admRowActions = "flex flex-wrap gap-2";
+
+/** Main content spacing inside admin shell pages. */
+export const admPanel = "space-y-6";
 
 export const admBtnEdit =
-  "cursor-pointer rounded border border-[var(--primary)] bg-[var(--primary-light)] px-2.5 py-1 text-[0.8rem] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white";
+  "inline-flex cursor-pointer items-center rounded-md border border-[var(--primary)]/30 bg-[var(--card)] px-2.5 py-1.5 text-xs font-medium text-[var(--primary)] transition-colors hover:border-[var(--primary)]/50 hover:bg-[var(--primary-muted)]";
 
 export const admBtnDelete =
-  "cursor-pointer rounded border border-[#c62828] bg-white px-2.5 py-1 text-[0.8rem] text-[#c62828] hover:bg-[#ffebee]";
+  "inline-flex cursor-pointer items-center rounded-md border border-[var(--danger)]/30 bg-[var(--card)] px-2.5 py-1.5 text-xs font-medium text-[var(--danger)] transition-colors hover:border-[var(--danger)]/50 hover:bg-red-50";
+
+export const admBadgeBase =
+  "inline-flex rounded-full px-2.5 py-0.5 text-[0.68rem] font-semibold tracking-wide uppercase";
+
+export const admBadgeActive =
+  "bg-[var(--primary-muted)] text-[var(--primary)]";
+
+export const admBadgeNeutral =
+  "border border-[var(--border)] bg-[var(--bg)] text-[var(--muted)]";
+
+export const admBadgeDanger =
+  "bg-red-50 text-[var(--danger)]";
+
+export const admBadgeWarning =
+  "bg-amber-50 text-[var(--warning)]";
 
 export const admKpiGrid =
   "mb-4 grid grid-cols-4 gap-4 max-[900px]:grid-cols-2 max-[560px]:grid-cols-1";
@@ -207,7 +225,9 @@ export const admBoardingHint = "mb-3 text-[0.875rem] text-[#666]";
 
 export const admBoardingRouteLabel = "mb-3 text-[0.875rem]";
 
-export const admRowSelected = "bg-[var(--primary-light)]";
+/** @deprecated Use admTableRowSelected from admin-table.tsx */
+export const admRowSelected =
+  "bg-[var(--primary-muted)]/55 ring-1 ring-inset ring-[var(--primary)]/20";
 
 export const admInlineInput =
   "w-full max-w-[12rem] rounded border border-[#ccc] px-2 py-1 text-[0.875rem]";

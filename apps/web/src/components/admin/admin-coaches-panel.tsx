@@ -16,17 +16,16 @@ import {
   admFormActionsWithLabel,
   admFormCard,
   admFormRow,
+  admPanel,
   admRowActions,
 } from "./admin-tw";
 import {
-  cpSection,
-  cpSectionTitle,
-  cpTable,
-  cpTableCell,
-  cpTableHead,
-  cpTableRow,
-  cpTableWrap,
-} from "@/components/counter/counter-tw";
+  AdminTable,
+  AdminTableRow,
+  admTableCell,
+  admTableHeadCell,
+  admTableHeadRow,
+} from "./admin-table";
 import {
   spBtnBack,
   spCheckoutField,
@@ -155,9 +154,8 @@ export function AdminCoachesPanel() {
   }
 
   return (
-    <div className={cpSection}>
+    <div className={admPanel}>
       <CounterToast message={toast} onDismiss={() => setToast(null)} />
-      <h2 className={cpSectionTitle}>COACHES</h2>
 
       <form className={admFormCard} onSubmit={submit}>
         <h3>{editId ? "Edit coach" : "Add coach"}</h3>
@@ -236,23 +234,22 @@ export function AdminCoachesPanel() {
       />
 
       {!loading && (
-        <div className={cpTableWrap}>
-          <table className={cpTable}>
+        <AdminTable>
             <thead>
-              <tr>
-                <th className={cpTableHead}>Coach #</th>
-                <th className={cpTableHead}>Type</th>
-                <th className={cpTableHead}>Layout</th>
-                <th className={cpTableHead}>Actions</th>
+              <tr className={admTableHeadRow}>
+                <th className={admTableHeadCell}>Coach #</th>
+                <th className={admTableHeadCell}>Type</th>
+                <th className={admTableHeadCell}>Layout</th>
+                <th className={admTableHeadCell}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {coaches.map((c) => (
-                <tr key={c.id} className={cpTableRow}>
-                  <td className={cpTableCell}>{c.coachNumber}</td>
-                  <td className={cpTableCell}>{formatBusTypeLabel(c.busType)}</td>
-                  <td className={cpTableCell}>{c.seatLayout?.name ?? "—"}</td>
-                  <td className={cpTableCell}>
+                <AdminTableRow key={c.id}>
+                  <td className={admTableCell}>{c.coachNumber}</td>
+                  <td className={admTableCell}>{formatBusTypeLabel(c.busType)}</td>
+                  <td className={admTableCell}>{c.seatLayout?.name ?? "—"}</td>
+                  <td className={admTableCell}>
                     <div className={admRowActions}>
                       <button
                         type="button"
@@ -277,11 +274,10 @@ export function AdminCoachesPanel() {
                       </button>
                     </div>
                   </td>
-                </tr>
+                </AdminTableRow>
               ))}
             </tbody>
-          </table>
-        </div>
+        </AdminTable>
       )}
     </div>
   );

@@ -32,6 +32,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { apiDelete, apiGet, apiPost, apiPut } from "@/lib/api-client";
 import { formatMoneyBdt } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import {
+  AdminTable,
+  AdminTableRow,
+  admTableCell,
+  admTableHeadCell,
+  admTableHeadRow,
+} from "./admin-table";
 
 type WalletSummary = {
   wallet: { balanceMinor: number };
@@ -59,10 +66,6 @@ type Withdrawal = {
   status: string;
   createdAt: string;
 };
-
-const tableHeadClass =
-  "px-4 py-3 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase";
-const tableCellClass = "px-4 py-3 align-middle text-sm text-slate-700";
 
 function providerStatus(provider: TenantPaymentProviderDto) {
   if (!provider.systemEnabled) {
@@ -279,33 +282,32 @@ export function AdminPaymentsPanel() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 pt-0">
-          <div className="overflow-x-auto rounded-lg border border-[var(--border)]">
-            <table className="w-full min-w-[640px] border-collapse text-sm">
+          <AdminTable minWidth="640px">
               <thead>
-                <tr className="border-b border-slate-100 bg-slate-50/80">
-                  <th className={tableHeadClass}>Provider</th>
-                  <th className={tableHeadClass}>Status</th>
-                  <th className={tableHeadClass}>Settlement</th>
-                  <th className={cn(tableHeadClass, "text-right")}>Actions</th>
+                <tr className={admTableHeadRow}>
+                  <th className={admTableHeadCell}>Provider</th>
+                  <th className={admTableHeadCell}>Status</th>
+                  <th className={admTableHeadCell}>Settlement</th>
+                  <th className={cn(admTableHeadCell, "text-right")}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {providers.map((p) => {
                   const status = providerStatus(p);
                   return (
-                    <tr key={p.code} className="border-b border-slate-50 last:border-0">
-                      <td className={cn(tableCellClass, "font-medium text-slate-900")}>
+                    <AdminTableRow key={p.code}>
+                      <td className={cn(admTableCell, "font-medium")}>
                         {p.displayName}
                       </td>
-                      <td className={tableCellClass}>
+                      <td className={admTableCell}>
                         <Badge variant={status.variant}>{status.label}</Badge>
                       </td>
-                      <td className={tableCellClass}>
-                        <span className="text-slate-600">
+                      <td className={admTableCell}>
+                        <span className="text-[var(--muted)]">
                           {settlementLabel(p.settlementRoute)}
                         </span>
                       </td>
-                      <td className={cn(tableCellClass, "text-right")}>
+                      <td className={cn(admTableCell, "text-right")}>
                         {p.systemEnabled ? (
                           <div className="flex justify-end gap-2">
                             <Button
@@ -329,7 +331,7 @@ export function AdminPaymentsPanel() {
                                 type="button"
                                 variant="outline"
                                 size="sm"
-                                className="text-red-600 hover:bg-red-50 hover:text-red-700"
+                                className="text-[var(--danger)] hover:bg-[var(--danger)]/10 hover:text-[var(--danger)]"
                                 onClick={() => void removeProvider(p.code)}
                               >
                                 <Trash2 className="size-3.5" />
@@ -338,15 +340,14 @@ export function AdminPaymentsPanel() {
                             ) : null}
                           </div>
                         ) : (
-                          <span className="text-slate-400">—</span>
+                          <span className="text-[var(--muted)]">—</span>
                         )}
                       </td>
-                    </tr>
+                    </AdminTableRow>
                   );
                 })}
               </tbody>
-            </table>
-          </div>
+          </AdminTable>
 
           {editing ? (
             <form

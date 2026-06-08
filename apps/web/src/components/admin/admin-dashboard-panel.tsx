@@ -18,6 +18,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { apiGet } from "@/lib/api-client";
 import { formatMoneyBdt } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import {
+  AdminTable,
+  AdminTableRow,
+  admTableCell,
+  admTableCellMuted,
+  admTableHeadCell,
+  admTableHeadRow,
+} from "./admin-table";
 
 function MetricCard({
   label,
@@ -44,9 +52,9 @@ function MetricCard({
       <CardContent className="p-0">
         <div className="flex items-start justify-between gap-4 p-5">
           <div className="min-w-0 space-y-2">
-            <p className="text-sm font-medium text-slate-500">{label}</p>
-            <p className="text-2xl font-bold tracking-tight text-slate-900">{value}</p>
-            {hint ? <p className="text-xs text-slate-500">{hint}</p> : null}
+            <p className="text-sm font-medium text-[var(--muted)]">{label}</p>
+            <p className="text-2xl font-bold tracking-tight text-[var(--text)]">{value}</p>
+            {hint ? <p className="text-xs text-[var(--muted)]">{hint}</p> : null}
           </div>
           <div className={cn("rounded-xl p-2.5", accentClass)}>
             <Icon className="size-5" aria-hidden />
@@ -222,36 +230,34 @@ export function AdminDashboardPanel() {
               <CardDescription>Highest revenue routes in the period</CardDescription>
             </CardHeader>
             <CardContent className="p-0 pt-0">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-slate-100 text-left text-xs tracking-wide text-slate-500 uppercase">
-                      <th className="px-6 py-3 font-medium">Route</th>
-                      <th className="px-6 py-3 font-medium">Tickets</th>
-                      <th className="px-6 py-3 text-right font-medium">Gross</th>
+              <AdminTable className="rounded-none border-0 shadow-none">
+                <thead>
+                  <tr className={admTableHeadRow}>
+                    <th className={admTableHeadCell}>Route</th>
+                    <th className={admTableHeadCell}>Tickets</th>
+                    <th className={cn(admTableHeadCell, "text-right")}>Gross</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sales.byRoute.length === 0 ? (
+                    <tr>
+                      <td colSpan={3} className={admTableCellMuted}>
+                        No route data for this period
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {sales.byRoute.length === 0 ? (
-                      <tr>
-                        <td colSpan={3} className="px-6 py-8 text-center text-slate-500">
-                          No route data for this period
+                  ) : (
+                    sales.byRoute.map((r) => (
+                      <AdminTableRow key={r.routeSlug}>
+                        <td className={cn(admTableCell, "font-medium")}>{r.routeSlug}</td>
+                        <td className={admTableCell}>{r.count}</td>
+                        <td className={cn(admTableCell, "text-right font-medium")}>
+                          {formatMoneyBdt(r.grossRevenue)}
                         </td>
-                      </tr>
-                    ) : (
-                      sales.byRoute.map((r) => (
-                        <tr key={r.routeSlug} className="border-b border-slate-50 last:border-0">
-                          <td className="px-6 py-3 font-medium text-slate-900">{r.routeSlug}</td>
-                          <td className="px-6 py-3 text-slate-600">{r.count}</td>
-                          <td className="px-6 py-3 text-right font-medium text-slate-900">
-                            {formatMoneyBdt(r.grossRevenue)}
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                      </AdminTableRow>
+                    ))
+                  )}
+                </tbody>
+              </AdminTable>
             </CardContent>
           </Card>
         </div>

@@ -28,21 +28,20 @@ import {
   admFormFieldInput,
   admFormFieldLabel,
   admFormFieldWide,
+  admBadgeActive,
+  admBadgeBase,
+  admBadgeNeutral,
   admFormRow,
+  admPanel,
   admRowActions,
 } from "./admin-tw";
 import {
-  cpBadgeBase,
-  cpBadgeCancel,
-  cpBadgeSell,
-  cpSection,
-  cpSectionTitle,
-  cpTable,
-  cpTableCell,
-  cpTableHead,
-  cpTableRow,
-  cpTableWrap,
-} from "@/components/counter/counter-tw";
+  AdminTable,
+  AdminTableRow,
+  admTableCell,
+  admTableHeadCell,
+  admTableHeadRow,
+} from "./admin-table";
 import {
   spBtnBack,
   spFilterSearch,
@@ -231,9 +230,8 @@ export function AdminSchedulesPanel() {
   }
 
   return (
-    <div className={cpSection}>
+    <div className={admPanel}>
       <CounterToast message={toast} onDismiss={() => setToast(null)} />
-      <h2 className={cpSectionTitle}>SCHEDULES</h2>
 
       <form className={admFormCard} onSubmit={createSchedule}>
         <h3>Create schedule</h3>
@@ -383,39 +381,38 @@ export function AdminSchedulesPanel() {
       )}
 
       {!loading && (
-        <div className={cpTableWrap}>
-          <table className={cpTable}>
+        <AdminTable minWidth="720px">
             <thead>
-              <tr>
-                <th className={cpTableHead}>Route</th>
-                <th className={cpTableHead}>Coach</th>
-                <th className={cpTableHead}>Date</th>
-                <th className={cpTableHead}>Departure</th>
-                <th className={cpTableHead}>Fare from</th>
-                <th className={cpTableHead}>Status</th>
-                <th className={cpTableHead}>Actions</th>
+              <tr className={admTableHeadRow}>
+                <th className={admTableHeadCell}>Route</th>
+                <th className={admTableHeadCell}>Coach</th>
+                <th className={admTableHeadCell}>Date</th>
+                <th className={admTableHeadCell}>Departure</th>
+                <th className={admTableHeadCell}>Fare from</th>
+                <th className={admTableHeadCell}>Status</th>
+                <th className={admTableHeadCell}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {schedules.map((s) => (
-                <tr key={s.id} className={cpTableRow}>
-                  <td className={cpTableCell}>{s.route.slug}</td>
-                  <td className={cpTableCell}>{formatCoachLabel(s.coach)}</td>
-                  <td className={cpTableCell}>{formatDateDdMmYyyy(s.departureAt.slice(0, 10))}</td>
-                  <td className={cpTableCell}>{formatTime12h(s.departureAt)}</td>
-                  <td className={cpTableCell}>{formatMoneyBdt(s.baseFare)}</td>
-                  <td className={cpTableCell}>
+                <AdminTableRow key={s.id}>
+                  <td className={admTableCell}>{s.route.slug}</td>
+                  <td className={admTableCell}>{formatCoachLabel(s.coach)}</td>
+                  <td className={admTableCell}>{formatDateDdMmYyyy(s.departureAt.slice(0, 10))}</td>
+                  <td className={admTableCell}>{formatTime12h(s.departureAt)}</td>
+                  <td className={admTableCell}>{formatMoneyBdt(s.baseFare)}</td>
+                  <td className={admTableCell}>
                     <span
                       className={
                         s.status === "CANCELLED"
-                          ? `${cpBadgeBase} ${cpBadgeCancel}`
-                          : `${cpBadgeBase} ${cpBadgeSell}`
+                          ? `${admBadgeBase} ${admBadgeNeutral}`
+                          : `${admBadgeBase} ${admBadgeActive}`
                       }
                     >
                       {s.status}
                     </span>
                   </td>
-                  <td className={cpTableCell}>
+                  <td className={admTableCell}>
                     {s.status !== "CANCELLED" && (
                       <div className={admRowActions}>
                         <button
@@ -440,11 +437,10 @@ export function AdminSchedulesPanel() {
                       </div>
                     )}
                   </td>
-                </tr>
+                </AdminTableRow>
               ))}
             </tbody>
-          </table>
-        </div>
+        </AdminTable>
       )}
     </div>
   );

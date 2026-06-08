@@ -12,17 +12,16 @@ import {
   admFormActionsWithLabel,
   admFormCard,
   admFormRow,
+  admPanel,
   admRowActions,
 } from "./admin-tw";
 import {
-  cpSection,
-  cpSectionTitle,
-  cpTable,
-  cpTableCell,
-  cpTableHead,
-  cpTableRow,
-  cpTableWrap,
-} from "@/components/counter/counter-tw";
+  AdminTable,
+  AdminTableRow,
+  admTableCell,
+  admTableHeadCell,
+  admTableHeadRow,
+} from "./admin-table";
 import {
   spBtnBack,
   spCheckoutField,
@@ -90,9 +89,8 @@ export function AdminStopsPanel() {
   }
 
   return (
-    <div className={cpSection}>
+    <div className={admPanel}>
       <CounterToast message={toast} onDismiss={() => setToast(null)} />
-      <h2 className={cpSectionTitle}>STOPS</h2>
 
       <form className={admFormCard} onSubmit={submit}>
         <h3>{editId ? "Edit stop" : "Add stop"}</h3>
@@ -145,23 +143,22 @@ export function AdminStopsPanel() {
       </form>
 
       {!loading && (
-        <div className={cpTableWrap}>
-          <table className={cpTable}>
+        <AdminTable>
             <thead>
-              <tr>
-                <th className={cpTableHead}>Code</th>
-                <th className={cpTableHead}>Name</th>
-                <th className={cpTableHead}>City</th>
-                <th className={cpTableHead}>Actions</th>
+              <tr className={admTableHeadRow}>
+                <th className={admTableHeadCell}>Code</th>
+                <th className={admTableHeadCell}>Name</th>
+                <th className={admTableHeadCell}>City</th>
+                <th className={admTableHeadCell}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {stops.map((s) => (
-                <tr key={s.id} className={cpTableRow}>
-                  <td className={cpTableCell}>{s.code}</td>
-                  <td className={cpTableCell}>{s.name}</td>
-                  <td className={cpTableCell}>{s.city}</td>
-                  <td className={cpTableCell}>
+                <AdminTableRow key={s.id}>
+                  <td className={admTableCell}>{s.code}</td>
+                  <td className={admTableCell}>{s.name}</td>
+                  <td className={admTableCell}>{s.city}</td>
+                  <td className={admTableCell}>
                     <div className={admRowActions}>
                       <button
                         type="button"
@@ -182,11 +179,10 @@ export function AdminStopsPanel() {
                       </button>
                     </div>
                   </td>
-                </tr>
+                </AdminTableRow>
               ))}
             </tbody>
-          </table>
-        </div>
+        </AdminTable>
       )}
     </div>
   );

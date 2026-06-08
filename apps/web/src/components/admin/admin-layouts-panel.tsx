@@ -20,16 +20,17 @@ import {
   admLayoutToolbar,
   admLayoutToolbarMeta,
   admPageTitle,
+  admPanel,
   admSubheading,
 } from "./admin-tw";
 import {
-  cpSection,
-  cpTable,
-  cpTableCell,
-  cpTableHead,
-  cpTableRow,
-  cpTableWrap,
-} from "@/components/counter/counter-tw";
+  AdminTable,
+  AdminTableRow,
+  admTableCell,
+  admTableCellMuted,
+  admTableHeadCell,
+  admTableHeadRow,
+} from "./admin-table";
 import {
   spBtnBack,
   spBtnSelect,
@@ -140,7 +141,7 @@ export function AdminLayoutsPanel() {
   const seatCount = gridToTemplates(grid).length;
 
   return (
-    <div className={cpSection}>
+    <div className={admPanel}>
       <CounterToast message={toast} onDismiss={() => setToast(null)} />
       <h2 className={admPageTitle}>Seat layouts</h2>
       <p className={admLayoutIntro}>
@@ -221,20 +222,19 @@ export function AdminLayoutsPanel() {
 
       <h3 className={admSubheading}>Saved layouts</h3>
       {!loading && (
-        <div className={cpTableWrap}>
-          <table className={cpTable}>
+        <AdminTable>
             <thead>
-              <tr>
-                <th className={cpTableHead}>Name</th>
-                <th className={cpTableHead}>Grid</th>
-                <th className={cpTableHead}>Seats</th>
-                <th className={cpTableHead}>Classes</th>
+              <tr className={admTableHeadRow}>
+                <th className={admTableHeadCell}>Name</th>
+                <th className={admTableHeadCell}>Grid</th>
+                <th className={admTableHeadCell}>Seats</th>
+                <th className={admTableHeadCell}>Classes</th>
               </tr>
             </thead>
             <tbody>
               {layouts.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className={`${cpTableCell} text-center text-[#666]`}>
+                  <td colSpan={4} className={admTableCellMuted}>
                     No layouts yet — create one above
                   </td>
                 </tr>
@@ -242,22 +242,21 @@ export function AdminLayoutsPanel() {
                 layouts.map((l) => {
                   const classes = [...new Set(l.templates.map((t) => t.seatClass))];
                   return (
-                    <tr key={l.id} className={cpTableRow}>
-                      <td className={cpTableCell}>
+                    <AdminTableRow key={l.id}>
+                      <td className={admTableCell}>
                         <strong>{l.name}</strong>
                       </td>
-                      <td className={cpTableCell}>
+                      <td className={admTableCell}>
                         {l.rows} × {l.cols}
                       </td>
-                      <td className={cpTableCell}>{l.templates.length}</td>
-                      <td className={cpTableCell}>{classes.map(formatSeatClassLabel).join(", ")}</td>
-                    </tr>
+                      <td className={admTableCell}>{l.templates.length}</td>
+                      <td className={admTableCell}>{classes.map(formatSeatClassLabel).join(", ")}</td>
+                    </AdminTableRow>
                   );
                 })
               )}
             </tbody>
-          </table>
-        </div>
+        </AdminTable>
       )}
     </div>
   );

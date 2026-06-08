@@ -20,18 +20,16 @@ import {
   admFormFieldWide,
   admFormRow,
   admInlineInput,
+  admPanel,
   admRowActions,
-  admRowSelected,
 } from "./admin-tw";
 import {
-  cpSection,
-  cpSectionTitle,
-  cpTable,
-  cpTableCell,
-  cpTableHead,
-  cpTableRow,
-  cpTableWrap,
-} from "@/components/counter/counter-tw";
+  AdminTable,
+  AdminTableRow,
+  admTableCell,
+  admTableHeadCell,
+  admTableHeadRow,
+} from "./admin-table";
 import {
   spBtnBack,
   spEmpty,
@@ -195,9 +193,8 @@ export function AdminRoutesPanel() {
   }
 
   return (
-    <div className={cpSection}>
+    <div className={admPanel}>
       <CounterToast message={toast} onDismiss={() => setToast(null)} />
-      <h2 className={cpSectionTitle}>ROUTES</h2>
 
       <form className={admFormCard} onSubmit={submitRoute}>
         <h3>Add route</h3>
@@ -262,36 +259,31 @@ export function AdminRoutesPanel() {
       </form>
 
       {!loading && (
-        <div className={cpTableWrap}>
-          <table className={cpTable}>
+        <AdminTable>
             <thead>
-              <tr>
-                <th className={cpTableHead}>Slug</th>
-                <th className={cpTableHead}>From</th>
-                <th className={cpTableHead}>To</th>
-                <th className={cpTableHead}>Distance</th>
-                <th className={cpTableHead} />
+              <tr className={admTableHeadRow}>
+                <th className={admTableHeadCell}>Slug</th>
+                <th className={admTableHeadCell}>From</th>
+                <th className={admTableHeadCell}>To</th>
+                <th className={admTableHeadCell}>Distance</th>
+                <th className={admTableHeadCell} />
               </tr>
             </thead>
             <tbody>
               {routes.map((r) => (
-                <tr
+                <AdminTableRow
                   key={r.id}
-                  className={
-                    selectedRouteId === r.id
-                      ? `${cpTableRow} ${admRowSelected}`
-                      : cpTableRow
-                  }
+                  selected={selectedRouteId === r.id}
                 >
-                  <td className={cpTableCell}>{r.slug}</td>
-                  <td className={cpTableCell}>
+                  <td className={admTableCell}>{r.slug}</td>
+                  <td className={admTableCell}>
                     {r.fromStop.city} ({r.fromStop.code})
                   </td>
-                  <td className={cpTableCell}>
+                  <td className={admTableCell}>
                     {r.toStop.city} ({r.toStop.code})
                   </td>
-                  <td className={cpTableCell}>{r.distanceKm ? `${r.distanceKm} km` : "—"}</td>
-                  <td className={cpTableCell}>
+                  <td className={admTableCell}>{r.distanceKm ? `${r.distanceKm} km` : "—"}</td>
+                  <td className={admTableCell}>
                     <button
                       type="button"
                       className={admBtnEdit}
@@ -300,11 +292,10 @@ export function AdminRoutesPanel() {
                       Boarding points
                     </button>
                   </td>
-                </tr>
+                </AdminTableRow>
               ))}
             </tbody>
-          </table>
-        </div>
+        </AdminTable>
       )}
 
       <section className={`${admFormCard} ${admBoardingSection}`}>
@@ -380,19 +371,18 @@ export function AdminRoutesPanel() {
               (boardingPoints.length === 0 ? (
                 <div className={spEmpty}>No boarding points yet for this route.</div>
               ) : (
-                <div className={cpTableWrap}>
-                  <table className={cpTable}>
+                <AdminTable>
                     <thead>
-                      <tr>
-                        <th className={cpTableHead}>Order</th>
-                        <th className={cpTableHead}>Name</th>
-                        <th className={cpTableHead}>Actions</th>
+                      <tr className={admTableHeadRow}>
+                        <th className={admTableHeadCell}>Order</th>
+                        <th className={admTableHeadCell}>Name</th>
+                        <th className={admTableHeadCell}>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
                       {boardingPoints.map((bp) => (
-                        <tr key={bp.id} className={cpTableRow}>
-                          <td className={cpTableCell}>
+                        <AdminTableRow key={bp.id}>
+                          <td className={admTableCell}>
                             {editBpId === bp.id ? (
                               <input
                                 type="number"
@@ -405,7 +395,7 @@ export function AdminRoutesPanel() {
                               bp.sortOrder
                             )}
                           </td>
-                          <td className={cpTableCell}>
+                          <td className={admTableCell}>
                             {editBpId === bp.id ? (
                               <input
                                 type="text"
@@ -417,7 +407,7 @@ export function AdminRoutesPanel() {
                               bp.name
                             )}
                           </td>
-                          <td className={cpTableCell}>
+                          <td className={admTableCell}>
                             <div className={admRowActions}>
                               {editBpId === bp.id ? (
                                 <>
@@ -456,11 +446,10 @@ export function AdminRoutesPanel() {
                               )}
                             </div>
                           </td>
-                        </tr>
+                        </AdminTableRow>
                       ))}
                     </tbody>
-                  </table>
-                </div>
+                </AdminTable>
               ))}
           </>
         )}

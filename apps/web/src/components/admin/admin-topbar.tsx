@@ -23,7 +23,7 @@ export function AdminTopbar({ clock, onLogout }: AdminTopbarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-4 border-b border-[var(--border)] bg-white/90 px-4 backdrop-blur-md md:px-6">
+    <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-4 border-b border-[var(--border)] bg-[var(--card)]/90 px-4 backdrop-blur-md md:px-6">
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
         <SheetTrigger asChild>
           <Button variant="outline" size="icon" className="shrink-0 lg:hidden" aria-label="Open menu">
@@ -43,13 +43,13 @@ export function AdminTopbar({ clock, onLogout }: AdminTopbarProps) {
       </Sheet>
 
       <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2 text-sm text-slate-500">
+        <div className="flex items-center gap-2 text-sm text-[var(--muted)]">
           <span>Admin</span>
           <ChevronRight className="size-3.5 shrink-0" aria-hidden />
-          <span className="truncate font-medium text-slate-900">{title}</span>
+          <span className="truncate font-medium text-[var(--text)]">{title}</span>
         </div>
         {description ? (
-          <p className="mt-0.5 truncate text-xs text-slate-500 max-md:hidden">{description}</p>
+          <p className="mt-0.5 truncate text-xs text-[var(--muted)] max-md:hidden">{description}</p>
         ) : null}
       </div>
 
