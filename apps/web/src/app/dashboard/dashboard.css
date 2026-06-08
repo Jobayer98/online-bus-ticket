@@ -1,12 +1,16 @@
 .dash-page {
-  background: var(--home-gallery-bg, #f0f0f0);
+  background: var(--color-bg, #f9fafb);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
 
 .dash-hero {
-  background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-hover) 0%,
+    var(--color-primary) 100%
+  );
   color: #fff;
   padding: 1.75rem 1rem 2rem;
 }
@@ -167,16 +171,34 @@
 }
 
 .dash-empty {
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 4px;
-  padding: 2.5rem 1.5rem;
   text-align: center;
+  padding: 2.5rem 1rem;
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.dash-empty__icon {
+  color: var(--color-primary);
+  margin-bottom: 0.75rem;
+}
+
+.dash-empty__title {
+  margin: 0 0 0.35rem;
+  font-size: var(--text-lg);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.dash-empty__text {
+  margin: 0 0 1rem;
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
 }
 
 .dash-empty p {
   margin: 0 0 1rem;
-  color: #555;
+  color: var(--color-text-secondary);
 }
 
 .dash-booking-list {

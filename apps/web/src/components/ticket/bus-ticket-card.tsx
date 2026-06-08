@@ -1,3 +1,8 @@
+"use client";
+
+import { CheckCircle2 } from "lucide-react";
+import { BrandLogo } from "@/components/brand-logo";
+import { useSiteTheme } from "@/components/site-theme-provider";
 import {
   formatDateDdMmYyyy,
   formatMoneyBdt,
@@ -27,6 +32,7 @@ function barcodePattern(passengerNumber: string): string {
 }
 
 export function BusTicketCard({ ticket, captureId }: Props) {
+  const { profile } = useSiteTheme();
   const departureDate = formatDateDdMmYyyy(ticket.departureAt.slice(0, 10));
   const departureTime = formatTime12h(ticket.departureAt);
   const routeTitle = slugToRouteTitle(ticket.routeSlug);
@@ -46,21 +52,16 @@ export function BusTicketCard({ ticket, captureId }: Props) {
       <div className="bus-ticket__body">
         <header className="bus-ticket__head">
           <div className="bus-ticket__brand">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/images/logo/logo.png"
-              alt=""
-              width={48}
-              height={48}
-              className="bus-ticket__logo"
-              crossOrigin="anonymous"
-            />
+            <BrandLogo className="brand-logo bus-ticket__logo" />
             <div>
-              <p className="bus-ticket__brand-name">SHAHZADPUR TRAVELS</p>
-              <p className="bus-ticket__brand-tag">Online Bus Ticket</p>
+              <p className="bus-ticket__brand-name">{profile.companyName}</p>
+              <p className="bus-ticket__brand-tag">Online bus ticket</p>
             </div>
           </div>
-          <span className="bus-ticket__status">CONFIRMED</span>
+          <span className="bus-ticket__status">
+            <CheckCircle2 size={14} aria-hidden />
+            Confirmed
+          </span>
         </header>
 
         <div className="bus-ticket__route-block">
@@ -70,8 +71,8 @@ export function BusTicketCard({ ticket, captureId }: Props) {
 
         <dl className="bus-ticket__grid">
           <div>
-            <dt>PNR / Passenger No.</dt>
-            <dd className="bus-ticket__pnr">{ticket.passengerNumber}</dd>
+            <dt>PNR</dt>
+            <dd className="bus-ticket__pnr pnr">{ticket.passengerNumber}</dd>
           </div>
           <div>
             <dt>Travel date</dt>
@@ -79,7 +80,7 @@ export function BusTicketCard({ ticket, captureId }: Props) {
           </div>
           <div>
             <dt>Departure</dt>
-            <dd>{departureTime}</dd>
+            <dd className="time">{departureTime}</dd>
           </div>
           <div>
             <dt>Seat(s)</dt>
@@ -98,8 +99,8 @@ export function BusTicketCard({ ticket, captureId }: Props) {
             <dd>{ticket.passengerPhone}</dd>
           </div>
           <div>
-            <dt>Amount paid</dt>
-            <dd className="bus-ticket__fare">{formatMoneyBdt(ticket.totalAmount)}</dd>
+            <dt>Fare</dt>
+            <dd className="bus-ticket__fare fare">{formatMoneyBdt(ticket.totalAmount)}</dd>
           </div>
         </dl>
 

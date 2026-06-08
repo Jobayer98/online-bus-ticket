@@ -2,23 +2,15 @@
 
 import Image from "next/image";
 import { useRef } from "react";
+import { m } from "framer-motion";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useSiteTheme } from "@/components/site-theme-provider";
 import { HomeSectionHeader } from "@/components/home-section-header";
+import {
+  defaultViewport,
+  fadeInVariants,
+} from "@/components/motion/variants";
 import { resolveCmsAssetUrl } from "@/lib/cms-client";
-
-function ChevronIcon({ direction }: { direction: "left" | "right" }) {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d={direction === "left" ? "M15 6l-6 6 6 6" : "M9 6l6 6-6 6"}
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
 
 export function HomePromos() {
   const { media } = useSiteTheme();
@@ -35,7 +27,14 @@ export function HomePromos() {
   }
 
   return (
-    <section className="home-promos" aria-labelledby="home-promos-title">
+    <m.section
+      className="home-promos"
+      aria-labelledby="home-promos-title"
+      initial="hidden"
+      whileInView="visible"
+      viewport={defaultViewport}
+      variants={fadeInVariants}
+    >
       <div className="home-section-inner">
         <HomeSectionHeader
           id="home-promos-title"
@@ -50,7 +49,7 @@ export function HomePromos() {
             onClick={() => scrollBy(-1)}
             aria-label="Previous offers"
           >
-            <ChevronIcon direction="left" />
+            <ChevronLeft size={20} aria-hidden />
           </button>
 
           <div className="home-promos-track" ref={trackRef}>
@@ -85,10 +84,10 @@ export function HomePromos() {
             onClick={() => scrollBy(1)}
             aria-label="Next offers"
           >
-            <ChevronIcon direction="right" />
+            <ChevronRight size={20} aria-hidden />
           </button>
         </div>
       </div>
-    </section>
+    </m.section>
   );
 }

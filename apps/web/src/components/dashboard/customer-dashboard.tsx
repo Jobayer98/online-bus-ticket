@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Bus } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useGlobalLoading } from "@/components/global-loading-provider";
 import { apiGet } from "@/lib/api-client";
@@ -161,9 +162,11 @@ export function CustomerDashboard() {
               <h2 className="dash-section__title">My bookings</h2>
               {bookings.length === 0 ? (
                 <div className="dash-empty">
-                  <p>You have not booked any trips yet.</p>
+                  <Bus className="dash-empty__icon" size={48} strokeWidth={1.5} aria-hidden />
+                  <h3 className="dash-empty__title">No bookings yet</h3>
+                  <p className="dash-empty__text">Search routes and book your first trip.</p>
                   <Link href="/" className="dash-btn dash-btn--primary">
-                    Search buses
+                    Search routes
                   </Link>
                 </div>
               ) : (

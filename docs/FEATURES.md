@@ -597,6 +597,23 @@ E18-02 → E18-01 → E18-03 → E18-04 → E18-05 → E18-07 → E18-08 → E18
 
 ---
 
+## Epic E19 — Public Site UI Redesign
+
+Align tenant public site with [docs/UI-DESIGN-GUIDE.md](UI-DESIGN-GUIDE.md). Admin/counter/platform out of scope.
+
+| ID | Task | Area | Done when |
+|----|------|------|-----------|
+| [x] E19-01 | Design tokens in `globals.css`; `framer-motion` + `lucide-react`; `PublicMotionProvider` | web | LazyMotion on public routes only |
+| [x] E19-02 | Home header (single bar + scroll), hero animations, search widget polish | web | Sentence-case cities; pill toggles |
+| [x] E19-03 | Home sections: promos, routes, stats, value props, payment, CTA, footer | web | Back-to-top; green footer |
+| [x] E19-04 | Search: `--sp-red` removed; schedule card + filter chips redesign | web | Horizontal route card layout |
+| [x] E19-05 | Seat map states/animation; hold timer SVG ring; checkout form tokens | web | Seat class visual distinction |
+| [x] E19-06 | Booking, payment, confirmation page visual alignment | web | Two-column checkout layout CSS |
+| [x] E19-07 | E-ticket boarding pass; ticket lookup; customer dashboard empty state | web | CMS company name on ticket |
+| [x] E19-08 | Shared `ui/form.css` primitives; Lucide sweep; `FEATURES.md` epic | web | Global reduced-motion rule |
+
+---
+
 ## Suggested Implementation Order
 
 ```
