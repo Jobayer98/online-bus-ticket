@@ -34,7 +34,7 @@ export const spBtnBack =
   "min-h-10 cursor-pointer rounded-[var(--radius-sm)] border border-[var(--border)] bg-gray-100 px-5 py-2 text-sm font-semibold text-gray-700 font-inherit hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-60";
 
 export const spBtnSelect =
-  "inline-flex min-h-10 min-w-[120px] cursor-pointer items-center justify-center gap-[0.35rem] rounded-[var(--radius-sm)] border-none bg-[var(--primary)] px-4 py-[0.45rem] text-sm font-semibold text-[var(--text-on-primary,#fff)] font-inherit hover:bg-[var(--primary-hover)]";
+  "inline-flex min-h-10 min-w-[120px] cursor-pointer items-center justify-center gap-[0.35rem] rounded-[var(--radius-sm)] border-none bg-[var(--primary)] px-4 py-[0.45rem] text-sm font-semibold text-on-primary font-inherit hover:bg-[var(--primary-hover)]";
 
 export const spBtnSelectCancel =
   "border border-[var(--border)] bg-gray-100 text-gray-700 hover:bg-gray-200";

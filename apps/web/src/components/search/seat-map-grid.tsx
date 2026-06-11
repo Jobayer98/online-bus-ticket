@@ -33,7 +33,7 @@ function seatStatusClasses(seat: SeatCell, isSelected: boolean): string {
   const tier = seatTierClass(seat.seatClass);
 
   if (isSelected) {
-    return `${base} ${tier} cursor-pointer bg-[var(--primary)] text-[var(--text-on-primary,#fff)] border-[var(--green-800)]`;
+    return `${base} ${tier} cursor-pointer bg-[var(--primary)] text-on-primary border-[var(--green-800)]`;
   }
   if (seat.status === "HELD") {
     return `${base} ${tier} cursor-not-allowed border-[var(--warning)] bg-amber-100 text-amber-900`;

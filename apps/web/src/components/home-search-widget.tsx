@@ -134,27 +134,27 @@ export function HomeSearchWidget() {
               minDate={getTodayIso()}
             />
           </div>
-          <div className="min-w-[200px] shrink-0 grow-0">
+          <div className="min-w-[230px] shrink-0 grow-0">
             <span className="mb-1.5 block text-[0.722rem] font-semibold tracking-wide text-[var(--muted)]">
               Coach type
             </span>
-            <div className="flex gap-2 max-[560px]:w-full">
+            <div className="flex flex-wrap gap-2 sm:flex-nowrap">
               <button
                 type="button"
-                className={`inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full border px-4 text-[0.722rem] font-semibold transition-colors ${acOn ? "border-[var(--primary)] bg-[var(--primary)] text-[var(--text-on-primary,#fff)]" : "border-[var(--border)] bg-[var(--bg)] text-[var(--muted)]"}`}
+                className={`inline-flex h-10 min-w-[5.75rem] shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-full border px-4 text-[0.722rem] font-semibold transition-colors ${acOn ? "btn-primary border-[var(--primary)]" : "border-[var(--border)] bg-[var(--bg)] text-[var(--muted)]"}`}
                 onClick={() => setAcOn((v) => !v)}
                 aria-pressed={acOn}
               >
-                {acOn && <Check size={14} aria-hidden />}
+                {acOn && <Check size={14} className="shrink-0" aria-hidden />}
                 AC
               </button>
               <button
                 type="button"
-                className={`inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full border px-4 text-[0.722rem] font-semibold transition-colors ${nonAcOn ? "border-[var(--primary)] bg-[var(--primary)] text-[var(--text-on-primary,#fff)]" : "border-[var(--border)] bg-[var(--bg)] text-[var(--muted)]"}`}
+                className={`inline-flex h-10 min-w-[6.5rem] shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-full border px-4 text-[0.722rem] font-semibold transition-colors ${nonAcOn ? "btn-primary border-[var(--primary)]" : "border-[var(--border)] bg-[var(--bg)] text-[var(--muted)]"}`}
                 onClick={() => setNonAcOn((v) => !v)}
                 aria-pressed={nonAcOn}
               >
-                {nonAcOn && <Check size={14} aria-hidden />}
+                {nonAcOn && <Check size={14} className="shrink-0" aria-hidden />}
                 Non AC
               </button>
             </div>
@@ -169,7 +169,7 @@ export function HomeSearchWidget() {
       <div className="flex justify-end px-6 pt-3 pb-5">
         <button
           type="submit"
-          className="inline-flex min-h-12 items-center gap-2 rounded-[var(--radius-md)] border-0 bg-[var(--primary)] px-7 text-[0.944rem] font-semibold tracking-wide text-[var(--text-on-primary,#fff)] transition-colors hover:bg-[var(--primary-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)] focus-visible:shadow-[0_0_0_3px_var(--primary-light)]"
+          className="btn-primary inline-flex min-h-12 items-center gap-2 rounded-[var(--radius-md)] border-0 px-7 text-[0.944rem] font-semibold tracking-wide transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)] focus-visible:shadow-[0_0_0_3px_var(--primary-light)]"
         >
           <Search size={18} aria-hidden />
           Search

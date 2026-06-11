@@ -30,7 +30,7 @@ const bookingHoldSummaryClass =
 const bookingFormClass =
   "[&_input]:box-border [&_input]:min-h-12 [&_input]:w-full [&_input]:rounded-[var(--radius-sm,6px)] [&_input]:border [&_input]:border-[var(--border)] [&_input]:px-3 [&_input]:text-base [&_input]:font-[inherit] [&_input]:focus-visible:border-[var(--primary)] [&_input]:focus-visible:shadow-[0_0_0_3px_var(--primary-light)] [&_input]:focus-visible:outline-2 [&_input]:focus-visible:outline-[var(--primary)] [&_label]:mt-3 [&_label]:block [&_label]:text-[0.833rem] [&_label]:font-medium [&_select]:box-border [&_select]:min-h-12 [&_select]:w-full [&_select]:rounded-[var(--radius-sm,6px)] [&_select]:border [&_select]:border-[var(--border)] [&_select]:px-3 [&_select]:text-base [&_select]:font-[inherit] [&_select]:focus-visible:border-[var(--primary)] [&_select]:focus-visible:shadow-[0_0_0_3px_var(--primary-light)] [&_select]:focus-visible:outline-2 [&_select]:focus-visible:outline-[var(--primary)]";
 const bookingBtnClass =
-  "mt-5 min-h-12 w-full cursor-pointer rounded-[var(--radius-sm,6px)] border-0 bg-[var(--primary)] px-3 py-2.5 font-[inherit] text-base font-semibold text-[var(--text-on-primary,#fff)] hover:bg-[var(--primary-hover)] disabled:cursor-not-allowed disabled:opacity-60";
+  "mt-5 min-h-12 w-full cursor-pointer rounded-[var(--radius-sm,6px)] border-0 bg-[var(--primary)] px-3 py-2.5 font-[inherit] text-base font-semibold text-on-primary hover:bg-[var(--primary-hover)] disabled:cursor-not-allowed disabled:opacity-60";
 
 export function BookingPageContent() {
   const { scheduleId } = useParams<{ scheduleId: string }>();

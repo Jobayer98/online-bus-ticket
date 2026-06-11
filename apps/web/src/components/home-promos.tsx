@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { m } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -117,7 +116,6 @@ export function HomePromos() {
           >
             {promos.map((item) => {
               const src = resolveCmsAssetUrl(item.url) ?? item.url;
-              const isExternal = src.startsWith("http");
               const alt = item.alt.trim() || "Promotional offer";
 
               return (
@@ -126,14 +124,14 @@ export function HomePromos() {
                   data-promo-slide
                   className="m-0 shrink-0 grow-0 basis-[min(420px,88vw)] snap-start overflow-hidden rounded-[14px] border border-[var(--border)] bg-[var(--card)] shadow-[var(--shadow-sm)]"
                 >
-                  <Image
+                  <img
                     src={src}
                     alt={alt}
                     width={640}
                     height={360}
                     className="block aspect-video h-full w-full object-cover"
-                    sizes="(max-width: 560px) 88vw, (max-width: 900px) 45vw, 30vw"
-                    unoptimized={isExternal}
+                    loading="lazy"
+                    decoding="async"
                   />
                 </figure>
               );

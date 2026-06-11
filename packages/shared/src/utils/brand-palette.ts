@@ -145,7 +145,8 @@ export function pickTextOnPrimary(backgroundHex: string): string {
   const whiteRatio = contrastRatio(white, backgroundHex);
   const blackRatio = contrastRatio(black, backgroundHex);
 
-  if (whiteRatio >= 4.5 && whiteRatio >= blackRatio) return white;
+  // Prefer white on brand buttons whenever it clears WCAG AA.
+  if (whiteRatio >= 4.5) return white;
   if (blackRatio >= 4.5) return black;
 
   // Primary is mid-tone — nudge toward whichever side clears AA first.
@@ -193,8 +194,30 @@ export function generateBrandPalette(primaryHex: string): BrandPalette {
   };
 }
 
+/** Dark footer surfaces derived from the tenant primary (CMS theme). */
+export function deriveFooterTokens(primaryHex: string): {
+  footerBg: string;
+  footerBarBg: string;
+  footerText: string;
+} {
+  const base = rgbToHsl(parseHex(primaryHex));
+  const footerBg = hslToHex(
+    adjustHsl(base, { l: -22, s: Math.min(base.s + 5, 100) }),
+  );
+  const footerBarBg = hslToHex(
+    adjustHsl(base, { l: -32, s: Math.min(base.s + 8, 100) }),
+  );
+  return {
+    footerBg,
+    footerBarBg,
+    footerText: pickTextOnPrimary(footerBg),
+  };
+}
+
 /** Map palette tokens to CSS custom property names used by the web app. */
 export function brandPaletteToCssVars(palette: BrandPalette): Record<string, string> {
+  const footer = deriveFooterTokens(palette.primary);
+
   return {
     "--primary": palette.primary,
     "--primary-hover": palette.primaryHover,
@@ -206,13 +229,18 @@ export function brandPaletteToCssVars(palette: BrandPalette): Record<string, str
     "--card": palette.surfaceElevated,
     "--text": palette.text,
     "--muted": palette.textMuted,
-    "--text-on-primary": palette.textOnPrimary,
+    "--text-on-primary": pickTextOnPrimary(palette.primary),
     "--border": palette.border,
     "--success": palette.success,
     "--danger": palette.danger,
     "--warning": palette.warning,
+    "--footer-bg": footer.footerBg,
+    "--footer-bar-bg": footer.footerBarBg,
+    "--footer-text": footer.footerText,
     "--home-green": palette.primary,
     "--home-green-light": palette.primaryLight,
     "--home-green-dark": palette.primaryHover,
+    "--green-900": footer.footerBg,
+    "--green-950": footer.footerBarBg,
   };
 }

@@ -181,6 +181,33 @@ function buildMediaBundle(items: SiteMediaDto[]): CmsMediaBundleDto {
   return { hero, featured, footerPayment };
 }
 
+type SiteMediaRow = Awaited<ReturnType<typeof repo.listSiteMedia>>[number];
+
+/** When live site has no published slot, surface draft uploads (e.g. new promos before publish). */
+export function mergePublicMediaWithDraftFallback(
+  published: SiteMediaRow[],
+  draft: SiteMediaRow[],
+): SiteMediaRow[] {
+  const merged = [...published];
+  const kinds = ["HERO", "FEATURED", "FOOTER_PAYMENT"] as const;
+
+  for (const kind of kinds) {
+    if (merged.some((m) => m.kind === kind)) continue;
+
+    const draftItems = draft
+      .filter((m) => m.kind === kind)
+      .sort((a, b) => a.sortOrder - b.sortOrder);
+
+    if (kind === "FEATURED") {
+      merged.push(...draftItems);
+    } else if (draftItems[0]) {
+      merged.push(draftItems[0]);
+    }
+  }
+
+  return merged;
+}
+
 async function resolveSingletonForMode(
   mode: "preview" | "published",
   tenantId?: string,
@@ -234,6 +261,9 @@ async function buildSiteBundle(
   let mediaRows = await repo.listSiteMedia(status, tenantId);
   if (mode === "preview" && mediaRows.length === 0) {
     mediaRows = await repo.listSiteMedia("PUBLISHED", tenantId);
+  } else if (mode === "published") {
+    const draftMedia = await repo.listSiteMedia("DRAFT", tenantId);
+    mediaRows = mergePublicMediaWithDraftFallback(mediaRows, draftMedia);
   }
   const media = buildMediaBundle(mediaRows.map(mapMedia));
 
@@ -571,4 +601,9 @@ export async function publishSite(
 }
 
 // Exported for unit tests
-export const __test__ = { mapTheme, buildMediaBundle, buildSiteBundle };
+export const __test__ = {
+  mapTheme,
+  buildMediaBundle,
+  buildSiteBundle,
+  mergePublicMediaWithDraftFallback,
+};

@@ -67,7 +67,7 @@ export function HomeHeader() {
         </nav>
         <Link
           href="/login"
-          className="inline-flex h-9 shrink-0 items-center justify-center rounded-full bg-[var(--primary)] px-[1.1rem] text-[0.722rem] font-semibold text-[var(--text-on-primary,#fff)] no-underline transition-colors hover:bg-[var(--primary-hover)] max-md:hidden after:hidden"
+          className="btn-primary inline-flex h-9 shrink-0 items-center justify-center rounded-full px-[1.1rem] text-[0.722rem] font-semibold text-white no-underline transition-colors hover:text-white max-md:hidden after:hidden"
         >
           Login
         </Link>

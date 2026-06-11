@@ -58,8 +58,12 @@
   --danger: #dc2626;
   --warning: #d97706;
 
-  --green-950: #052e16;
-  --green-900: #14532d;
+  --footer-bg: #14532d;
+  --footer-bar-bg: #052e16;
+  --footer-text: #ffffff;
+
+  --green-950: var(--footer-bar-bg);
+  --green-900: var(--footer-bg);
   --green-800: #166534;
   --green-700: #15803d;
   --green-600: #16a34a;
@@ -100,8 +104,34 @@
     -webkit-font-smoothing: antialiased;
   }
 
-  a {
+  a:not(.btn-primary) {
     color: var(--primary);
+  }
+}
+
+@layer components {
+  .btn-primary,
+  a.btn-primary,
+  button.btn-primary {
+    background-color: var(--primary);
+    color: #ffffff;
+  }
+
+  .btn-primary:hover,
+  a.btn-primary:hover,
+  button.btn-primary:hover {
+    background-color: var(--primary-hover);
+    color: #ffffff;
+  }
+
+  .btn-primary svg {
+    color: currentColor;
+  }
+}
+
+@layer utilities {
+  .text-on-primary {
+    color: var(--text-on-primary);
   }
 }
 

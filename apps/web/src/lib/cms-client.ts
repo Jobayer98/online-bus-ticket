@@ -7,8 +7,13 @@ export function getApiBaseUrl(): string {
 /** Resolve CMS asset or static web path to a fetchable URL. */
 export function resolveCmsAssetUrl(url: string | null | undefined): string | null {
   if (!url) return null;
-  if (url.startsWith("/api/")) {
-    return `${getApiBaseUrl()}${url}`;
+  const trimmed = url.trim();
+  if (!trimmed) return null;
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+    return trimmed;
   }
-  return url;
+  if (trimmed.startsWith("/api/")) {
+    return `${getApiBaseUrl()}${trimmed}`;
+  }
+  return trimmed;
 }
