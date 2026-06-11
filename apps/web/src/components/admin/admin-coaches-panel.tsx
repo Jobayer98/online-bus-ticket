@@ -6,7 +6,8 @@ import { apiDelete, apiGet, apiPatch, apiPost } from "@/lib/api-client";
 import { parseCsvToObjects } from "@/lib/csv-parse";
 import { useGlobalLoading } from "@/components/global-loading-provider";
 import { formatBusTypeLabel } from "@/lib/format";
-import { CounterToast } from "@/components/counter/counter-toast";
+import { useConfirm } from "@/components/confirm-dialog-provider";
+import { toast } from "@/lib/toast";
 import { AdminCsvImport } from "@/components/admin/admin-csv-import";
 import {
   admBtnDelete,
@@ -61,8 +62,8 @@ export function AdminCoachesPanel() {
   const [editId, setEditId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [toast, setToast] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
+  const confirm = useConfirm();
   const [importErrors, setImportErrors] = useState<string[]>([]);
   useGlobalLoading(loading || importing);
 
@@ -100,10 +101,10 @@ export function AdminCoachesPanel() {
     try {
       if (editId) {
         await apiPatch(`/admin/coaches/${editId}`, payload);
-        setToast("Coach updated");
+        toast.success("Coach updated");
       } else {
         await apiPost("/admin/coaches", payload);
-        setToast("Coach created");
+        toast.success("Coach created");
       }
       resetForm();
       load();
@@ -127,7 +128,7 @@ export function AdminCoachesPanel() {
       };
       const res = await apiPost<ImportResultDto>("/admin/coaches/import", payload);
       const { created, skipped, errors } = res.data;
-      setToast(`Imported ${created} coach(es)${skipped ? `, ${skipped} skipped` : ""}`);
+      toast.success(`Imported ${created} coach(es)${skipped ? `, ${skipped} skipped` : ""}`);
       if (errors.length > 0) {
         setImportErrors(errors.map((e) => `Row ${e.row}: ${e.message}`));
       }
@@ -142,21 +143,28 @@ export function AdminCoachesPanel() {
   }
 
   async function remove(id: string, coachNumber: string) {
-    if (!window.confirm(`Delete coach "${coachNumber}"?`)) return;
+    if (
+      !(await confirm({
+        title: `Delete coach "${coachNumber}"?`,
+        description: "This action cannot be undone.",
+        confirmLabel: "Delete",
+        destructive: true,
+      }))
+    ) {
+      return;
+    }
     try {
       await apiDelete(`/admin/coaches/${id}`);
-      setToast("Coach deleted");
+      toast.success("Coach deleted");
       if (editId === id) resetForm();
       load();
     } catch (err) {
-      setToast(err instanceof Error ? err.message : "Delete failed");
+      toast.error(err instanceof Error ? err.message : "Delete failed");
     }
   }
 
   return (
     <div className={admPanel}>
-      <CounterToast message={toast} onDismiss={() => setToast(null)} />
-
       <form className={admFormCard} onSubmit={submit}>
         <h3>{editId ? "Edit coach" : "Add coach"}</h3>
         <div className={admFormRow}>

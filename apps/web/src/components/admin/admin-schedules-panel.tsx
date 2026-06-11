@@ -13,7 +13,8 @@ import {
   formatTime12h,
 } from "@/lib/format";
 import { seatClassesFromTemplates } from "@repo/shared";
-import { CounterToast } from "@/components/counter/counter-toast";
+import { useConfirm } from "@/components/confirm-dialog-provider";
+import { toast } from "@/lib/toast";
 import { HomeDateTimePicker } from "@/components/home-datetime-picker";
 import { getTodayIso } from "@/lib/trip-date";
 import {
@@ -111,8 +112,8 @@ export function AdminSchedulesPanel() {
   const [rescheduleReason, setRescheduleReason] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [toast, setToast] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
+  const confirm = useConfirm();
   const [importErrors, setImportErrors] = useState<string[]>([]);
   useGlobalLoading(loading || importing);
 
@@ -155,7 +156,7 @@ export function AdminSchedulesPanel() {
         payload,
       );
       const { created, errors } = res.data;
-      setToast(`Imported ${created} schedule(s)`);
+      toast.success(`Imported ${created} schedule(s)`);
       if (errors.length > 0) {
         setImportErrors(errors.map((e) => `Row ${e.row}: ${e.message}`));
       }
@@ -174,11 +175,11 @@ export function AdminSchedulesPanel() {
     setError("");
     const fare = Math.round(Number(baseFareTaka) * 100);
     if (!departureAt || !arrivalAt) {
-      setToast("Select departure and arrival date & time");
+      toast.error("Select departure and arrival date & time");
       return;
     }
     if (!fare || fare < 0) {
-      setToast("Enter a valid base fare");
+      toast.error("Enter a valid base fare");
       return;
     }
     try {
@@ -189,7 +190,7 @@ export function AdminSchedulesPanel() {
         estimatedArrivalAt: fromDatetimeLocal(arrivalAt),
         baseFare: fare,
       });
-      setToast("Schedule created");
+      toast.success("Schedule created");
       setRouteId("");
       setCoachId("");
       setDepartureAt("");
@@ -210,29 +211,36 @@ export function AdminSchedulesPanel() {
         estimatedArrivalAt: fromDatetimeLocal(rescheduleArr),
         reason: rescheduleReason || undefined,
       });
-      setToast("Schedule rescheduled");
+      toast.success("Schedule rescheduled");
       setRescheduleId(null);
       load();
     } catch (err) {
-      setToast(err instanceof Error ? err.message : "Reschedule failed");
+      toast.error(err instanceof Error ? err.message : "Reschedule failed");
     }
   }
 
   async function cancelSchedule(id: string) {
-    if (!window.confirm("Cancel this schedule?")) return;
+    if (
+      !(await confirm({
+        title: "Cancel this schedule?",
+        description: "Passengers with bookings may need to be notified.",
+        confirmLabel: "Cancel schedule",
+        destructive: true,
+      }))
+    ) {
+      return;
+    }
     try {
       await apiPatch(`/admin/schedules/${id}/cancel`, {});
-      setToast("Schedule cancelled");
+      toast.success("Schedule cancelled");
       load();
     } catch (err) {
-      setToast(err instanceof Error ? err.message : "Cancel failed");
+      toast.error(err instanceof Error ? err.message : "Cancel failed");
     }
   }
 
   return (
     <div className={admPanel}>
-      <CounterToast message={toast} onDismiss={() => setToast(null)} />
-
       <form className={admFormCard} onSubmit={createSchedule}>
         <h3>Create schedule</h3>
         <div className={admFormRow}>

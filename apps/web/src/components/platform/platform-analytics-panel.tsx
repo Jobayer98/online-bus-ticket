@@ -6,6 +6,7 @@ import { useGlobalLoading } from "@/components/global-loading-provider";
 import { platformApiGet } from "@/lib/platform-api-client";
 import { getPlatformAuthToken } from "@/lib/platform-auth-session";
 import { formatMoneyBdt } from "@/lib/format";
+import { toast } from "@/lib/toast";
 import type { PlatformUsageOverviewDto } from "@repo/shared";
 import {
   admKpiCardClass,
@@ -58,7 +59,7 @@ export function PlatformAnalyticsPanel() {
       },
     );
     if (!res.ok) {
-      alert("Export failed");
+      toast.error("Export failed");
       return;
     }
     const blob = await res.blob();

@@ -11,7 +11,7 @@ import {
   formatTime12h,
 } from "@/lib/format";
 import { useGlobalLoading } from "@/components/global-loading-provider";
-import { CounterToast } from "./counter-toast";
+import { toast } from "@/lib/toast";
 import {
   cpSuccess,
   cpSuccessActions,
@@ -89,14 +89,9 @@ export function CounterSellFlow({ onSold }: Props) {
   const [method, setMethod] = useState<CounterSellInput["method"]>("CASH");
 
   const [sellError, setSellError] = useState("");
-  const [toast, setToast] = useState<string | null>(null);
   const [selling, setSelling] = useState(false);
   useGlobalLoading(loadingSearch || selling);
   const [sellResult, setSellResult] = useState<SellResult | null>(null);
-
-  function showToast(message: string) {
-    setToast(message);
-  }
 
   function clearSellDraft() {
     setCheckout(null);
@@ -163,11 +158,11 @@ export function CounterSellFlow({ onSold }: Props) {
     const schedule = schedules.find((s) => s.scheduleId === expandedId);
     if (!schedule) return;
     if (!selectedSeats.length) {
-      showToast("Please select at least one seat");
+      toast.error("Please select at least one seat");
       return;
     }
     if (!boardingPointId) {
-      showToast("Please select a boarding point");
+      toast.error("Please select a boarding point");
       return;
     }
 
@@ -240,7 +235,6 @@ export function CounterSellFlow({ onSold }: Props) {
   if (sellResult) {
     return (
       <>
-        <CounterToast message={toast} onDismiss={() => setToast(null)} />
         <div className={cpSuccess}>
           <div className={cpSuccessCard}>
             <h2 className={cpSuccessHeading}>TICKET SOLD — SHAHZADPUR TRAVELS</h2>
@@ -268,7 +262,6 @@ export function CounterSellFlow({ onSold }: Props) {
 
     return (
       <>
-        <CounterToast message={toast} onDismiss={() => setToast(null)} />
         <div className={spCheckoutWrap}>
         <h2 className={spCheckoutTitle}>COUNTER SALE — PASSENGER DETAILS</h2>
 
@@ -411,7 +404,6 @@ export function CounterSellFlow({ onSold }: Props) {
 
   return (
     <>
-      <CounterToast message={toast} onDismiss={() => setToast(null)} />
       <CounterSearchBar
         stops={stops}
         fromStopId={fromStopId}

@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import type { SiteMediaDto, SiteMediaKind } from "@repo/shared";
 import { CmsImageUploadField } from "@/components/admin/cms/cms-image-upload-field";
-import { CounterToast } from "@/components/counter/counter-toast";
+import { useConfirm } from "@/components/confirm-dialog-provider";
+import { toast } from "@/lib/toast";
 import { useGlobalLoading } from "@/components/global-loading-provider";
 import { apiDelete, apiGet, apiPatch, apiPost } from "@/lib/api-client";
 import { apiUploadCmsAsset, resolveCmsAssetUrl } from "@/lib/cms-admin-api";
@@ -26,7 +27,7 @@ export function AdminCmsMediaPanel() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [toast, setToast] = useState<string | null>(null);
+  const confirm = useConfirm();
   useGlobalLoading(loading || busy);
 
   const hero = items.find((m) => m.kind === "HERO");
@@ -57,7 +58,7 @@ export function AdminCmsMediaPanel() {
       const uploaded = await apiUploadCmsAsset(file);
       if (existing) {
         await apiPatch(`/admin/cms/media/${existing.id}`, { url: uploaded.url });
-        setToast("Image updated");
+        toast.success("Image updated");
       } else {
         const sortOrder = kind === "FEATURED" ? featured.length : 0;
         await apiPost("/admin/cms/media", {
@@ -66,11 +67,11 @@ export function AdminCmsMediaPanel() {
           alt: file.name.replace(/\.[^.]+$/, ""),
           sortOrder,
         });
-        setToast("Image added");
+        toast.success("Image added");
       }
       load();
     } catch (err) {
-      setToast(err instanceof Error ? err.message : "Upload failed");
+      toast.error(err instanceof Error ? err.message : "Upload failed");
     } finally {
       setBusy(false);
     }
@@ -87,24 +88,33 @@ export function AdminCmsMediaPanel() {
       await apiPost("/admin/cms/media/reorder", {
         items: reordered.map((m, i) => ({ id: m.id, sortOrder: i })),
       });
-      setToast("Gallery order updated");
+      toast.success("Gallery order updated");
       load();
     } catch (err) {
-      setToast(err instanceof Error ? err.message : "Reorder failed");
+      toast.error(err instanceof Error ? err.message : "Reorder failed");
     } finally {
       setBusy(false);
     }
   }
 
   async function removeMedia(id: string) {
-    if (!window.confirm("Remove this image from draft media?")) return;
+    if (
+      !(await confirm({
+        title: "Remove this image?",
+        description: "It will be removed from draft media.",
+        confirmLabel: "Remove",
+        destructive: true,
+      }))
+    ) {
+      return;
+    }
     setBusy(true);
     try {
       await apiDelete(`/admin/cms/media/${id}`);
-      setToast("Media removed");
+      toast.success("Media removed");
       load();
     } catch (err) {
-      setToast(err instanceof Error ? err.message : "Delete failed");
+      toast.error(err instanceof Error ? err.message : "Delete failed");
     } finally {
       setBusy(false);
     }
@@ -120,7 +130,6 @@ export function AdminCmsMediaPanel() {
 
   return (
     <div className={cpSection}>
-      <CounterToast message={toast} onDismiss={() => setToast(null)} />
       <h3 className={admPageTitle}>SITE MEDIA</h3>
       {error ? (
         <p className={spPanelError} role="alert">

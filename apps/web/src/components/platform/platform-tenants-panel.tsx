@@ -11,6 +11,7 @@ import {
   platformApiDownload,
 } from "@/lib/platform-api-client";
 import { formatMoneyBdt } from "@/lib/format";
+import { toast } from "@/lib/toast";
 import type { PlatformTenantListItemDto } from "@repo/shared";
 import {
   admPageTitleClass,
@@ -158,7 +159,7 @@ export function PlatformTenantsPanel() {
         ),
       );
     } catch (e) {
-      alert(e instanceof Error ? e.message : "Update failed");
+      toast.error(e instanceof Error ? e.message : "Update failed");
     } finally {
       setUpdating(null);
     }
@@ -168,7 +169,7 @@ export function PlatformTenantsPanel() {
     e.preventDefault();
     const slug = createSlug || slugFromName(createName);
     if (!createName.trim() || slug.length < 2) {
-      alert("Enter a valid company name and slug.");
+      toast.error("Enter a valid company name and slug.");
       return;
     }
     setCreating(true);
@@ -185,7 +186,7 @@ export function PlatformTenantsPanel() {
       await fetchTenants();
       router.push(`/platform/tenants/${json.data.id}`);
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Create failed");
+      toast.error(err instanceof Error ? err.message : "Create failed");
     } finally {
       setCreating(false);
     }
@@ -220,7 +221,7 @@ export function PlatformTenantsPanel() {
           : "";
       await platformApiDownload(`/platform/tenants/export${qs}`, "platform-tenants.csv");
     } catch (e) {
-      alert(e instanceof Error ? e.message : "Export failed");
+      toast.error(e instanceof Error ? e.message : "Export failed");
     } finally {
       setBulkBusy(false);
     }
@@ -236,7 +237,7 @@ export function PlatformTenantsPanel() {
       setSelected(new Set());
       await fetchTenants();
     } catch (e) {
-      alert(e instanceof Error ? e.message : "Bulk suspend failed");
+      toast.error(e instanceof Error ? e.message : "Bulk suspend failed");
     } finally {
       setBulkBusy(false);
     }
@@ -257,9 +258,9 @@ export function PlatformTenantsPanel() {
       setShowAnnounce(false);
       setAnnounceTitle("");
       setAnnounceBody("");
-      alert("Announcement sent.");
+      toast.success("Announcement sent.");
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Send failed");
+      toast.error(err instanceof Error ? err.message : "Send failed");
     } finally {
       setBulkBusy(false);
     }

@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { apiDelete, apiGet, apiPatch, apiPost } from "@/lib/api-client";
 import { useGlobalLoading } from "@/components/global-loading-provider";
-import { CounterToast } from "@/components/counter/counter-toast";
+import { useConfirm } from "@/components/confirm-dialog-provider";
+import { toast } from "@/lib/toast";
 import {
   admBtnDelete,
   admBtnEdit,
@@ -39,7 +40,7 @@ export function AdminStopsPanel() {
   const [editId, setEditId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [toast, setToast] = useState<string | null>(null);
+  const confirm = useConfirm();
   useGlobalLoading(loading);
 
   const load = useCallback(() => {
@@ -65,10 +66,10 @@ export function AdminStopsPanel() {
     try {
       if (editId) {
         await apiPatch(`/admin/stops/${editId}`, form);
-        setToast("Stop updated");
+        toast.success("Stop updated");
       } else {
         await apiPost("/admin/stops", form);
-        setToast("Stop created");
+        toast.success("Stop created");
       }
       resetForm();
       load();
@@ -78,20 +79,27 @@ export function AdminStopsPanel() {
   }
 
   async function remove(id: string, name: string) {
-    if (!window.confirm(`Delete stop "${name}"?`)) return;
+    if (
+      !(await confirm({
+        title: `Delete stop "${name}"?`,
+        description: "This action cannot be undone.",
+        confirmLabel: "Delete",
+        destructive: true,
+      }))
+    ) {
+      return;
+    }
     try {
       await apiDelete(`/admin/stops/${id}`);
-      setToast("Stop deleted");
+      toast.success("Stop deleted");
       load();
     } catch (err) {
-      setToast(err instanceof Error ? err.message : "Delete failed");
+      toast.error(err instanceof Error ? err.message : "Delete failed");
     }
   }
 
   return (
     <div className={admPanel}>
-      <CounterToast message={toast} onDismiss={() => setToast(null)} />
-
       <form className={admFormCard} onSubmit={submit}>
         <h3>{editId ? "Edit stop" : "Add stop"}</h3>
         <div className={admFormRow}>

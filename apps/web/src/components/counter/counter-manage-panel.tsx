@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useConfirm } from "@/components/confirm-dialog-provider";
 import { useGlobalLoading } from "@/components/global-loading-provider";
 import { apiGet, apiPost } from "@/lib/api-client";
 import { formatMoneyBdt, formatTime12h } from "@/lib/format";
@@ -34,6 +35,7 @@ export function CounterManagePanel() {
   const [actionMessage, setActionMessage] = useState("");
   const [note, setNote] = useState("");
   const [acting, setActing] = useState(false);
+  const confirm = useConfirm();
   useGlobalLoading(loading || acting);
 
   async function lookup(e: React.FormEvent) {
@@ -62,10 +64,16 @@ export function CounterManagePanel() {
     label: string,
   ) {
     if (!ticket) return;
-    const confirmed = window.confirm(
-      `${label} booking for ${ticket.passengerName} (${ticket.passengerNumber})?`,
-    );
-    if (!confirmed) return;
+    if (
+      !(await confirm({
+        title: `${label} booking?`,
+        description: `${ticket.passengerName} (${ticket.passengerNumber})`,
+        confirmLabel: label,
+        destructive: label === "Refund",
+      }))
+    ) {
+      return;
+    }
 
     setActing(true);
     setActionError("");

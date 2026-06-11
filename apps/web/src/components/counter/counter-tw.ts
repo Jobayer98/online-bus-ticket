@@ -17,14 +17,6 @@ export const cpSection = "mx-auto max-w-[1200px] px-4 pb-8";
 export const cpSectionTitle =
   "my-3 mb-2 border border-[var(--border)] bg-[#e8e8e8] px-3 py-[0.45rem] text-[0.95rem] font-bold tracking-[0.04em] text-[#222]";
 
-export const cpToast =
-  "fixed bottom-5 left-1/2 z-[1000] flex max-w-[min(420px,calc(100vw-2rem))] -translate-x-1/2 items-center gap-3 rounded px-4 py-3 text-[0.9rem] font-semibold text-white shadow-[0_4px_16px_rgba(0,0,0,0.2)] bg-[#c62828]";
-
-export const cpToastText = "flex-1";
-
-export const cpToastClose =
-  "h-7 w-7 shrink-0 cursor-pointer rounded-[3px] border-0 bg-white/20 font-inherit text-[1.1rem] leading-none text-white hover:bg-white/35";
-
 export const cpSuccess = "mx-auto my-4 mb-8 max-w-[1200px] px-4";
 
 export const cpSuccessCard =

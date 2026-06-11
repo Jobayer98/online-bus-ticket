@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { apiDelete, apiGet, apiPatch, apiPost } from "@/lib/api-client";
 import { useGlobalLoading } from "@/components/global-loading-provider";
-import { CounterToast } from "@/components/counter/counter-toast";
+import { useConfirm } from "@/components/confirm-dialog-provider";
+import { toast } from "@/lib/toast";
 import {
   admBoardingHint,
   admBoardingRouteLabel,
@@ -68,7 +69,7 @@ export function AdminRoutesPanel() {
   const [bpLoading, setBpLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [toast, setToast] = useState<string | null>(null);
+  const confirm = useConfirm();
   useGlobalLoading(loading || bpLoading);
 
   const selectedRoute = routes.find((r) => r.id === selectedRouteId);
@@ -93,7 +94,7 @@ export function AdminRoutesPanel() {
     setBpLoading(true);
     apiGet<BoardingPoint[]>(`/admin/routes/${routeId}/boarding-points`)
       .then((r) => setBoardingPoints(r.data))
-      .catch((e) => setToast(e instanceof Error ? e.message : "Failed to load points"))
+      .catch((e) => toast.error(e instanceof Error ? e.message : "Failed to load points"))
       .finally(() => setBpLoading(false));
   }, []);
 
@@ -112,7 +113,7 @@ export function AdminRoutesPanel() {
     e.preventDefault();
     setError("");
     if (fromStopId === toStopId) {
-      setToast("From and to must differ");
+      toast.error("From and to must differ");
       return;
     }
     try {
@@ -121,7 +122,7 @@ export function AdminRoutesPanel() {
         toStopId,
         distanceKm: distanceKm ? Number(distanceKm) : undefined,
       });
-      setToast("Route created");
+      toast.success("Route created");
       setFromStopId("");
       setToStopId("");
       setDistanceKm("");
@@ -137,7 +138,7 @@ export function AdminRoutesPanel() {
     if (!selectedRouteId) return;
     const name = bpName.trim();
     if (!name) {
-      setToast("Enter boarding point name");
+      toast.error("Enter boarding point name");
       return;
     }
     try {
@@ -145,12 +146,12 @@ export function AdminRoutesPanel() {
         name,
         sortOrder: bpSortOrder ? Number(bpSortOrder) : undefined,
       });
-      setToast("Boarding point added");
+      toast.success("Boarding point added");
       setBpName("");
       setBpSortOrder("");
       loadBoardingPoints(selectedRouteId);
     } catch (err) {
-      setToast(err instanceof Error ? err.message : "Add failed");
+      toast.error(err instanceof Error ? err.message : "Add failed");
     }
   }
 
@@ -158,7 +159,7 @@ export function AdminRoutesPanel() {
     if (!selectedRouteId || !editBpId) return;
     const name = editBpName.trim();
     if (!name) {
-      setToast("Name is required");
+      toast.error("Name is required");
       return;
     }
     try {
@@ -166,23 +167,32 @@ export function AdminRoutesPanel() {
         name,
         sortOrder: Number(editBpSort),
       });
-      setToast("Boarding point updated");
+      toast.success("Boarding point updated");
       setEditBpId(null);
       loadBoardingPoints(selectedRouteId);
     } catch (err) {
-      setToast(err instanceof Error ? err.message : "Update failed");
+      toast.error(err instanceof Error ? err.message : "Update failed");
     }
   }
 
   async function deleteBoardingPoint(id: string) {
     if (!selectedRouteId) return;
-    if (!window.confirm("Delete this boarding point?")) return;
+    if (
+      !(await confirm({
+        title: "Delete this boarding point?",
+        description: "This action cannot be undone.",
+        confirmLabel: "Delete",
+        destructive: true,
+      }))
+    ) {
+      return;
+    }
     try {
       await apiDelete(`/admin/routes/${selectedRouteId}/boarding-points/${id}`);
-      setToast("Boarding point deleted");
+      toast.success("Boarding point deleted");
       loadBoardingPoints(selectedRouteId);
     } catch (err) {
-      setToast(err instanceof Error ? err.message : "Delete failed");
+      toast.error(err instanceof Error ? err.message : "Delete failed");
     }
   }
 
@@ -194,8 +204,6 @@ export function AdminRoutesPanel() {
 
   return (
     <div className={admPanel}>
-      <CounterToast message={toast} onDismiss={() => setToast(null)} />
-
       <form className={admFormCard} onSubmit={submitRoute}>
         <h3>Add route</h3>
         <div className={admFormRow}>

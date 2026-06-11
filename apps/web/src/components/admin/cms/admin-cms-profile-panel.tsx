@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { SiteProfileDto } from "@repo/shared";
 import { CmsImageUploadField } from "@/components/admin/cms/cms-image-upload-field";
-import { CounterToast } from "@/components/counter/counter-toast";
+import { toast } from "@/lib/toast";
 import { useGlobalLoading } from "@/components/global-loading-provider";
 import { apiGet, apiPatch } from "@/lib/api-client";
 import { apiUploadCmsAsset, resolveCmsAssetUrl } from "@/lib/cms-admin-api";
@@ -32,7 +32,6 @@ export function AdminCmsProfilePanel() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
-  const [toast, setToast] = useState<string | null>(null);
   useGlobalLoading(loading || saving || uploading);
 
   const load = useCallback(() => {
@@ -60,9 +59,9 @@ export function AdminCmsProfilePanel() {
     try {
       const uploaded = await apiUploadCmsAsset(file);
       setLogoUrl(uploaded.url);
-      setToast("Logo uploaded — save profile to keep changes");
+      toast.message("Logo uploaded — save profile to keep changes");
     } catch (err) {
-      setToast(err instanceof Error ? err.message : "Upload failed");
+      toast.error(err instanceof Error ? err.message : "Upload failed");
     } finally {
       setUploading(false);
     }
@@ -80,7 +79,7 @@ export function AdminCmsProfilePanel() {
         logoUrl,
       });
       setProfile(res.data);
-      setToast("Profile saved as draft");
+      toast.success("Profile saved as draft");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Save failed");
     } finally {
@@ -98,7 +97,6 @@ export function AdminCmsProfilePanel() {
 
   return (
     <div className={cpSection}>
-      <CounterToast message={toast} onDismiss={() => setToast(null)} />
       <h3 className={admPageTitle}>SITE PROFILE</h3>
       {error ? (
         <p className={spPanelError} role="alert">

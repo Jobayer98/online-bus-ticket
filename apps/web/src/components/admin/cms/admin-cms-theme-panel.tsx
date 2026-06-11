@@ -7,7 +7,7 @@ import {
   type BrandPaletteDto,
   type SiteThemeDto,
 } from "@repo/shared";
-import { CounterToast } from "@/components/counter/counter-toast";
+import { toast } from "@/lib/toast";
 import { useGlobalLoading } from "@/components/global-loading-provider";
 import { apiGet, apiPatch } from "@/lib/api-client";
 import { CMS_FONT_OPTIONS } from "./cms-shared";
@@ -59,7 +59,6 @@ export function AdminCmsThemePanel() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [toast, setToast] = useState<string | null>(null);
   useGlobalLoading(loading || saving);
 
   const previewPalette = useMemo(() => {
@@ -103,7 +102,7 @@ export function AdminCmsThemePanel() {
       setTheme(res.data);
       setPrimaryColor(res.data.primaryColor);
       setFontFamily(res.data.fontFamily);
-      setToast("Theme saved as draft");
+      toast.success("Theme saved as draft");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Save failed");
     } finally {
@@ -123,7 +122,6 @@ export function AdminCmsThemePanel() {
 
   return (
     <div className={cpSection}>
-      <CounterToast message={toast} onDismiss={() => setToast(null)} />
       <h3 className={admPageTitle}>BRAND THEME</h3>
       {error ? (
         <p className={spPanelError} role="alert">

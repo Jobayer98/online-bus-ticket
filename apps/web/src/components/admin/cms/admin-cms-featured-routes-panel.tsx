@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { FeaturedRouteDto } from "@repo/shared";
-import { CounterToast } from "@/components/counter/counter-toast";
+import { useConfirm } from "@/components/confirm-dialog-provider";
+import { toast } from "@/lib/toast";
 import { useGlobalLoading } from "@/components/global-loading-provider";
 import { apiDelete, apiGet, apiPatch, apiPost } from "@/lib/api-client";
 import {
@@ -47,7 +48,7 @@ export function AdminCmsFeaturedRoutesPanel() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [toast, setToast] = useState<string | null>(null);
+  const confirm = useConfirm();
   useGlobalLoading(loading || busy);
 
   const sorted = useMemo(
@@ -82,7 +83,7 @@ export function AdminCmsFeaturedRoutesPanel() {
   async function addRoute(e: React.FormEvent) {
     e.preventDefault();
     if (!routeId) {
-      setToast("Select a route");
+      toast.error("Select a route");
       return;
     }
     setBusy(true);
@@ -92,11 +93,11 @@ export function AdminCmsFeaturedRoutesPanel() {
         sortOrder: sorted.length,
         isVisible: true,
       });
-      setToast("Route added to home curation");
+      toast.success("Route added to home curation");
       setRouteId("");
       load();
     } catch (err) {
-      setToast(err instanceof Error ? err.message : "Add failed");
+      toast.error(err instanceof Error ? err.message : "Add failed");
     } finally {
       setBusy(false);
     }
@@ -110,7 +111,7 @@ export function AdminCmsFeaturedRoutesPanel() {
       });
       load();
     } catch (err) {
-      setToast(err instanceof Error ? err.message : "Update failed");
+      toast.error(err instanceof Error ? err.message : "Update failed");
     } finally {
       setBusy(false);
     }
@@ -127,24 +128,33 @@ export function AdminCmsFeaturedRoutesPanel() {
       await apiPost("/admin/cms/featured-routes/reorder", {
         items: reordered.map((r, i) => ({ id: r.id, sortOrder: i })),
       });
-      setToast("Order updated");
+      toast.success("Order updated");
       load();
     } catch (err) {
-      setToast(err instanceof Error ? err.message : "Reorder failed");
+      toast.error(err instanceof Error ? err.message : "Reorder failed");
     } finally {
       setBusy(false);
     }
   }
 
   async function remove(id: string, label: string) {
-    if (!window.confirm(`Remove "${label}" from featured routes?`)) return;
+    if (
+      !(await confirm({
+        title: `Remove "${label}"?`,
+        description: "This route will no longer appear in home curation.",
+        confirmLabel: "Remove",
+        destructive: true,
+      }))
+    ) {
+      return;
+    }
     setBusy(true);
     try {
       await apiDelete(`/admin/cms/featured-routes/${id}`);
-      setToast("Removed from curation");
+      toast.success("Removed from curation");
       load();
     } catch (err) {
-      setToast(err instanceof Error ? err.message : "Delete failed");
+      toast.error(err instanceof Error ? err.message : "Delete failed");
     } finally {
       setBusy(false);
     }
@@ -160,7 +170,6 @@ export function AdminCmsFeaturedRoutesPanel() {
 
   return (
     <div className={admPanel}>
-      <CounterToast message={toast} onDismiss={() => setToast(null)} />
       <h3 className={admPageTitle}>FEATURED ROUTES</h3>
       {error ? (
         <p className={spPanelError} role="alert">

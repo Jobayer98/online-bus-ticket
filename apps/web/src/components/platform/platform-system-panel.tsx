@@ -6,6 +6,7 @@ import {
   platformApiGet,
   platformApiPatch,
 } from "@/lib/platform-api-client";
+import { toast } from "@/lib/toast";
 import type { PlatformHealthDto, PlatformHealthMetricsDto, PlatformAlertDto } from "@repo/shared";
 import {
   admKpiCardClass,
@@ -84,7 +85,7 @@ export function PlatformSystemPanel() {
       await platformApiPatch(`/platform/alerts/${id}`, { status });
       await load();
     } catch (e) {
-      alert(e instanceof Error ? e.message : "Update failed");
+      toast.error(e instanceof Error ? e.message : "Update failed");
     } finally {
       setUpdating(null);
     }

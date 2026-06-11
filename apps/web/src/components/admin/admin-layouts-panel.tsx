@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { apiGet, apiPost } from "@/lib/api-client";
 import { useGlobalLoading } from "@/components/global-loading-provider";
 import { formatSeatClassLabel } from "@/lib/format";
-import { CounterToast } from "@/components/counter/counter-toast";
+import { toast } from "@/lib/toast";
 import {
   createEmptyGrid,
   fillGrid,
@@ -64,7 +64,6 @@ export function AdminLayoutsPanel() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [toast, setToast] = useState<string | null>(null);
   useGlobalLoading(loading || saving);
 
   const load = useCallback(() => {
@@ -106,16 +105,16 @@ export function AdminLayoutsPanel() {
     setError("");
     const templates = gridToTemplates(grid);
     if (!name.trim()) {
-      setToast("Enter a layout name");
+      toast.error("Enter a layout name");
       return;
     }
     if (templates.length === 0) {
-      setToast("Add at least one seat to the grid");
+      toast.error("Add at least one seat to the grid");
       return;
     }
     const labels = new Set(templates.map((t) => t.label));
     if (labels.size !== templates.length) {
-      setToast("Duplicate seat labels in grid");
+      toast.error("Duplicate seat labels in grid");
       return;
     }
 
@@ -127,7 +126,7 @@ export function AdminLayoutsPanel() {
         cols,
         templates,
       });
-      setToast(`Layout "${name.trim()}" created`);
+      toast.success(`Layout "${name.trim()}" created`);
       setName("");
       setGrid(createEmptyGrid(rows, cols));
       load();
@@ -142,7 +141,6 @@ export function AdminLayoutsPanel() {
 
   return (
     <div className={admPanel}>
-      <CounterToast message={toast} onDismiss={() => setToast(null)} />
       <h2 className={admPageTitle}>Seat layouts</h2>
       <p className={admLayoutIntro}>
         Define reusable seat maps, then assign them when creating coaches. Click grid cells to set

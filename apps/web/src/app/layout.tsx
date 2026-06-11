@@ -6,6 +6,7 @@ import {
   Roboto,
 } from "next/font/google";
 import { brandPaletteToCssVars, type CmsFontFamily } from "@repo/shared";
+import { AppProviders } from "@/components/app-providers";
 import { GlobalLoadingProvider } from "@/components/global-loading-provider";
 import { SiteThemeProvider } from "@/components/site-theme-provider";
 import { SiteShell } from "@/components/site-shell";
@@ -80,7 +81,9 @@ export default async function RootLayout({
       <body className={activeFont.className}>
         <SiteThemeProvider bundle={bundle}>
           <GlobalLoadingProvider>
-            <SiteShell>{children}</SiteShell>
+            <AppProviders>
+              <SiteShell>{children}</SiteShell>
+            </AppProviders>
           </GlobalLoadingProvider>
         </SiteThemeProvider>
       </body>

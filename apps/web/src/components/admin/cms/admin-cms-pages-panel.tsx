@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { CmsPageSlug, ContentPageDto } from "@repo/shared";
-import { CounterToast } from "@/components/counter/counter-toast";
+import { toast } from "@/lib/toast";
 import { useGlobalLoading } from "@/components/global-loading-provider";
 import { apiGet, apiPatch, apiPost } from "@/lib/api-client";
 import { renderCmsMarkdown } from "@/lib/cms-markdown";
@@ -40,7 +40,6 @@ export function AdminCmsPagesPanel() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [toast, setToast] = useState<string | null>(null);
   useGlobalLoading(loading || saving);
 
   const previewHtml = useMemo(() => {
@@ -107,7 +106,7 @@ export function AdminCmsPagesPanel() {
   async function save(e: React.FormEvent) {
     e.preventDefault();
     if (!title.trim() || !bodyMarkdown.trim()) {
-      setToast("Title and body are required");
+      toast.error("Title and body are required");
       return;
     }
     setSaving(true);
@@ -126,7 +125,7 @@ export function AdminCmsPagesPanel() {
         });
         setHasDraft(true);
       }
-      setToast("Page saved as draft");
+      toast.success("Page saved as draft");
       const list = await loadList();
       const updated = list.find((p) => p.slug === activeSlug);
       if (updated) {
@@ -152,7 +151,6 @@ export function AdminCmsPagesPanel() {
 
   return (
     <div className={cpSection}>
-      <CounterToast message={toast} onDismiss={() => setToast(null)} />
       <h3 className={admPageTitle}>CONTENT PAGES</h3>
       {error ? (
         <p className={spPanelError} role="alert">
