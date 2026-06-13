@@ -1,93 +1,8 @@
 # Online Bus Ticket Platform
 
-A full-stack bus ticketing platform for online booking, counter point-of-sale, and back-office operations. Built as a **modular monolith** with contract-first APIs, shared validation, and a clear path toward service extraction if you need to scale out later.
+Multi-tenant bus ticketing SaaS: public online booking, counter POS, and admin back-office. Each bus company is isolated by tenant and served on a subdomain. The codebase is a **modular monolith** (Express API + Next.js web) with contract-first APIs in `packages/shared`. Trip dates use **Asia/Dhaka**; payment uses a **mock provider** in development.
 
----
-
-## Overview
-
-The platform supports three audiences:
-
-| Audience | What they can do |
-|----------|------------------|
-| **Passengers** | Search trips, select seats, book as a guest or logged-in user, pay online, and download tickets |
-| **Counter sellers** | Sell, change, refund, and cancel tickets; create and manage schedules |
-| **Administrators** | Configure stops, routes, coaches, seat layouts, boarding points; view sales reports and analytics |
-
-Default timezone for trip dates is **Asia/Dhaka**. Payment uses a **mock provider** suitable for development; the API is designed for swappable payment adapters.
-
----
-
-## Features
-
-### Public booking
-
-- Route search with filters (bus type, time period, seat class)
-- Results at `/search/[routeSlug]/[date]` with shareable query parameters
-- Interactive seat map with holds (TTL), boarding point selection, and live pricing
-- Guest checkout (phone required) or authenticated booking history on `/dashboard`
-- Mock SSLCommerz-style payment flow and branded e-ticket confirmation
-- Ticket lookup and download by passenger number + phone (`/ticket`)
-
-### Counter POS (`/counter`)
-
-- Quick search and walk-in sales (cash or recorded online)
-- Schedule create, reschedule, and cancel
-- Change, refund, and cancel with audit trail
-- Shift-style transaction history
-
-### Admin (`/admin`)
-
-- CRUD for stops, routes, coaches, seat layouts, and boarding points
-- Schedule management
-- Sales reports, KPI overview, and CSV export
-- Team member management (invite counter sellers)
-- Tenant settings panel (plan info, member list)
-
-### SaaS Platform
-
-- Multi-tenant: each bus company is isolated by `tenantId`, served via subdomain (`company.yourdomain.com`)
-- Self-service onboarding at `/onboarding` — creates tenant + admin account in one step
-- Plan tiers: **FREE** (5 routes, 50 schedules/month) | **PRO** | **ENTERPRISE**
-- Platform super admin UI at `/platform` for managing all tenants (plan, status)
-- Pluggable tenant resolver: subdomain now, custom domain later (no refactor needed)
-
-### API & quality
-
-- Versioned REST API under `/api/v1`
-- Zod schemas and DTOs in `packages/shared`; per-endpoint specs in `docs/contracts/`
-- OpenAPI (Swagger) UI at `/api-docs` when the API is running
-- Role-based access control for admin and counter routes
-
----
-
-## Tech stack
-
-| Layer | Technology |
-|-------|------------|
-| Language | TypeScript |
-| Monorepo | pnpm workspaces + Turborepo |
-| API | Express 5 (modular monolith) |
-| Web | Next.js 15 (App Router) |
-| Database | PostgreSQL 15 |
-| ORM | Prisma 6 |
-| Validation | Zod (`@repo/shared`) |
-| Auth | JWT (httpOnly cookies on web) |
-| Tests | Vitest (API) |
-
----
-
-## Architecture
-
-```
-apps/web          →  HTTP  →  apps/api  →  packages/database (Prisma)  →  PostgreSQL
-                              ↑
-                    packages/shared (Zod schemas, DTOs, errors)
-```
-
-Bounded contexts in the API include **identity**, **schedule**, **booking**, **payment**, **counter**, and **admin**. Modules follow **routes → controller → service → repository**; cross-module access goes through services, not foreign repositories.
-
-For diagrams, module boundaries, and scaling notes, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+Architecture and module boundaries: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ---
 
@@ -95,30 +10,23 @@ For diagrams, module boundaries, and scaling notes, see [docs/ARCHITECTURE.md](d
 
 - **Node.js** 20+
 - **pnpm** 9.15+ (`corepack enable` recommended)
-- **Docker** (for local PostgreSQL and Redis)
+- **Docker** (PostgreSQL and Redis for local dev)
 
 ---
 
 ## Quick start
 
 ```bash
-# Clone and install
 git clone <repository-url>
 cd online-bus-ticket
 pnpm install
 
-# Environment
 cp .env.example .env
 
-# Database
 pnpm db:up
 pnpm db:migrate
 pnpm db:seed
 
-# Dev-only: wipe DB + CMS uploads and reseed fresh demo tenant
-pnpm db:bootstrap
-
-# Run API + web (Turborepo)
 pnpm dev
 ```
 
@@ -128,33 +36,35 @@ pnpm dev
 | API health | http://localhost:4000/api/v1/health |
 | Swagger UI | http://localhost:4000/api-docs |
 
-### Seed accounts
+**Dev-only reset:** `pnpm db:bootstrap` wipes the DB, clears CMS uploads, and reseeds the demo tenant.
+
+---
+
+## Seed accounts
 
 Password for all users: `password123`
 
-| Role | Phone | Use |
-|------|-------|-----|
-| Super Admin | `01700000000` | `/platform/login` then `/platform` (main domain only) |
-| Admin | `01700000001` | `/admin` — demo tenant admin |
-| Counter seller | `01700000002` | `/counter` — demo tenant counter |
+| Role | Phone | Where |
+|------|-------|-------|
+| Super Admin | `01700000000` | `/platform/login` → `/platform` (main domain) |
+| Admin | `01700000001` | `/admin` (demo tenant) |
+| Counter seller | `01700000002` | `/counter` (demo tenant) |
 
 Sample route in seed data: **Dhaka (Gabtoli) → Pabna** (`dhaka-pabna`).
 
 ---
 
-## Multi-Tenant Local Development (SaaS)
+## Multi-tenant local dev
 
-The platform uses **subdomain routing** (`company.yourdomain.com`). For local dev, use **[lvh.me](http://lvh.me)** — all `*.lvh.me` subdomains automatically resolve to `127.0.0.1` without any DNS or hosts file changes.
+Tenants are resolved from the subdomain. Use **[lvh.me](http://lvh.me)** — `*.lvh.me` resolves to `127.0.0.1` with no hosts file changes. Middleware defaults to `NEXT_PUBLIC_MAIN_DOMAIN=lvh.me:3000` when unset.
 
-**Setup:**
+| URL | Purpose |
+|-----|---------|
+| http://demo.lvh.me:3000 | Demo tenant public site |
+| http://lvh.me:3000/onboarding | Self-service tenant signup |
+| http://lvh.me:3000/platform/login | Platform super admin |
 
-1. Ensure `.env` has `NEXT_PUBLIC_MAIN_DOMAIN=lvh.me:3000` (already set by default)
-2. Run `pnpm dev` as usual
-3. Access the demo tenant at: **http://demo.lvh.me:3000**
-4. Access the platform onboarding at: **http://lvh.me:3000/onboarding**
-5. Platform admin: **http://lvh.me:3000/platform/login** → then **/platform** (Super Admin `01700000000`)
-
-**Creating a new tenant:**
+Register a new tenant via API:
 
 ```bash
 curl -X POST http://localhost:4000/api/v1/platform/register \
@@ -168,62 +78,29 @@ curl -X POST http://localhost:4000/api/v1/platform/register \
   }'
 ```
 
-Then visit `http://mybusco.lvh.me:3000` to see the tenant's public site.
-
-### Troubleshooting (multi-tenant)
-
-| Symptom | Likely cause | Fix |
-|---------|----------------|-----|
-| Route create returns "Booking already exists for this hold" | Stale API build or pre-E17 DB (global route slug unique) | Run `pnpm db:migrate` (E17-01), restart API |
-| CMS upload: "Tenant not identified" | Browser request missing `x-tenant-slug` | Use tenant subdomain (`demo.lvh.me:3000`), not bare `localhost` without cookie |
-| CMS preview: "Site content not configured" | Tenant registered before CMS auto-seed | Re-register a test tenant, or seed CMS in admin; E17-11 seeds DRAFT CMS on new sign-ups |
-| Admin on `localhost:3000` | No subdomain slug in host | Middleware sets `tenant-slug` cookie in dev; ensure `NEXT_PUBLIC_MAIN_DOMAIN=lvh.me:3000` and use subdomain when possible |
+Then open http://mybusco.lvh.me:3000.
 
 ---
 
-## Environment variables
+## Environment
 
-Copy `.env.example` to `.env` at the repository root:
-
-| Variable | Description |
-|----------|-------------|
-| `DATABASE_URL` | PostgreSQL connection string |
-| `JWT_SECRET` | Secret for signing JWTs (change in production) |
-| `API_PORT` | API listen port (default `4000`) |
-| `API_URL` | Base URL for server-side API calls |
-| `NEXT_PUBLIC_API_URL` | Base URL exposed to the Next.js client |
-| `NODE_ENV` | `development` or `production` |
-| `REDIS_URL` | Redis for BullMQ notification jobs (default `redis://localhost:6379`) |
-| `TWILIO_*` | Twilio SMS credentials |
-| `SMTP_*` | Nodemailer SMTP settings |
-| `CMS_STORAGE_DRIVER` | `local` or `cloudinary` (optional; auto-selects Cloudinary when creds are set) |
-| `CMS_ASSETS_DIR` | Local CMS upload directory (default `uploads/cms`) |
-| `CMS_ASSET_MAX_BYTES` | Max CMS upload size in bytes (default 5 MB) |
-| `CLOUDINARY_*` | Cloudinary credentials for CMS media uploads |
-| `NEXT_PUBLIC_CLOUDINARY_HOSTNAME` | Optional Cloudinary delivery hostname for `next/image` (default `res.cloudinary.com`) |
-
-After payment, ticket SMS (Twilio) and email with PNG (Nodemailer) are sent via a **BullMQ** worker. See `.env.example` for all notification variables.
-
-**CMS media uploads:** without Cloudinary credentials, uploads are stored on the local filesystem and served by the API. Set `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and `CLOUDINARY_API_SECRET` to use Cloudinary automatically (or set `CMS_STORAGE_DRIVER=local` to force local storage). Existing local asset URLs keep working via the GET proxy after switching drivers.
-
-**Notifications not arriving?**
-
-1. Run `pnpm db:migrate` — requires `notification_logs` table (BullMQ jobs fail without it).
-2. Ensure Redis is up: `pnpm db:up` (includes Redis).
-3. Check API logs for `Notification job failed` or query `notification_logs` in the DB.
-4. **Twilio:** `TWILIO_FROM_NUMBER` must belong to your Twilio account (error 21660 = mismatch). Trial accounts must verify destination numbers.
-5. **Email:** check spam; Gmail needs an [App Password](https://support.google.com/accounts/answer/185833) in `SMTP_PASS`.
-6. Retry a booking: `pnpm notifications:retry <bookingId>`
+Copy [`.env.example`](.env.example) to `.env` at the repo root. Required vars cover the database, JWT, and API/web URLs. Optional integrations (Redis/BullMQ notifications, Twilio, SMTP, Cloudinary CMS storage) are documented inline in that file.
 
 ---
 
-## Project structure
+## Stack
+
+TypeScript · pnpm workspaces + Turborepo · Express 5 · Next.js 15 (App Router) · PostgreSQL · Prisma 6 · Zod (`@repo/shared`) · Vitest (API)
+
+---
+
+## Repository layout
 
 ```
 online-bus-ticket/
 ├── apps/
 │   ├── api/                 # Express API (modules per bounded context)
-│   └── web/                 # Next.js (public, counter, admin UIs)
+│   └── web/                 # Next.js (public, counter, admin, platform)
 ├── packages/
 │   ├── database/            # Prisma schema, migrations, seed
 │   ├── shared/              # Zod schemas, DTOs, enums, AppError
@@ -231,7 +108,7 @@ online-bus-ticket/
 ├── docs/                    # Architecture, contracts, feature backlog
 ├── scripts/                 # Manual API test helpers
 ├── docker-compose.yml       # Local PostgreSQL + Redis
-├── AGENTS.md                # Guidelines for AI-assisted development
+├── AGENTS.md                # AI agent / contributor rules
 └── turbo.json
 ```
 
@@ -251,83 +128,26 @@ Run from the repository root:
 | `pnpm test:api` | API unit/integration tests (Vitest) |
 | `pnpm db:up` / `pnpm db:down` | Start/stop PostgreSQL + Redis containers |
 | `pnpm db:migrate` | Apply Prisma migrations |
-| `pnpm db:seed` | Load demo users, route, schedules (upsert-friendly) |
-| `pnpm db:bootstrap` | **Dev only:** reset DB, clear CMS uploads, reseed demo tenant |
+| `pnpm db:seed` | Load demo users, route, schedules |
+| `pnpm db:bootstrap` | Dev only: reset DB, clear CMS uploads, reseed |
 | `pnpm db:studio` | Open Prisma Studio |
 | `pnpm smoke` | Curl API health check |
-
----
-
-## API documentation
-
-- **Interactive docs:** http://localhost:4000/api-docs (with API running)
-- **OpenAPI sources:** `apps/api/openapi/` — see [apps/api/openapi/README.md](apps/api/openapi/README.md)
-- **Contract specs:** `docs/contracts/` — request/response shapes aligned with `packages/shared`
-
-**Swagger quick test**
-
-1. `POST /api/v1/auth/login` with admin phone and password above.
-2. Copy `data.token` from the response.
-3. **Authorize** → **bearerAuth** → paste the JWT.
-4. Call protected routes (e.g. `GET /api/v1/admin/stops`).
-
-Responses use a consistent envelope: `{ "data": ... }` on success and `{ "error": { "code", "message" } }` on failure.
-
----
-
-## Development
-
-### Contract-first workflow
-
-For any HTTP or shared-type change:
-
-1. Add or update Zod schemas in `packages/shared`
-2. Document the endpoint in `docs/contracts/` when applicable
-3. Implement API and/or web against those contracts
-
-Details: [docs/CONTRACTS.md](docs/CONTRACTS.md).
-
-### Implementation backlog
-
-Features are tracked as epics and micro-tasks in [docs/FEATURES.md](docs/FEATURES.md) (e.g. `E05-03`). Prefer one micro-task per change set.
-
-### Commits
-
-Follow [Conventional Commits](docs/GIT-WORKFLOW.md), for example:
-
-```
-feat(booking): add seat hold expiry job
-fix(api): reject past trip dates on search
-chore(web): add ESLint flat config
-```
-
-### Contributing with AI tools
-
-See [AGENTS.md](AGENTS.md) for repository rules, module boundaries, and the expected implementation order.
+| `pnpm notifications:retry <bookingId>` | Retry failed booking notification job |
 
 ---
 
 ## Documentation
 
-| Document | Purpose |
-|----------|---------|
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | System design, modules, data flows |
-| [docs/CONTRACTS.md](docs/CONTRACTS.md) | Contract-first workflow |
-| [docs/contracts/](docs/contracts/) | Per-endpoint HTTP specifications |
-| [docs/DESIGN-PRINCIPLES.md](docs/DESIGN-PRINCIPLES.md) | Quality bar and conventions |
-| [docs/FEATURES.md](docs/FEATURES.md) | Epic backlog and task checklist |
-| [docs/GIT-WORKFLOW.md](docs/GIT-WORKFLOW.md) | Branching and PR conventions |
-| [AGENTS.md](AGENTS.md) | AI agent implementation guide |
+Full doc index: [docs/README.md](docs/README.md).
 
----
-
-## Domain highlights
-
-- Trip **date** must be today or later (validated on the server).
-- Seat lifecycle: `AVAILABLE` → `HELD` (time-limited) → `SOLD`, or direct `SOLD` at the counter.
-- **Guest bookings** store `userId` as null; phone is required for ticket lookup.
-- **Ticket download** requires matching passenger number and phone (generic 404 on mismatch).
-- Search filters (`busType`, `timePeriod`, `seatClass`) combine with **AND** logic.
+| Topic | Document |
+|-------|----------|
+| System design | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
+| Contract-first workflow | [docs/CONTRACTS.md](docs/CONTRACTS.md) |
+| HTTP endpoint specs | [docs/contracts/](docs/contracts/) |
+| Feature backlog | [docs/FEATURES.md](docs/FEATURES.md) |
+| OpenAPI / Swagger | [apps/api/openapi/README.md](apps/api/openapi/README.md) |
+| AI-assisted development | [AGENTS.md](AGENTS.md) |
 
 ---
 
