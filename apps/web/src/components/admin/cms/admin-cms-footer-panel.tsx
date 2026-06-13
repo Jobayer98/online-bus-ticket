@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { ContactLineInput, FooterBarLinkInput, FooterSettingsDto } from "@repo/shared";
 import { CmsImageUploadField } from "@/components/admin/cms/cms-image-upload-field";
-import { CounterToast } from "@/components/counter/counter-toast";
+import { toast } from "@/lib/toast";
 import { useGlobalLoading } from "@/components/global-loading-provider";
 import { apiGet, apiPatch } from "@/lib/api-client";
 import { apiUploadCmsAsset, resolveCmsAssetUrl } from "@/lib/cms-admin-api";
@@ -44,7 +44,6 @@ export function AdminCmsFooterPanel() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
-  const [toast, setToast] = useState<string | null>(null);
   useGlobalLoading(loading || saving || uploading);
 
   const load = useCallback(() => {
@@ -74,9 +73,9 @@ export function AdminCmsFooterPanel() {
     try {
       const uploaded = await apiUploadCmsAsset(file);
       setPaymentBannerUrl(uploaded.url);
-      setToast("Banner uploaded — save footer to keep changes");
+      toast.message("Banner uploaded — save footer to keep changes");
     } catch (err) {
-      setToast(err instanceof Error ? err.message : "Upload failed");
+      toast.error(err instanceof Error ? err.message : "Upload failed");
     } finally {
       setUploading(false);
     }
@@ -87,11 +86,11 @@ export function AdminCmsFooterPanel() {
     const lines = contactLines.filter((l) => l.text.trim());
     const links = barLinks.filter((l) => l.label.trim() && l.href.trim());
     if (lines.length === 0) {
-      setToast("Add at least one contact line");
+      toast.error("Add at least one contact line");
       return;
     }
     if (links.length === 0) {
-      setToast("Add at least one footer link");
+      toast.error("Add at least one footer link");
       return;
     }
     setSaving(true);
@@ -108,7 +107,7 @@ export function AdminCmsFooterPanel() {
         poweredByText: poweredByText.trim() || null,
       });
       setFooter(res.data);
-      setToast("Footer saved as draft");
+      toast.success("Footer saved as draft");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Save failed");
     } finally {
@@ -126,7 +125,6 @@ export function AdminCmsFooterPanel() {
 
   return (
     <div className={cpSection}>
-      <CounterToast message={toast} onDismiss={() => setToast(null)} />
       <h3 className={admPageTitle}>FOOTER</h3>
       {error ? (
         <p className={spPanelError} role="alert">

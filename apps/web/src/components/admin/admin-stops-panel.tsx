@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { apiDelete, apiGet, apiPatch, apiPost } from "@/lib/api-client";
 import { useGlobalLoading } from "@/components/global-loading-provider";
-import { CounterToast } from "@/components/counter/counter-toast";
+import { useConfirm } from "@/components/confirm-dialog-provider";
+import { toast } from "@/lib/toast";
 import {
   admBtnDelete,
   admBtnEdit,
@@ -12,17 +13,16 @@ import {
   admFormActionsWithLabel,
   admFormCard,
   admFormRow,
+  admPanel,
   admRowActions,
 } from "./admin-tw";
 import {
-  cpSection,
-  cpSectionTitle,
-  cpTable,
-  cpTableCell,
-  cpTableHead,
-  cpTableRow,
-  cpTableWrap,
-} from "@/components/counter/counter-tw";
+  AdminTable,
+  AdminTableRow,
+  admTableCell,
+  admTableHeadCell,
+  admTableHeadRow,
+} from "./admin-table";
 import {
   spBtnBack,
   spCheckoutField,
@@ -40,7 +40,7 @@ export function AdminStopsPanel() {
   const [editId, setEditId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [toast, setToast] = useState<string | null>(null);
+  const confirm = useConfirm();
   useGlobalLoading(loading);
 
   const load = useCallback(() => {
@@ -66,10 +66,10 @@ export function AdminStopsPanel() {
     try {
       if (editId) {
         await apiPatch(`/admin/stops/${editId}`, form);
-        setToast("Stop updated");
+        toast.success("Stop updated");
       } else {
         await apiPost("/admin/stops", form);
-        setToast("Stop created");
+        toast.success("Stop created");
       }
       resetForm();
       load();
@@ -79,21 +79,27 @@ export function AdminStopsPanel() {
   }
 
   async function remove(id: string, name: string) {
-    if (!window.confirm(`Delete stop "${name}"?`)) return;
+    if (
+      !(await confirm({
+        title: `Delete stop "${name}"?`,
+        description: "This action cannot be undone.",
+        confirmLabel: "Delete",
+        destructive: true,
+      }))
+    ) {
+      return;
+    }
     try {
       await apiDelete(`/admin/stops/${id}`);
-      setToast("Stop deleted");
+      toast.success("Stop deleted");
       load();
     } catch (err) {
-      setToast(err instanceof Error ? err.message : "Delete failed");
+      toast.error(err instanceof Error ? err.message : "Delete failed");
     }
   }
 
   return (
-    <div className={cpSection}>
-      <CounterToast message={toast} onDismiss={() => setToast(null)} />
-      <h2 className={cpSectionTitle}>STOPS</h2>
-
+    <div className={admPanel}>
       <form className={admFormCard} onSubmit={submit}>
         <h3>{editId ? "Edit stop" : "Add stop"}</h3>
         <div className={admFormRow}>
@@ -145,23 +151,22 @@ export function AdminStopsPanel() {
       </form>
 
       {!loading && (
-        <div className={cpTableWrap}>
-          <table className={cpTable}>
+        <AdminTable>
             <thead>
-              <tr>
-                <th className={cpTableHead}>Code</th>
-                <th className={cpTableHead}>Name</th>
-                <th className={cpTableHead}>City</th>
-                <th className={cpTableHead}>Actions</th>
+              <tr className={admTableHeadRow}>
+                <th className={admTableHeadCell}>Code</th>
+                <th className={admTableHeadCell}>Name</th>
+                <th className={admTableHeadCell}>City</th>
+                <th className={admTableHeadCell}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {stops.map((s) => (
-                <tr key={s.id} className={cpTableRow}>
-                  <td className={cpTableCell}>{s.code}</td>
-                  <td className={cpTableCell}>{s.name}</td>
-                  <td className={cpTableCell}>{s.city}</td>
-                  <td className={cpTableCell}>
+                <AdminTableRow key={s.id}>
+                  <td className={admTableCell}>{s.code}</td>
+                  <td className={admTableCell}>{s.name}</td>
+                  <td className={admTableCell}>{s.city}</td>
+                  <td className={admTableCell}>
                     <div className={admRowActions}>
                       <button
                         type="button"
@@ -182,11 +187,10 @@ export function AdminStopsPanel() {
                       </button>
                     </div>
                   </td>
-                </tr>
+                </AdminTableRow>
               ))}
             </tbody>
-          </table>
-        </div>
+        </AdminTable>
       )}
     </div>
   );

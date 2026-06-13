@@ -3,6 +3,7 @@
 import { Fragment, useCallback, useEffect, useState } from "react";
 import { useGlobalLoading } from "@/components/global-loading-provider";
 import { platformApiGet, platformApiDownload } from "@/lib/platform-api-client";
+import { toast } from "@/lib/toast";
 import type { PlatformAuditLogDto } from "@repo/shared";
 import {
   admPageTitleClass,
@@ -76,7 +77,7 @@ export function PlatformAuditPanel() {
         "platform-audit-logs.csv",
       );
     } catch (e) {
-      alert(e instanceof Error ? e.message : "Export failed");
+      toast.error(e instanceof Error ? e.message : "Export failed");
     }
   }
 

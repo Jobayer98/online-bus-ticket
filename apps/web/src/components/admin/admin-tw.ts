@@ -19,12 +19,55 @@ export const opsHeaderMain =
 
 export const opsHeaderLogo = "max-md:min-w-0 max-md:flex-1";
 
+/** Admin shell header — professional sticky nav with pill tabs. */
+export const admHeader =
+  "sticky top-0 z-50 border-b border-[var(--border)] bg-white";
+
+export const admHeaderContainer =
+  "mx-auto max-w-[1200px] px-4 md:px-5";
+
+export const admHeaderBrandRow =
+  "flex items-center justify-between gap-4 py-3";
+
+export const admHeaderLogo =
+  "max-md:min-w-0 max-md:flex-1 [&_small]:text-[#64748b]";
+
+export const admHeaderUtility =
+  "flex shrink-0 flex-wrap items-center justify-end gap-2 max-md:gap-1.5";
+
+export const admHeaderClock =
+  "inline-flex items-center gap-1.5 text-[0.8rem] font-medium text-[#64748b] max-md:hidden";
+
+export const admHeaderUtilityDivider =
+  "mx-0.5 hidden h-4 w-px bg-[#e2e8f0] sm:block";
+
+export const admHeaderUtilityLink =
+  "inline-flex items-center gap-1.5 rounded-md px-2 py-1.5 text-[0.8rem] font-medium text-[#475569] no-underline transition-colors hover:bg-[#f1f5f9] hover:text-[var(--primary)] max-md:hidden";
+
+export const admHeaderUtilityBtn =
+  "inline-flex cursor-pointer items-center gap-1.5 rounded-md border-0 bg-transparent px-2 py-1.5 font-[inherit] text-[0.8rem] font-medium text-[#475569] transition-colors hover:bg-[#fef2f2] hover:text-[#b91c1c] max-md:hidden";
+
+export const admHeaderNavRow =
+  "border-t border-[#f1f5f9] pb-3 pt-2 max-md:hidden";
+
+export const admHeaderNav =
+  "flex gap-1 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden";
+
+export const admHeaderNavBtn =
+  "inline-flex shrink-0 items-center gap-1.5 rounded-lg border-0 bg-transparent px-3 py-2 text-[0.8125rem] font-medium whitespace-nowrap text-[#64748b] no-underline transition-colors hover:bg-[#f1f5f9] hover:text-[#1e293b]";
+
+export const admHeaderNavBtnActive =
+  "inline-flex shrink-0 items-center gap-1.5 rounded-lg border-0 bg-[var(--primary-muted)] px-3 py-2 text-[0.8125rem] font-semibold whitespace-nowrap text-[var(--primary)] no-underline shadow-[inset_0_0_0_1px_rgba(21,128,61,0.15)] transition-colors hover:bg-[var(--primary-light)] hover:text-[var(--primary-hover)]";
+
+/** @deprecated Use admHeaderNav* — kept for any legacy imports. */
 export const admNav =
   "flex flex-wrap gap-2 max-[900px]:hidden";
 
+/** @deprecated Use admHeaderNavBtn. */
 export const admNavBtn =
   "cursor-pointer border border-[#ccc] bg-white px-3 py-2 text-[0.875rem] hover:border-[var(--primary)] hover:bg-[var(--primary-light)]";
 
+/** @deprecated Use admHeaderNavBtnActive. */
 export const admNavBtnActive =
   "border-[var(--primary)] bg-[var(--primary)] text-white hover:border-[var(--primary)] hover:bg-[var(--primary)]";
 
@@ -76,13 +119,31 @@ export const admFormActionsLabel =
 export const admFormActionsButtons =
   "ml-auto flex flex-wrap gap-2";
 
-export const admRowActions = "flex gap-2";
+export const admRowActions = "flex flex-wrap gap-2";
+
+/** Main content spacing inside admin shell pages. */
+export const admPanel = "space-y-6";
 
 export const admBtnEdit =
-  "cursor-pointer rounded border border-[var(--primary)] bg-[var(--primary-light)] px-2.5 py-1 text-[0.8rem] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white";
+  "inline-flex cursor-pointer items-center rounded-md border border-[var(--primary)]/30 bg-[var(--card)] px-2.5 py-1.5 text-xs font-medium text-[var(--primary)] transition-colors hover:border-[var(--primary)]/50 hover:bg-[var(--primary-muted)]";
 
 export const admBtnDelete =
-  "cursor-pointer rounded border border-[#c62828] bg-white px-2.5 py-1 text-[0.8rem] text-[#c62828] hover:bg-[#ffebee]";
+  "inline-flex cursor-pointer items-center rounded-md border border-[var(--danger)]/30 bg-[var(--card)] px-2.5 py-1.5 text-xs font-medium text-[var(--danger)] transition-colors hover:border-[var(--danger)]/50 hover:bg-red-50";
+
+export const admBadgeBase =
+  "inline-flex rounded-full px-2.5 py-0.5 text-[0.68rem] font-semibold tracking-wide uppercase";
+
+export const admBadgeActive =
+  "bg-[var(--primary-muted)] text-[var(--primary)]";
+
+export const admBadgeNeutral =
+  "border border-[var(--border)] bg-[var(--bg)] text-[var(--muted)]";
+
+export const admBadgeDanger =
+  "bg-red-50 text-[var(--danger)]";
+
+export const admBadgeWarning =
+  "bg-amber-50 text-[var(--warning)]";
 
 export const admKpiGrid =
   "mb-4 grid grid-cols-4 gap-4 max-[900px]:grid-cols-2 max-[560px]:grid-cols-1";
@@ -164,7 +225,9 @@ export const admBoardingHint = "mb-3 text-[0.875rem] text-[#666]";
 
 export const admBoardingRouteLabel = "mb-3 text-[0.875rem]";
 
-export const admRowSelected = "bg-[var(--primary-light)]";
+/** @deprecated Use admTableRowSelected from admin-table.tsx */
+export const admRowSelected =
+  "bg-[var(--primary-muted)]/55 ring-1 ring-inset ring-[var(--primary)]/20";
 
 export const admInlineInput =
   "w-full max-w-[12rem] rounded border border-[#ccc] px-2 py-1 text-[0.875rem]";

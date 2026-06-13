@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { CmsPublishResultDto, CmsSiteBundleDto } from "@repo/shared";
 import { AdminCmsDraftSitePreview } from "@/components/admin/cms/admin-cms-draft-site-preview";
-import { CounterToast } from "@/components/counter/counter-toast";
+import { useConfirm } from "@/components/confirm-dialog-provider";
+import { toast } from "@/lib/toast";
 import { useGlobalLoading } from "@/components/global-loading-provider";
 import { apiGet, apiPost } from "@/lib/api-client";
 import { buildTenantPublicSiteUrl } from "@/lib/tenant-public-url";
@@ -34,8 +35,8 @@ export function AdminCmsPreviewPanel() {
   const [loading, setLoading] = useState(true);
   const [publishing, setPublishing] = useState(false);
   const [error, setError] = useState("");
-  const [toast, setToast] = useState<string | null>(null);
   const [publishResult, setPublishResult] = useState<CmsPublishResultDto | null>(null);
+  const confirm = useConfirm();
   const [liveSiteUrl, setLiveSiteUrl] = useState<string | null>(null);
   useGlobalLoading(loading || publishing);
 
@@ -55,9 +56,12 @@ export function AdminCmsPreviewPanel() {
 
   async function publish() {
     if (
-      !window.confirm(
-        "Publish all draft CMS content to the live site? This replaces the current published content.",
-      )
+      !(await confirm({
+        title: "Publish draft CMS content?",
+        description:
+          "This replaces the current published content on the live site.",
+        confirmLabel: "Publish",
+      }))
     ) {
       return;
     }
@@ -66,7 +70,7 @@ export function AdminCmsPreviewPanel() {
     try {
       const res = await apiPost<CmsPublishResultDto>("/admin/cms/publish", {});
       setPublishResult(res.data);
-      setToast(
+      toast.success(
         `Published at ${new Date(res.data.publishedAt).toLocaleString("en-US", { timeZone: "Asia/Dhaka" })}`,
       );
       load();
@@ -92,7 +96,6 @@ export function AdminCmsPreviewPanel() {
 
   return (
     <div className={`${cpSection} ${admCmsPreviewPanel}`.trim()}>
-      <CounterToast message={toast} onDismiss={() => setToast(null)} />
       <h3 className={admPageTitle}>PREVIEW &amp; PUBLISH</h3>
       {error ? (
         <p className={spPanelError} role="alert">

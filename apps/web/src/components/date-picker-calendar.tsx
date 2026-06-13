@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { FloatingPickerPanel } from "@/components/floating-picker-panel";
 import {
   addDaysIso,
   compareIsoDates,
@@ -199,22 +200,31 @@ export function DatePickerCalendarPanel({
 export type DatePickerCalendarProps = DatePickerCalendarPanelProps & {
   listboxId: string;
   ariaLabel?: string;
+  open: boolean;
+  anchorRef: React.RefObject<HTMLElement | null>;
+  panelRef?: React.RefObject<HTMLDivElement | null>;
 };
 
 export function DatePickerCalendar({
   listboxId,
   ariaLabel = "Choose date",
+  open,
+  anchorRef,
+  panelRef,
   ...panel
 }: DatePickerCalendarProps) {
   return (
-    <div
-      id={listboxId}
-      className="absolute top-[calc(100%+6px)] left-0 z-50 w-[min(300px,92vw)] rounded-md border border-[#d5d5d5] bg-white p-3 shadow-[0_8px_28px_rgba(0,0,0,0.16)]"
-      role="dialog"
-      aria-label={ariaLabel}
+    <FloatingPickerPanel
+      open={open}
+      anchorRef={anchorRef}
+      panelRef={panelRef}
+      listboxId={listboxId}
+      ariaLabel={ariaLabel}
+      width={300}
+      estimatedHeight={360}
     >
       <DatePickerCalendarPanel {...panel} />
-    </div>
+    </FloatingPickerPanel>
   );
 }
 

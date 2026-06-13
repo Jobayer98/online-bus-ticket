@@ -12,12 +12,12 @@ import {
   admFormCard,
 } from "./admin-tw";
 import {
-  cpTable,
-  cpTableCell,
-  cpTableHead,
-  cpTableRow,
-  cpTableWrap,
-} from "@/components/counter/counter-tw";
+  AdminTable,
+  AdminTableRow,
+  admTableCell,
+  admTableHeadCell,
+  admTableHeadRow,
+} from "./admin-table";
 import {
   spBtnBack,
   spFilterSearch,
@@ -124,12 +124,12 @@ export function AdminCsvImport({
         </ul>
       )}
       {preview.length > 0 && (
-        <div className={`${cpTableWrap} ${admCsvImportPreview}`}>
-          <table className={cpTable}>
+        <div className={admCsvImportPreview}>
+          <AdminTable>
             <thead>
-              <tr>
+              <tr className={admTableHeadRow}>
                 {headerRow.map((h) => (
-                  <th key={h} className={cpTableHead}>
+                  <th key={h} className={admTableHeadCell}>
                     {h}
                   </th>
                 ))}
@@ -137,16 +137,16 @@ export function AdminCsvImport({
             </thead>
             <tbody>
               {dataRows.map((row, i) => (
-                <tr key={i} className={cpTableRow}>
+                <AdminTableRow key={i}>
                   {row.map((cell, j) => (
-                    <td key={j} className={cpTableCell}>
+                    <td key={j} className={admTableCell}>
                       {cell}
                     </td>
                   ))}
-                </tr>
+                </AdminTableRow>
               ))}
             </tbody>
-          </table>
+          </AdminTable>
           {preview.length > 6 && (
             <p className={admCsvImportHint}>Showing first 5 data rows</p>
           )}

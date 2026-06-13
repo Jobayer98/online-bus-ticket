@@ -13,7 +13,8 @@ import {
   formatTime12h,
 } from "@/lib/format";
 import { seatClassesFromTemplates } from "@repo/shared";
-import { CounterToast } from "@/components/counter/counter-toast";
+import { useConfirm } from "@/components/confirm-dialog-provider";
+import { toast } from "@/lib/toast";
 import { HomeDateTimePicker } from "@/components/home-datetime-picker";
 import { getTodayIso } from "@/lib/trip-date";
 import {
@@ -28,21 +29,20 @@ import {
   admFormFieldInput,
   admFormFieldLabel,
   admFormFieldWide,
+  admBadgeActive,
+  admBadgeBase,
+  admBadgeNeutral,
   admFormRow,
+  admPanel,
   admRowActions,
 } from "./admin-tw";
 import {
-  cpBadgeBase,
-  cpBadgeCancel,
-  cpBadgeSell,
-  cpSection,
-  cpSectionTitle,
-  cpTable,
-  cpTableCell,
-  cpTableHead,
-  cpTableRow,
-  cpTableWrap,
-} from "@/components/counter/counter-tw";
+  AdminTable,
+  AdminTableRow,
+  admTableCell,
+  admTableHeadCell,
+  admTableHeadRow,
+} from "./admin-table";
 import {
   spBtnBack,
   spFilterSearch,
@@ -112,8 +112,8 @@ export function AdminSchedulesPanel() {
   const [rescheduleReason, setRescheduleReason] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [toast, setToast] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
+  const confirm = useConfirm();
   const [importErrors, setImportErrors] = useState<string[]>([]);
   useGlobalLoading(loading || importing);
 
@@ -156,7 +156,7 @@ export function AdminSchedulesPanel() {
         payload,
       );
       const { created, errors } = res.data;
-      setToast(`Imported ${created} schedule(s)`);
+      toast.success(`Imported ${created} schedule(s)`);
       if (errors.length > 0) {
         setImportErrors(errors.map((e) => `Row ${e.row}: ${e.message}`));
       }
@@ -175,11 +175,11 @@ export function AdminSchedulesPanel() {
     setError("");
     const fare = Math.round(Number(baseFareTaka) * 100);
     if (!departureAt || !arrivalAt) {
-      setToast("Select departure and arrival date & time");
+      toast.error("Select departure and arrival date & time");
       return;
     }
     if (!fare || fare < 0) {
-      setToast("Enter a valid base fare");
+      toast.error("Enter a valid base fare");
       return;
     }
     try {
@@ -190,7 +190,7 @@ export function AdminSchedulesPanel() {
         estimatedArrivalAt: fromDatetimeLocal(arrivalAt),
         baseFare: fare,
       });
-      setToast("Schedule created");
+      toast.success("Schedule created");
       setRouteId("");
       setCoachId("");
       setDepartureAt("");
@@ -211,30 +211,36 @@ export function AdminSchedulesPanel() {
         estimatedArrivalAt: fromDatetimeLocal(rescheduleArr),
         reason: rescheduleReason || undefined,
       });
-      setToast("Schedule rescheduled");
+      toast.success("Schedule rescheduled");
       setRescheduleId(null);
       load();
     } catch (err) {
-      setToast(err instanceof Error ? err.message : "Reschedule failed");
+      toast.error(err instanceof Error ? err.message : "Reschedule failed");
     }
   }
 
   async function cancelSchedule(id: string) {
-    if (!window.confirm("Cancel this schedule?")) return;
+    if (
+      !(await confirm({
+        title: "Cancel this schedule?",
+        description: "Passengers with bookings may need to be notified.",
+        confirmLabel: "Cancel schedule",
+        destructive: true,
+      }))
+    ) {
+      return;
+    }
     try {
       await apiPatch(`/admin/schedules/${id}/cancel`, {});
-      setToast("Schedule cancelled");
+      toast.success("Schedule cancelled");
       load();
     } catch (err) {
-      setToast(err instanceof Error ? err.message : "Cancel failed");
+      toast.error(err instanceof Error ? err.message : "Cancel failed");
     }
   }
 
   return (
-    <div className={cpSection}>
-      <CounterToast message={toast} onDismiss={() => setToast(null)} />
-      <h2 className={cpSectionTitle}>SCHEDULES</h2>
-
+    <div className={admPanel}>
       <form className={admFormCard} onSubmit={createSchedule}>
         <h3>Create schedule</h3>
         <div className={admFormRow}>
@@ -383,39 +389,38 @@ export function AdminSchedulesPanel() {
       )}
 
       {!loading && (
-        <div className={cpTableWrap}>
-          <table className={cpTable}>
+        <AdminTable minWidth="720px">
             <thead>
-              <tr>
-                <th className={cpTableHead}>Route</th>
-                <th className={cpTableHead}>Coach</th>
-                <th className={cpTableHead}>Date</th>
-                <th className={cpTableHead}>Departure</th>
-                <th className={cpTableHead}>Fare from</th>
-                <th className={cpTableHead}>Status</th>
-                <th className={cpTableHead}>Actions</th>
+              <tr className={admTableHeadRow}>
+                <th className={admTableHeadCell}>Route</th>
+                <th className={admTableHeadCell}>Coach</th>
+                <th className={admTableHeadCell}>Date</th>
+                <th className={admTableHeadCell}>Departure</th>
+                <th className={admTableHeadCell}>Fare from</th>
+                <th className={admTableHeadCell}>Status</th>
+                <th className={admTableHeadCell}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {schedules.map((s) => (
-                <tr key={s.id} className={cpTableRow}>
-                  <td className={cpTableCell}>{s.route.slug}</td>
-                  <td className={cpTableCell}>{formatCoachLabel(s.coach)}</td>
-                  <td className={cpTableCell}>{formatDateDdMmYyyy(s.departureAt.slice(0, 10))}</td>
-                  <td className={cpTableCell}>{formatTime12h(s.departureAt)}</td>
-                  <td className={cpTableCell}>{formatMoneyBdt(s.baseFare)}</td>
-                  <td className={cpTableCell}>
+                <AdminTableRow key={s.id}>
+                  <td className={admTableCell}>{s.route.slug}</td>
+                  <td className={admTableCell}>{formatCoachLabel(s.coach)}</td>
+                  <td className={admTableCell}>{formatDateDdMmYyyy(s.departureAt.slice(0, 10))}</td>
+                  <td className={admTableCell}>{formatTime12h(s.departureAt)}</td>
+                  <td className={admTableCell}>{formatMoneyBdt(s.baseFare)}</td>
+                  <td className={admTableCell}>
                     <span
                       className={
                         s.status === "CANCELLED"
-                          ? `${cpBadgeBase} ${cpBadgeCancel}`
-                          : `${cpBadgeBase} ${cpBadgeSell}`
+                          ? `${admBadgeBase} ${admBadgeNeutral}`
+                          : `${admBadgeBase} ${admBadgeActive}`
                       }
                     >
                       {s.status}
                     </span>
                   </td>
-                  <td className={cpTableCell}>
+                  <td className={admTableCell}>
                     {s.status !== "CANCELLED" && (
                       <div className={admRowActions}>
                         <button
@@ -440,11 +445,10 @@ export function AdminSchedulesPanel() {
                       </div>
                     )}
                   </td>
-                </tr>
+                </AdminTableRow>
               ))}
             </tbody>
-          </table>
-        </div>
+        </AdminTable>
       )}
     </div>
   );

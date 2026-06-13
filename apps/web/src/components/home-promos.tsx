@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { m } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -12,22 +11,31 @@ import {
 } from "@/components/motion/variants";
 import { resolveCmsAssetUrl } from "@/lib/cms-client";
 
+const TRACK_GAP_REM = 1;
+
 function getSlidesPerView(width: number) {
   if (width <= 560) return 1;
   if (width <= 900) return 2;
-  return 3;
+  if (width <= 1100) return 3;
+  return 4;
 }
 
 const SLIDE_SELECTOR = "[data-promo-slide]";
+
+const navBtnClass =
+  "absolute top-1/2 z-[2] flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border-0 bg-[var(--primary)] text-[var(--text-on-primary)] shadow-[var(--shadow-sm)] transition-colors hover:bg-[var(--primary-hover)] disabled:opacity-40 max-[900px]:hidden";
 
 export function HomePromos() {
   const { media } = useSiteTheme();
   const trackRef = useRef<HTMLDivElement>(null);
   const promos = [...media.featured].sort((a, b) => a.sortOrder - b.sortOrder);
-  const [activePage, setActivePage] = useState(0);
-  const [slidesPerView, setSlidesPerView] = useState(3);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [slidesPerView, setSlidesPerView] = useState(4);
 
-  const pageCount = Math.max(1, Math.ceil(promos.length / slidesPerView));
+  const maxIndex = Math.max(0, promos.length - slidesPerView);
+  const dotCount = maxIndex + 1;
+
+  const slideBasis = `calc((100% - ${(slidesPerView - 1) * TRACK_GAP_REM}rem) / ${slidesPerView})`;
 
   const getScrollStep = useCallback(() => {
     const track = trackRef.current;
@@ -55,38 +63,39 @@ export function HomePromos() {
     function onScroll() {
       const step = getScrollStep();
       if (!step) return;
-      const page = Math.round(track!.scrollLeft / (step * slidesPerView));
-      setActivePage(Math.min(Math.max(page, 0), pageCount - 1));
+      const index = Math.round(track!.scrollLeft / step);
+      setActiveIndex(Math.min(Math.max(index, 0), maxIndex));
     }
 
     track.addEventListener("scroll", onScroll, { passive: true });
     return () => track.removeEventListener("scroll", onScroll);
-  }, [getScrollStep, pageCount, slidesPerView]);
+  }, [getScrollStep, maxIndex]);
 
   useEffect(() => {
-    setActivePage((page) => Math.min(page, pageCount - 1));
-  }, [pageCount]);
+    setActiveIndex((index) => Math.min(index, maxIndex));
+  }, [maxIndex]);
 
   if (promos.length === 0) return null;
 
-  function scrollToPage(page: number) {
+  function scrollToIndex(index: number) {
     const track = trackRef.current;
     if (!track) return;
     const step = getScrollStep();
+    const nextIndex = Math.max(0, Math.min(maxIndex, index));
     track.scrollTo({
-      left: step * slidesPerView * page,
+      left: step * nextIndex,
       behavior: "smooth",
     });
-    setActivePage(page);
+    setActiveIndex(nextIndex);
   }
 
   function scrollBy(direction: -1 | 1) {
-    scrollToPage(Math.max(0, Math.min(pageCount - 1, activePage + direction)));
+    scrollToIndex(activeIndex + direction);
   }
 
   return (
     <m.section
-      className="bg-[var(--card)] px-0 pt-14 pb-4"
+      className="bg-[var(--bg)] px-0 pt-14 pb-4"
       aria-labelledby="home-promos-title"
       initial="hidden"
       whileInView="visible"
@@ -100,40 +109,40 @@ export function HomePromos() {
           subtitle="Seasonal deals and travel updates from our team."
         />
 
-        <div className="relative">
+        <div className="relative rounded-[var(--radius-lg)] bg-[var(--card)] p-3 shadow-[var(--shadow-md)] sm:p-4">
           <button
             type="button"
-            className="absolute top-[38%] -left-2 z-[2] flex h-10 w-10 items-center justify-center rounded-full border border-[var(--border)] bg-white/95 text-[var(--text)] shadow-[0_2px_8px_rgba(0,0,0,0.08)] hover:border-[var(--primary)] hover:text-[var(--primary)] disabled:opacity-40 max-[900px]:hidden"
+            className={`${navBtnClass} left-0 -translate-x-1/2`}
             onClick={() => scrollBy(-1)}
             aria-label="Previous offers"
-            disabled={activePage === 0}
+            disabled={activeIndex === 0}
           >
-            <ChevronLeft size={20} aria-hidden />
+            <ChevronLeft size={22} aria-hidden />
           </button>
 
           <div
-            className="flex gap-4 overflow-x-auto scroll-smooth pb-2 [scroll-snap-type:x_mandatory] [scrollbar-width:thin]"
+            className="flex gap-4 overflow-x-auto scroll-smooth [scroll-snap-type:x_mandatory] [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
             ref={trackRef}
           >
             {promos.map((item) => {
               const src = resolveCmsAssetUrl(item.url) ?? item.url;
-              const isExternal = src.startsWith("http");
               const alt = item.alt.trim() || "Promotional offer";
 
               return (
                 <figure
                   key={item.id}
                   data-promo-slide
-                  className="m-0 shrink-0 grow-0 basis-[min(420px,88vw)] snap-start overflow-hidden rounded-[14px] border border-[var(--border)] bg-[var(--card)] shadow-[var(--shadow-sm)]"
+                  className="m-0 shrink-0 grow-0 snap-start overflow-hidden rounded-[var(--radius-md)] bg-[var(--card)]"
+                  style={{ flexBasis: slideBasis }}
                 >
-                  <Image
+                  <img
                     src={src}
                     alt={alt}
-                    width={640}
-                    height={360}
-                    className="block aspect-video h-full w-full object-cover"
-                    sizes="(max-width: 560px) 88vw, (max-width: 900px) 45vw, 30vw"
-                    unoptimized={isExternal}
+                    width={400}
+                    height={400}
+                    className="block aspect-square h-full w-full object-cover"
+                    loading="lazy"
+                    decoding="async"
                   />
                 </figure>
               );
@@ -142,30 +151,30 @@ export function HomePromos() {
 
           <button
             type="button"
-            className="absolute top-[38%] -right-2 z-[2] flex h-10 w-10 items-center justify-center rounded-full border border-[var(--border)] bg-white/95 text-[var(--text)] shadow-[0_2px_8px_rgba(0,0,0,0.08)] hover:border-[var(--primary)] hover:text-[var(--primary)] disabled:opacity-40 max-[900px]:hidden"
+            className={`${navBtnClass} right-0 translate-x-1/2`}
             onClick={() => scrollBy(1)}
             aria-label="Next offers"
-            disabled={activePage >= pageCount - 1}
+            disabled={activeIndex >= maxIndex}
           >
-            <ChevronRight size={20} aria-hidden />
+            <ChevronRight size={22} aria-hidden />
           </button>
         </div>
 
-        {pageCount > 1 ? (
+        {maxIndex > 0 ? (
           <div
-            className="mt-4 flex justify-center gap-2"
+            className="mt-5 flex justify-center gap-2.5"
             role="tablist"
             aria-label="Offer slides"
           >
-            {Array.from({ length: pageCount }, (_, index) => (
+            {Array.from({ length: dotCount }, (_, index) => (
               <button
                 key={index}
                 type="button"
                 role="tab"
-                className={`h-2 w-2 rounded-full border-0 p-0 transition-colors ${index === activePage ? "bg-[var(--primary)]" : "bg-[var(--border)]"}`}
+                className={`h-2.5 w-2.5 rounded-full border-0 p-0 transition-colors ${index === activeIndex ? "bg-[var(--primary)]" : "bg-[var(--border)]"}`}
                 aria-label={`Go to slide ${index + 1}`}
-                aria-selected={index === activePage}
-                onClick={() => scrollToPage(index)}
+                aria-selected={index === activeIndex}
+                onClick={() => scrollToIndex(index)}
               />
             ))}
           </div>

@@ -6,7 +6,8 @@ import { apiDelete, apiGet, apiPatch, apiPost } from "@/lib/api-client";
 import { parseCsvToObjects } from "@/lib/csv-parse";
 import { useGlobalLoading } from "@/components/global-loading-provider";
 import { formatBusTypeLabel } from "@/lib/format";
-import { CounterToast } from "@/components/counter/counter-toast";
+import { useConfirm } from "@/components/confirm-dialog-provider";
+import { toast } from "@/lib/toast";
 import { AdminCsvImport } from "@/components/admin/admin-csv-import";
 import {
   admBtnDelete,
@@ -16,17 +17,16 @@ import {
   admFormActionsWithLabel,
   admFormCard,
   admFormRow,
+  admPanel,
   admRowActions,
 } from "./admin-tw";
 import {
-  cpSection,
-  cpSectionTitle,
-  cpTable,
-  cpTableCell,
-  cpTableHead,
-  cpTableRow,
-  cpTableWrap,
-} from "@/components/counter/counter-tw";
+  AdminTable,
+  AdminTableRow,
+  admTableCell,
+  admTableHeadCell,
+  admTableHeadRow,
+} from "./admin-table";
 import {
   spBtnBack,
   spCheckoutField,
@@ -62,8 +62,8 @@ export function AdminCoachesPanel() {
   const [editId, setEditId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [toast, setToast] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
+  const confirm = useConfirm();
   const [importErrors, setImportErrors] = useState<string[]>([]);
   useGlobalLoading(loading || importing);
 
@@ -101,10 +101,10 @@ export function AdminCoachesPanel() {
     try {
       if (editId) {
         await apiPatch(`/admin/coaches/${editId}`, payload);
-        setToast("Coach updated");
+        toast.success("Coach updated");
       } else {
         await apiPost("/admin/coaches", payload);
-        setToast("Coach created");
+        toast.success("Coach created");
       }
       resetForm();
       load();
@@ -128,7 +128,7 @@ export function AdminCoachesPanel() {
       };
       const res = await apiPost<ImportResultDto>("/admin/coaches/import", payload);
       const { created, skipped, errors } = res.data;
-      setToast(`Imported ${created} coach(es)${skipped ? `, ${skipped} skipped` : ""}`);
+      toast.success(`Imported ${created} coach(es)${skipped ? `, ${skipped} skipped` : ""}`);
       if (errors.length > 0) {
         setImportErrors(errors.map((e) => `Row ${e.row}: ${e.message}`));
       }
@@ -143,22 +143,28 @@ export function AdminCoachesPanel() {
   }
 
   async function remove(id: string, coachNumber: string) {
-    if (!window.confirm(`Delete coach "${coachNumber}"?`)) return;
+    if (
+      !(await confirm({
+        title: `Delete coach "${coachNumber}"?`,
+        description: "This action cannot be undone.",
+        confirmLabel: "Delete",
+        destructive: true,
+      }))
+    ) {
+      return;
+    }
     try {
       await apiDelete(`/admin/coaches/${id}`);
-      setToast("Coach deleted");
+      toast.success("Coach deleted");
       if (editId === id) resetForm();
       load();
     } catch (err) {
-      setToast(err instanceof Error ? err.message : "Delete failed");
+      toast.error(err instanceof Error ? err.message : "Delete failed");
     }
   }
 
   return (
-    <div className={cpSection}>
-      <CounterToast message={toast} onDismiss={() => setToast(null)} />
-      <h2 className={cpSectionTitle}>COACHES</h2>
-
+    <div className={admPanel}>
       <form className={admFormCard} onSubmit={submit}>
         <h3>{editId ? "Edit coach" : "Add coach"}</h3>
         <div className={admFormRow}>
@@ -236,23 +242,22 @@ export function AdminCoachesPanel() {
       />
 
       {!loading && (
-        <div className={cpTableWrap}>
-          <table className={cpTable}>
+        <AdminTable>
             <thead>
-              <tr>
-                <th className={cpTableHead}>Coach #</th>
-                <th className={cpTableHead}>Type</th>
-                <th className={cpTableHead}>Layout</th>
-                <th className={cpTableHead}>Actions</th>
+              <tr className={admTableHeadRow}>
+                <th className={admTableHeadCell}>Coach #</th>
+                <th className={admTableHeadCell}>Type</th>
+                <th className={admTableHeadCell}>Layout</th>
+                <th className={admTableHeadCell}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {coaches.map((c) => (
-                <tr key={c.id} className={cpTableRow}>
-                  <td className={cpTableCell}>{c.coachNumber}</td>
-                  <td className={cpTableCell}>{formatBusTypeLabel(c.busType)}</td>
-                  <td className={cpTableCell}>{c.seatLayout?.name ?? "—"}</td>
-                  <td className={cpTableCell}>
+                <AdminTableRow key={c.id}>
+                  <td className={admTableCell}>{c.coachNumber}</td>
+                  <td className={admTableCell}>{formatBusTypeLabel(c.busType)}</td>
+                  <td className={admTableCell}>{c.seatLayout?.name ?? "—"}</td>
+                  <td className={admTableCell}>
                     <div className={admRowActions}>
                       <button
                         type="button"
@@ -277,11 +282,10 @@ export function AdminCoachesPanel() {
                       </button>
                     </div>
                   </td>
-                </tr>
+                </AdminTableRow>
               ))}
             </tbody>
-          </table>
-        </div>
+        </AdminTable>
       )}
     </div>
   );

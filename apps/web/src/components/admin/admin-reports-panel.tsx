@@ -17,17 +17,17 @@ import {
   admKpiCardSpan,
   admKpiCardStrong,
   admKpiGrid,
+  admPanel,
   admReportDateField,
 } from "./admin-tw";
 import {
-  cpSection,
-  cpSectionTitle,
-  cpTable,
-  cpTableCell,
-  cpTableHead,
-  cpTableRow,
-  cpTableWrap,
-} from "@/components/counter/counter-tw";
+  AdminTable,
+  AdminTableRow,
+  admTableCell,
+  admTableCellMuted,
+  admTableHeadCell,
+  admTableHeadRow,
+} from "./admin-table";
 import {
   spBtnSelect,
   spFilterCard,
@@ -64,8 +64,7 @@ export function AdminReportsPanel() {
   }, [load]);
 
   return (
-    <div className={cpSection}>
-      <h2 className={cpSectionTitle}>SALES REPORTS</h2>
+    <div className={admPanel}>
 
       <div className={spFilterSection} style={{ padding: "0 0 0.75rem" }}>
         <div className={spFilterCard}>
@@ -145,40 +144,38 @@ export function AdminReportsPanel() {
             </div>
           </div>
 
-          <div className={cpTableWrap}>
-            <table className={cpTable}>
+          <AdminTable>
               <thead>
-                <tr>
-                  <th className={cpTableHead}>Route</th>
-                  <th className={cpTableHead}>Tickets</th>
-                  <th className={cpTableHead}>Gross</th>
-                  <th className={cpTableHead}>Share</th>
+                <tr className={admTableHeadRow}>
+                  <th className={admTableHeadCell}>Route</th>
+                  <th className={admTableHeadCell}>Tickets</th>
+                  <th className={admTableHeadCell}>Gross</th>
+                  <th className={admTableHeadCell}>Share</th>
                 </tr>
               </thead>
               <tbody>
                 {sales.byRoute.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className={`${cpTableCell} text-center text-[#666]`}>
+                    <td colSpan={4} className={admTableCellMuted}>
                       No sales in range
                     </td>
                   </tr>
                 ) : (
                   sales.byRoute.map((r) => (
-                    <tr key={r.routeSlug} className={cpTableRow}>
-                      <td className={cpTableCell}>{r.routeSlug}</td>
-                      <td className={cpTableCell}>{r.count}</td>
-                      <td className={cpTableCell}>{formatMoneyBdt(r.grossRevenue)}</td>
-                      <td className={cpTableCell}>
+                    <AdminTableRow key={r.routeSlug}>
+                      <td className={admTableCell}>{r.routeSlug}</td>
+                      <td className={admTableCell}>{r.count}</td>
+                      <td className={admTableCell}>{formatMoneyBdt(r.grossRevenue)}</td>
+                      <td className={admTableCell}>
                         {sales.grossRevenue
                           ? `${Math.round((r.grossRevenue / sales.grossRevenue) * 100)}%`
                           : "—"}
                       </td>
-                    </tr>
+                    </AdminTableRow>
                   ))
                 )}
               </tbody>
-            </table>
-          </div>
+          </AdminTable>
         </>
       )}
     </div>

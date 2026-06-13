@@ -85,10 +85,32 @@ describe("cms.service", () => {
       prismaMock.featuredRoute.findMany.mockResolvedValue([]);
     });
 
-    it("public site reads PUBLISHED media only", async () => {
-      await cmsService.getPublicSite();
-      expect(prismaMock.siteMedia.findMany).toHaveBeenCalledWith(
+    it("public site reads published media and falls back to draft promos when needed", async () => {
+      prismaMock.siteMedia.findMany
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([
+          {
+            id: "promo-1",
+            kind: "FEATURED",
+            url: "/api/v1/cms/assets/t1/promo.jpg",
+            alt: "Summer offer",
+            sortOrder: 0,
+            status: "DRAFT",
+            createdAt: new Date(),
+            updatedAt: new Date("2026-05-31T12:00:00.000Z"),
+          },
+        ]);
+
+      const site = await cmsService.getPublicSite();
+      expect(site.media.featured).toHaveLength(1);
+      expect(site.media.featured[0]?.url).toBe("/api/v1/cms/assets/t1/promo.jpg");
+      expect(prismaMock.siteMedia.findMany).toHaveBeenNthCalledWith(
+        1,
         expect.objectContaining({ where: { status: "PUBLISHED" } }),
+      );
+      expect(prismaMock.siteMedia.findMany).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({ where: { status: "DRAFT" } }),
       );
     });
 

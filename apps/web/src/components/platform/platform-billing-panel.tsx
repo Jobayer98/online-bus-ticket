@@ -10,6 +10,7 @@ import {
   platformApiDownload,
 } from "@/lib/platform-api-client";
 import { formatMoneyBdt } from "@/lib/format";
+import { toast } from "@/lib/toast";
 import type {
   PlatformBillingRevenueDto,
   PlatformSubscriptionDto,
@@ -92,7 +93,7 @@ export function PlatformBillingPanel() {
       });
       await load();
     } catch (e) {
-      alert(e instanceof Error ? e.message : "Upgrade failed");
+      toast.error(e instanceof Error ? e.message : "Upgrade failed");
     } finally {
       setUpdating(null);
     }
@@ -105,7 +106,7 @@ export function PlatformBillingPanel() {
       await platformApiPost(`/platform/billing/subscriptions/${id}/suspend`, {});
       await load();
     } catch (e) {
-      alert(e instanceof Error ? e.message : "Suspend failed");
+      toast.error(e instanceof Error ? e.message : "Suspend failed");
     } finally {
       setUpdating(null);
     }
@@ -124,7 +125,7 @@ export function PlatformBillingPanel() {
       }
       await load();
     } catch (e) {
-      alert(e instanceof Error ? e.message : "Payment failed");
+      toast.error(e instanceof Error ? e.message : "Payment failed");
     } finally {
       setUpdating(null);
     }
@@ -137,7 +138,7 @@ export function PlatformBillingPanel() {
         `${number}.html`,
       );
     } catch (e) {
-      alert(e instanceof Error ? e.message : "Download failed");
+      toast.error(e instanceof Error ? e.message : "Download failed");
     }
   }
 

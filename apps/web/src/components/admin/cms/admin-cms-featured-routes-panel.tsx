@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { FeaturedRouteDto } from "@repo/shared";
-import { CounterToast } from "@/components/counter/counter-toast";
+import { useConfirm } from "@/components/confirm-dialog-provider";
+import { toast } from "@/lib/toast";
 import { useGlobalLoading } from "@/components/global-loading-provider";
 import { apiDelete, apiGet, apiPatch, apiPost } from "@/lib/api-client";
 import {
@@ -17,15 +18,16 @@ import {
   admFormRow,
   admMuted,
   admPageTitle,
+  admPanel,
 } from "../admin-tw";
 import {
-  cpSection,
-  cpTable,
-  cpTableCell,
-  cpTableHead,
-  cpTableRow,
-  cpTableWrap,
-} from "@/components/counter/counter-tw";
+  AdminTable,
+  AdminTableRow,
+  admTableCell,
+  admTableCellMuted,
+  admTableHeadCell,
+  admTableHeadRow,
+} from "../admin-table";
 import {
   spBtnBack,
   spFilterSearch,
@@ -46,7 +48,7 @@ export function AdminCmsFeaturedRoutesPanel() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [toast, setToast] = useState<string | null>(null);
+  const confirm = useConfirm();
   useGlobalLoading(loading || busy);
 
   const sorted = useMemo(
@@ -81,7 +83,7 @@ export function AdminCmsFeaturedRoutesPanel() {
   async function addRoute(e: React.FormEvent) {
     e.preventDefault();
     if (!routeId) {
-      setToast("Select a route");
+      toast.error("Select a route");
       return;
     }
     setBusy(true);
@@ -91,11 +93,11 @@ export function AdminCmsFeaturedRoutesPanel() {
         sortOrder: sorted.length,
         isVisible: true,
       });
-      setToast("Route added to home curation");
+      toast.success("Route added to home curation");
       setRouteId("");
       load();
     } catch (err) {
-      setToast(err instanceof Error ? err.message : "Add failed");
+      toast.error(err instanceof Error ? err.message : "Add failed");
     } finally {
       setBusy(false);
     }
@@ -109,7 +111,7 @@ export function AdminCmsFeaturedRoutesPanel() {
       });
       load();
     } catch (err) {
-      setToast(err instanceof Error ? err.message : "Update failed");
+      toast.error(err instanceof Error ? err.message : "Update failed");
     } finally {
       setBusy(false);
     }
@@ -126,24 +128,33 @@ export function AdminCmsFeaturedRoutesPanel() {
       await apiPost("/admin/cms/featured-routes/reorder", {
         items: reordered.map((r, i) => ({ id: r.id, sortOrder: i })),
       });
-      setToast("Order updated");
+      toast.success("Order updated");
       load();
     } catch (err) {
-      setToast(err instanceof Error ? err.message : "Reorder failed");
+      toast.error(err instanceof Error ? err.message : "Reorder failed");
     } finally {
       setBusy(false);
     }
   }
 
   async function remove(id: string, label: string) {
-    if (!window.confirm(`Remove "${label}" from featured routes?`)) return;
+    if (
+      !(await confirm({
+        title: `Remove "${label}"?`,
+        description: "This route will no longer appear in home curation.",
+        confirmLabel: "Remove",
+        destructive: true,
+      }))
+    ) {
+      return;
+    }
     setBusy(true);
     try {
       await apiDelete(`/admin/cms/featured-routes/${id}`);
-      setToast("Removed from curation");
+      toast.success("Removed from curation");
       load();
     } catch (err) {
-      setToast(err instanceof Error ? err.message : "Delete failed");
+      toast.error(err instanceof Error ? err.message : "Delete failed");
     } finally {
       setBusy(false);
     }
@@ -151,15 +162,14 @@ export function AdminCmsFeaturedRoutesPanel() {
 
   if (loading && featured.length === 0) {
     return (
-      <div className={cpSection}>
+      <div className={admPanel}>
         <p className={admMuted}>Loading featured routes…</p>
       </div>
     );
   }
 
   return (
-    <div className={cpSection}>
-      <CounterToast message={toast} onDismiss={() => setToast(null)} />
+    <div className={admPanel}>
       <h3 className={admPageTitle}>FEATURED ROUTES</h3>
       {error ? (
         <p className={spPanelError} role="alert">
@@ -197,20 +207,19 @@ export function AdminCmsFeaturedRoutesPanel() {
         </div>
       </form>
 
-      <div className={cpTableWrap}>
-        <table className={cpTable}>
+      <AdminTable>
           <thead>
-            <tr>
-              <th className={cpTableHead}>Order</th>
-              <th className={cpTableHead}>Route</th>
-              <th className={cpTableHead}>Visible</th>
-              <th className={cpTableHead}>Actions</th>
+            <tr className={admTableHeadRow}>
+              <th className={admTableHeadCell}>Order</th>
+              <th className={admTableHeadCell}>Route</th>
+              <th className={admTableHeadCell}>Visible</th>
+              <th className={admTableHeadCell}>Actions</th>
             </tr>
           </thead>
           <tbody>
             {sorted.length === 0 ? (
               <tr>
-                <td colSpan={4} className={`${cpTableCell} ${admMuted}`}>
+                <td colSpan={4} className={admTableCellMuted}>
                   No featured routes yet.
                 </td>
               </tr>
@@ -218,14 +227,14 @@ export function AdminCmsFeaturedRoutesPanel() {
               sorted.map((item, index) => {
                 const label = `${item.fromStop.city} → ${item.toStop.city}`;
                 return (
-                  <tr key={item.id} className={cpTableRow}>
-                    <td className={cpTableCell}>{index + 1}</td>
-                    <td className={cpTableCell}>
+                  <AdminTableRow key={item.id}>
+                    <td className={admTableCell}>{index + 1}</td>
+                    <td className={admTableCell}>
                       <strong>{label}</strong>
                       <br />
                       <span className={admMuted}>{item.routeSlug}</span>
                     </td>
-                    <td className={cpTableCell}>
+                    <td className={admTableCell}>
                       <button
                         type="button"
                         className={spBtnBack}
@@ -234,7 +243,7 @@ export function AdminCmsFeaturedRoutesPanel() {
                         {item.isVisible ? "Visible" : "Hidden"}
                       </button>
                     </td>
-                    <td className={cpTableCell}>
+                    <td className={admTableCell}>
                       <div className={admCmsRowActions}>
                         <button
                           type="button"
@@ -261,13 +270,12 @@ export function AdminCmsFeaturedRoutesPanel() {
                         </button>
                       </div>
                     </td>
-                  </tr>
+                  </AdminTableRow>
                 );
               })
             )}
           </tbody>
-        </table>
-      </div>
+      </AdminTable>
     </div>
   );
 }

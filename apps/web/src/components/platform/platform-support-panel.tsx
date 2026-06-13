@@ -7,6 +7,7 @@ import {
   platformApiPatch,
   platformApiPost,
 } from "@/lib/platform-api-client";
+import { toast } from "@/lib/toast";
 import type {
   SupportTicketDetailDto,
   SupportTicketDto,
@@ -87,7 +88,7 @@ export function PlatformSupportPanel() {
       setSelected(json.data);
       setReply("");
     } catch (e) {
-      alert(e instanceof Error ? e.message : "Failed to load ticket");
+      toast.error(e instanceof Error ? e.message : "Failed to load ticket");
     } finally {
       setBusy(false);
     }
@@ -105,7 +106,7 @@ export function PlatformSupportPanel() {
       setReply("");
       await loadTickets();
     } catch (e) {
-      alert(e instanceof Error ? e.message : "Reply failed");
+      toast.error(e instanceof Error ? e.message : "Reply failed");
     } finally {
       setBusy(false);
     }
@@ -122,7 +123,7 @@ export function PlatformSupportPanel() {
       setSelected(json.data);
       await loadTickets();
     } catch (e) {
-      alert(e instanceof Error ? e.message : "Update failed");
+      toast.error(e instanceof Error ? e.message : "Update failed");
     } finally {
       setBusy(false);
     }

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useSiteTheme } from "@/components/site-theme-provider";
 
 const primaryBtnClass =
-  "inline-flex min-h-11 cursor-pointer items-center justify-center rounded-[10px] border border-transparent bg-[var(--primary)] px-5 py-2.5 text-[0.925rem] font-semibold tracking-wide text-[var(--text-on-primary,#fff)] no-underline transition-colors hover:bg-[var(--primary-hover)]";
+  "inline-flex min-h-11 cursor-pointer items-center justify-center rounded-[10px] border border-transparent bg-[var(--primary)] px-5 py-2.5 text-[0.925rem] font-semibold tracking-wide text-on-primary no-underline transition-colors hover:bg-[var(--primary-hover)]";
 
 const ghostOnDarkBtnClass =
   "inline-flex min-h-11 cursor-pointer items-center justify-center rounded-[10px] border border-white/35 bg-transparent px-5 py-2.5 text-[0.925rem] font-semibold tracking-wide text-white/92 no-underline transition-colors hover:border-white/55 hover:bg-white/8";
