@@ -59,17 +59,30 @@ import { ticketsRouter } from "./modules/ticket/tickets.routes.js";
 
 import { counterRouter } from "./modules/counter/counter.routes.js";
 
+function shouldSkipCors(path: string): boolean {
+  return /^\/api\/v1\/payments\/(callback|webhook)\//.test(path);
+}
+
 
 
 export async function createApp() {
 
   const app = express();
 
+  const corsMiddleware = cors(createCorsOptions());
 
 
-  app.use(cors(createCorsOptions()));
+
+  app.use((req, res, next) => {
+    if (shouldSkipCors(req.path)) {
+      next();
+      return;
+    }
+    corsMiddleware(req, res, next);
+  });
 
   app.use(express.json());
+  app.use(express.urlencoded({ extended: false }));
 
   app.use(cookieParser());
 

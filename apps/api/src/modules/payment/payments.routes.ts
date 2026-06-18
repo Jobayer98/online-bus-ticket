@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, type RequestHandler } from "express";
 import rateLimit from "express-rate-limit";
 import {
   initiatePaymentSchema,
@@ -83,21 +83,33 @@ paymentsRouter.post("/webhook/:providerCode", async (req, res, next) => {
   }
 });
 
-paymentsRouter.get("/callback/:providerCode", async (req, res, next) => {
+const handlePaymentCallback: RequestHandler = async (req, res, next) => {
   try {
     const providerCode = paymentProviderCodeSchema.parse(req.params.providerCode);
+    const body =
+      req.body && typeof req.body === "object"
+        ? (req.body as Record<string, unknown>)
+        : {};
+    const readParam = (key: string): string | undefined => {
+      const value = req.query[key] ?? body[key];
+      return typeof value === "string" ? value : undefined;
+    };
+
     const result = await paymentService.processPaymentCallback({
       providerCode,
-      bookingId: req.query.bookingId as string | undefined,
-      invoiceId: req.query.invoiceId as string | undefined,
-      clientSecret: req.query.clientSecret as string | undefined,
-      status: req.query.status as string | undefined,
-      type: req.query.type as string | undefined,
-      val_id: req.query.val_id as string | undefined,
-      paymentID: req.query.paymentID as string | undefined,
+      bookingId: readParam("bookingId"),
+      invoiceId: readParam("invoiceId"),
+      clientSecret: readParam("clientSecret"),
+      status: readParam("status"),
+      type: readParam("type"),
+      val_id: readParam("val_id"),
+      paymentID: readParam("paymentID"),
     });
     res.redirect(result.redirectUrl);
   } catch (e) {
     next(e);
   }
-});
+};
+
+paymentsRouter.get("/callback/:providerCode", handlePaymentCallback);
+paymentsRouter.post("/callback/:providerCode", handlePaymentCallback);
