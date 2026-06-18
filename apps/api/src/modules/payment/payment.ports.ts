@@ -13,6 +13,8 @@ export type CheckoutContext = {
   cancelUrl: string;
   ipnUrl: string;
   sandboxMode: boolean;
+  /** Tenant subdomain prefix — used by mock adapter for tenant-aware simulation redirect. */
+  tenantSubdomain?: string;
 };
 
 export type CheckoutSession = {

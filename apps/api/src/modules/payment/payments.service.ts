@@ -77,7 +77,10 @@ export async function initiatePaymentWithClient(
 ): Promise<InitiatePaymentResponseDto> {
   const booking = await db.booking.findUnique({
     where: { id: input.bookingId },
-    include: { hold: true },
+    include: {
+      hold: true,
+      tenant: { select: { subdomainPrefix: true, slug: true } },
+    },
   });
   if (!booking) {
     throw new AppError(ErrorCode.BOOKING_NOT_FOUND, "Booking not found", 404);
@@ -169,6 +172,9 @@ export async function initiatePaymentWithClient(
     clientSecret,
   );
 
+  const tenantSubdomain =
+    booking.tenant?.subdomainPrefix ?? booking.tenant?.slug ?? undefined;
+
   const session = await adapter.createCheckoutSession(
     {
       paymentId: payment.id,
@@ -180,6 +186,7 @@ export async function initiatePaymentWithClient(
       cancelUrl: urls.cancelUrl,
       ipnUrl: urls.ipnUrl,
       sandboxMode: gateway.sandboxMode,
+      tenantSubdomain,
     },
     gateway.credentials,
   );
@@ -502,9 +509,50 @@ export async function processProviderWebhook(
 function webAppBaseUrl(): string {
   return (
     process.env.WEB_APP_URL ??
+    process.env.WEB_URL ??
     process.env.NEXT_PUBLIC_WEB_URL ??
     "http://localhost:3000"
   ).replace(/\/$/, "");
+}
+
+function mainDomain(): string {
+  const configured =
+    process.env.MAIN_DOMAIN ??
+    process.env.NEXT_PUBLIC_MAIN_DOMAIN ??
+    "lvh.me:3000";
+  return configured.replace(/^https?:\/\//, "").replace(/\/$/, "");
+}
+
+function webAppProtocol(): string {
+  try {
+    return new URL(webAppBaseUrl()).protocol;
+  } catch {
+    return "http:";
+  }
+}
+
+function tenantWebAppUrl(
+  tenantSubdomain: string | null | undefined,
+  path: string,
+): string {
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  if (!tenantSubdomain) {
+    return `${webAppBaseUrl()}${normalizedPath}`;
+  }
+
+  return `${webAppProtocol()}//${tenantSubdomain}.${mainDomain()}${normalizedPath}`;
+}
+
+async function tenantSubdomainForBooking(
+  bookingId: string,
+): Promise<string | null> {
+  const booking = await prisma.booking.findUnique({
+    where: { id: bookingId },
+    select: {
+      tenant: { select: { subdomainPrefix: true, slug: true } },
+    },
+  });
+  return booking?.tenant?.subdomainPrefix ?? booking?.tenant?.slug ?? null;
 }
 
 export async function processPaymentCallback(query: {
@@ -518,9 +566,15 @@ export async function processPaymentCallback(query: {
   paymentID?: string;
 }): Promise<{ redirectUrl: string }> {
   if (query.status === "cancel") {
+    const tenantSubdomain = query.bookingId
+      ? await tenantSubdomainForBooking(query.bookingId)
+      : null;
     return {
       redirectUrl: query.bookingId
-        ? `${webAppBaseUrl()}/booking/payment/cancel?bookingId=${query.bookingId}`
+        ? tenantWebAppUrl(
+            tenantSubdomain,
+            `/booking/payment/cancel?bookingId=${query.bookingId}`,
+          )
         : `${webAppBaseUrl()}/platform?tab=billing&cancelled=1`,
     };
   }
@@ -577,11 +631,20 @@ export async function processPaymentCallback(query: {
 
   const booking = await prisma.booking.findUnique({
     where: { id: query.bookingId },
-    include: { ticket: true, schedule: true },
+    include: {
+      ticket: true,
+      schedule: true,
+      tenant: { select: { subdomainPrefix: true, slug: true } },
+    },
   });
   const pn = booking?.ticket?.passengerNumber ?? "";
   const scheduleId = booking?.scheduleId ?? "";
+  const tenantSubdomain =
+    booking?.tenant?.subdomainPrefix ?? booking?.tenant?.slug ?? null;
   return {
-    redirectUrl: `${webAppBaseUrl()}/booking/${scheduleId}/confirmation?passengerNumber=${pn}&bookingId=${query.bookingId}`,
+    redirectUrl: tenantWebAppUrl(
+      tenantSubdomain,
+      `/booking/${scheduleId}/confirmation?passengerNumber=${pn}&bookingId=${query.bookingId}`,
+    ),
   };
 }
