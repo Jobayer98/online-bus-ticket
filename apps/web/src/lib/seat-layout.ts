@@ -29,7 +29,7 @@ export function normalizeSeatMapSeats(
   rows: number,
   cols: number,
 ): SeatCell[] {
-  if (!rows || !cols || seats.length === 0) {
+  if (!rows || !cols) {
     return seats.map((s) => ({
       ...s,
       row: seatRow(s) || s.row,
@@ -78,6 +78,21 @@ export function normalizeSeatMapSeats(
   }
 
   return filled;
+}
+
+export function inferLayoutDimensions(
+  seats: SeatCell[],
+  rows: number,
+  cols: number,
+): { rows: number; cols: number } {
+  if (rows > 0 && cols > 0) return { rows, cols };
+  let maxRow = rows;
+  let maxCol = cols;
+  for (const seat of seats) {
+    maxRow = Math.max(maxRow, seatRow(seat));
+    maxCol = Math.max(maxCol, seatCol(seat));
+  }
+  return { rows: maxRow, cols: maxCol || 4 };
 }
 
 export function detectDeck(label: string): SeatDeckId {

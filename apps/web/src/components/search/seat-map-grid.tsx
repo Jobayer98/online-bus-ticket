@@ -4,6 +4,7 @@ import { m } from "framer-motion";
 import { formatMoneyBdt } from "@/lib/format";
 import {
   groupSeatsByDeck,
+  inferLayoutDimensions,
   normalizeSeatMapSeats,
   splitRowByAisle,
   type SeatCell,
@@ -34,7 +35,7 @@ function seatStatusClasses(seat: SeatCell, isSelected: boolean): string {
     if (isFemale) {
       return `${base} ${tier} inline-flex cursor-not-allowed items-center justify-center border-[#c2185b] bg-[#f06595] text-white`;
     }
-    return `${base} ${tier} inline-flex cursor-not-allowed items-center justify-center border-gray-300 bg-gray-100 text-gray-400`;
+    return `${base} ${tier} inline-flex cursor-not-allowed items-center justify-center border-gray-300 bg-gray-100 text-gray-600`;
   }
   return `${base} ${tier} cursor-pointer bg-[var(--green-50)] text-[var(--green-700)]`;
 }
@@ -196,8 +197,11 @@ function SeatRow({
 }
 
 export function SeatMapGrid({ seats, rows, cols, selected, onToggle }: Props) {
-  const layoutCols = cols || 4;
-  const layoutRows = rows || 0;
+  const { rows: layoutRows, cols: layoutCols } = inferLayoutDimensions(
+    seats,
+    rows || 0,
+    cols || 4,
+  );
   const normalized = normalizeSeatMapSeats(seats, layoutRows, layoutCols);
   const decks = groupSeatsByDeck(normalized, layoutCols);
 

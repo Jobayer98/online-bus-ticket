@@ -60,7 +60,9 @@ function buildBaseWhere(
     ...(query.seatClass
       ? {
           scheduleSeats: {
-            some: { seatClass: query.seatClass },
+            some: {
+              seatClass: query.seatClass,
+            },
           },
         }
       : {}),
@@ -274,6 +276,31 @@ export async function searchSchedules(
   return { schedules, facets };
 }
 
+async function ensureScheduleSeatsForMap(
+  scheduleId: string,
+  coachId: string,
+  baseFare: number,
+): Promise<void> {
+  const existing = await prisma.scheduleSeat.count({ where: { scheduleId } });
+  if (existing > 0) return;
+
+  const coach = await prisma.coach.findUnique({
+    where: { id: coachId },
+    include: { seatLayout: { include: { templates: true } } },
+  });
+  if (!coach?.seatLayout?.templates.length) return;
+
+  await prisma.scheduleSeat.createMany({
+    data: coach.seatLayout.templates.map((t) => ({
+      scheduleId,
+      label: t.label,
+      seatClass: t.seatClass,
+      status: "AVAILABLE",
+      price: priceForScheduleSeat(baseFare),
+    })),
+  });
+}
+
 export async function getSeatMap(scheduleId: string, tenantId?: string) {
   const schedule = await prisma.schedule.findFirst({
     where: { id: scheduleId, tenantId },
@@ -292,6 +319,24 @@ export async function getSeatMap(scheduleId: string, tenantId?: string) {
   if (!schedule) throw new AppError(ErrorCode.NOT_FOUND, "Schedule not found", 404);
   if (schedule.status === "CANCELLED") {
     throw new AppError(ErrorCode.CONFLICT, "Schedule cancelled", 409);
+  }
+
+  if (schedule.scheduleSeats.length === 0) {
+    await ensureScheduleSeatsForMap(
+      schedule.id,
+      schedule.coachId,
+      schedule.baseFare,
+    );
+    if (schedule.coach.seatLayout?.templates.length) {
+      schedule.scheduleSeats = await prisma.scheduleSeat.findMany({
+        where: { scheduleId: schedule.id },
+        include: {
+          bookingSeats: {
+            include: { booking: { select: { passengerGender: true, status: true } } },
+          },
+        },
+      });
+    }
   }
 
   const layout = schedule.coach.seatLayout;

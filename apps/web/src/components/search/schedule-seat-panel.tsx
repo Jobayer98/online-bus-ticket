@@ -11,6 +11,7 @@ import {
   setActiveHoldId,
 } from "@/lib/active-hold";
 import { SeatMapGrid } from "./seat-map-grid";
+import { normalizeSeatMapSeats, inferLayoutDimensions } from "@/lib/seat-layout";
 import type {
   CreateBookingResponseDto,
   HoldDto,
@@ -49,20 +50,31 @@ export function ScheduleSeatPanel({
   useGlobalLoading(loading);
 
   const cols = seatMap.cols || 4;
+  const { rows: layoutRows, cols: layoutCols } = inferLayoutDimensions(
+    seatMap.seats,
+    seatMap.rows || 0,
+    cols,
+  );
+  const normalizedSeats = normalizeSeatMapSeats(
+    seatMap.seats,
+    layoutRows,
+    layoutCols,
+  );
   const deckLabel =
     (seatMap.seats[0]?.seatClass as string | undefined) ??
     schedule.seatClasses[0] ??
     "STANDARD";
 
-  const availableCount = seatMap.seats.filter(
+  const availableCount = normalizedSeats.filter(
     (s) => s.status === "AVAILABLE",
   ).length;
-  const soldCount = seatMap.seats.filter(
+  const soldCount = normalizedSeats.filter(
     (s) => s.status === "SOLD" || s.status === "HELD",
   ).length;
-  const totalCount = seatMap.seats.length;
+  const totalCount = normalizedSeats.length;
+  const fullyBooked = availableCount === 0 && totalCount > 0;
 
-  const selectedSeats = seatMap.seats.filter((s) =>
+  const selectedSeats = normalizedSeats.filter((s) =>
     selected.includes(s.label),
   );
   const totalFare = selectedSeats.reduce((a, s) => a + s.price, 0);
@@ -72,27 +84,26 @@ export function ScheduleSeatPanel({
   const hasName = passenger.name.trim() !== "";
   const hasValidPhone = /^\d{11}$/.test(passenger.phone.replace(/\s/g, ""));
   const canProceed =
-    availableCount > 0 &&
+    !fullyBooked &&
     hasSeats &&
     hasBoarding &&
     hasName &&
     hasValidPhone &&
     agreed;
 
-  const buttonLabel =
-    availableCount === 0
-      ? "No Seats Available"
-      : !hasSeats
-        ? "Select Seats First"
-        : !hasBoarding
-          ? "Select a Boarding Point"
-          : !hasName
-            ? "Enter Your Name"
-            : !hasValidPhone
-              ? "Enter a Valid Phone Number"
-              : !agreed
-                ? "Agree to Terms & Conditions"
-                : "Proceed to Pay »";
+  const buttonLabel = fullyBooked
+    ? "No Seats Available"
+    : !hasSeats
+      ? "Select Seats First"
+      : !hasBoarding
+        ? "Select a Boarding Point"
+        : !hasName
+          ? "Enter Your Name"
+          : !hasValidPhone
+            ? "Enter a Valid Phone Number"
+            : !agreed
+              ? "Agree to Terms & Conditions"
+              : "Proceed to Pay »";
 
   function toggleSeat(label: string, status: string) {
     if (status !== "AVAILABLE") return;
@@ -189,16 +200,10 @@ export function ScheduleSeatPanel({
           </span>
         </div>
 
-        {availableCount === 0 && (
-          <p className="m-0 rounded-[var(--radius-sm)] border border-amber-200 bg-amber-50 px-3 py-2 text-center text-[0.75rem] font-medium text-amber-900">
-            All seats are booked. You can still view the seat map below.
-          </p>
-        )}
-
         <SeatMapGrid
-          seats={seatMap.seats}
-          rows={seatMap.rows}
-          cols={cols}
+          seats={normalizedSeats}
+          rows={layoutRows}
+          cols={layoutCols}
           selected={selected}
           onToggle={toggleSeat}
         />
@@ -236,6 +241,12 @@ export function ScheduleSeatPanel({
         </h3>
         <hr className="mb-3 border-[var(--border)]" />
 
+        {fullyBooked && (
+          <p className="mb-3 rounded-[var(--radius-sm)] border border-amber-200 bg-amber-50 px-3 py-2 text-center text-[0.8rem] font-medium text-amber-900">
+            All seats on this trip are booked. Seat map is view-only.
+          </p>
+        )}
+
         {selectedSeats.length === 0 ? (
           <p className="mb-3 rounded bg-[var(--green-50)] py-3 text-center text-[0.8rem] text-[var(--muted)]">
             No seats selected
@@ -258,7 +269,7 @@ export function ScheduleSeatPanel({
           </div>
         )}
 
-        <div className="flex flex-1 flex-col gap-[0.6rem]">
+        <div className={`flex flex-1 flex-col gap-[0.6rem]${fullyBooked ? " pointer-events-none opacity-50" : ""}`}>
           <div className="grid grid-cols-2 gap-2">
             <div>
               <label className="mb-[0.25rem] block text-xs font-semibold text-[#444]">

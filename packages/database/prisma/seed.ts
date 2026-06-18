@@ -185,10 +185,11 @@ async function main() {
 
   const coach2 = await prisma.coach.upsert({
     where: { coachNumber: "DH-1002" },
-    update: { tenantId },
+    update: { seatLayoutId: layout.id, tenantId },
     create: {
       coachNumber: "DH-1002",
       busType: "NON_AC",
+      seatLayoutId: layout.id,
       tenantId,
     },
   });
@@ -232,7 +233,7 @@ async function main() {
     dep2.setHours(14, 0, 0, 0);
     const arr2 = new Date(dep2);
     arr2.setHours(19, 0, 0, 0);
-    await prisma.schedule.create({
+    const schedule2 = await prisma.schedule.create({
       data: {
         routeId: route.id,
         coachId: coach2.id,
@@ -242,6 +243,35 @@ async function main() {
         tenantId,
       },
     });
+    await prisma.scheduleSeat.createMany({
+      data: templates.map((t) => ({
+        scheduleId: schedule2.id,
+        label: t.label,
+        seatClass: t.seatClass,
+        status: "SOLD",
+        price: priceForScheduleSeat(55000),
+      })),
+    });
+  }
+
+  const schedule2Existing = await prisma.schedule.findFirst({
+    where: { coachId: coach2.id, routeId: route.id, tenantId },
+  });
+  if (schedule2Existing) {
+    const seatCount = await prisma.scheduleSeat.count({
+      where: { scheduleId: schedule2Existing.id },
+    });
+    if (seatCount === 0) {
+      await prisma.scheduleSeat.createMany({
+        data: templates.map((t) => ({
+          scheduleId: schedule2Existing.id,
+          label: t.label,
+          seatClass: t.seatClass,
+          status: "SOLD",
+          price: priceForScheduleSeat(schedule2Existing.baseFare),
+        })),
+      });
+    }
   }
 
   await seedCms(prisma, tenantId, { replace: bootstrap });
