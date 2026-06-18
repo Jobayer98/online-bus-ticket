@@ -6,7 +6,7 @@ import { ArrowRight, Bus } from "lucide-react";
 import { useGlobalLoading } from "@/components/global-loading-provider";
 import { apiGet } from "@/lib/api-client";
 import { formatMoneyBdt, formatTime12h } from "@/lib/format";
-import type { HoldDto, ScheduleCardDto, SeatMapDto } from "@repo/shared";
+import type { ScheduleCardDto, SeatMapDto } from "@repo/shared";
 import { ScheduleSeatPanel } from "./schedule-seat-panel";
 
 type Props = {
@@ -15,12 +15,11 @@ type Props = {
   routeLabel: string;
   expanded: boolean;
   onToggle: () => void;
-  onSeatContinue: (payload: {
-    schedule: ScheduleCardDto;
-    hold: HoldDto;
-    boardingPointId: string;
-    boardingPointName: string;
-  }) => void;
+  onBookingComplete: (
+    scheduleId: string,
+    bookingId: string,
+    token: string,
+  ) => void;
 };
 
 function formatTripDuration(departureAt: string, arrivalAt: string): string {
@@ -49,7 +48,7 @@ export function ScheduleCard({
   routeLabel,
   expanded,
   onToggle,
-  onSeatContinue,
+  onBookingComplete,
 }: Props) {
   const [seatMap, setSeatMap] = useState<SeatMapDto | null>(null);
   const [loadingMap, setLoadingMap] = useState(false);
@@ -198,14 +197,7 @@ export function ScheduleCard({
                   schedule={schedule}
                   tripDate={tripDate}
                   seatMap={seatMap}
-                  onContinue={({ hold, boardingPointId, boardingPointName }) =>
-                    onSeatContinue({
-                      schedule,
-                      hold,
-                      boardingPointId,
-                      boardingPointName,
-                    })
-                  }
+                  onComplete={onBookingComplete}
                 />
               )}
             </div>

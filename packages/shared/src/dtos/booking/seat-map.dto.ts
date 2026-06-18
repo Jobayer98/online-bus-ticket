@@ -8,6 +8,7 @@ export const seatMapSeatSchema = z.object({
   seatClass: seatClassSchema,
   status: z.enum(["AVAILABLE", "HELD", "SOLD"]),
   price: z.number().int(),
+  passengerGender: z.string().nullable().optional(),
 });
 
 export const seatMapDtoSchema = z.object({

@@ -282,7 +282,13 @@ export async function getSeatMap(scheduleId: string, tenantId?: string) {
     where: { id: scheduleId, tenantId },
     include: {
       coach: { include: { seatLayout: { include: { templates: true } } } },
-      scheduleSeats: true,
+      scheduleSeats: {
+        include: {
+          bookingSeats: {
+            include: { booking: { select: { passengerGender: true, status: true } } },
+          },
+        },
+      },
       route: { include: { boardingPoints: { orderBy: { sortOrder: "asc" } } } },
     },
   });
@@ -304,7 +310,13 @@ export async function getSeatMap(scheduleId: string, tenantId?: string) {
     seatClass: string;
     status: "AVAILABLE" | "HELD" | "SOLD";
     price: number;
+    passengerGender: string | null;
   }[];
+
+  function seatGender(ss: typeof schedule.scheduleSeats[number]): string | null {
+    const active = ss.bookingSeats.find((bs) => bs.booking?.status !== "CANCELLED");
+    return active?.booking?.passengerGender ?? null;
+  }
 
   if (layout?.templates.length) {
     seats = layout.templates.map((tmpl) => {
@@ -316,6 +328,7 @@ export async function getSeatMap(scheduleId: string, tenantId?: string) {
         seatClass: ss?.seatClass ?? tmpl.seatClass,
         status: (ss?.status ?? "SOLD") as "AVAILABLE" | "HELD" | "SOLD",
         price: ss?.price ?? defaultSeatPrice,
+        passengerGender: ss ? seatGender(ss) : null,
       };
     });
     for (const ss of schedule.scheduleSeats) {
@@ -328,6 +341,7 @@ export async function getSeatMap(scheduleId: string, tenantId?: string) {
           seatClass: ss.seatClass,
           status: ss.status as "AVAILABLE" | "HELD" | "SOLD",
           price: ss.price,
+          passengerGender: seatGender(ss),
         });
       }
     }
@@ -339,6 +353,7 @@ export async function getSeatMap(scheduleId: string, tenantId?: string) {
       seatClass: ss.seatClass,
       status: ss.status as "AVAILABLE" | "HELD" | "SOLD",
       price: ss.price,
+      passengerGender: seatGender(ss),
     }));
   }
 

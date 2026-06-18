@@ -273,6 +273,7 @@ export async function createBookingWithClient(
       passengerName: input.passenger.name,
       passengerPhone: input.passenger.phone,
       passengerEmail: input.passenger.email || null,
+      passengerGender: input.passenger.gender || null,
       status: "HELD",
       totalAmount: hold.items.reduce(
         (sum, i) => sum + i.scheduleSeat.price,

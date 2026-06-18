@@ -13,6 +13,7 @@ export const passengerSchema = z.object({
   name: z.string().min(1),
   phone: z.string().min(10).max(15),
   email: z.union([z.string().email(), z.literal("")]).optional(),
+  gender: z.string().optional(),
 });
 
 export const createBookingSchema = z.object({

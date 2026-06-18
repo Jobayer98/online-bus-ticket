@@ -394,6 +394,7 @@ model Booking {
   passengerName   String        @map("passenger_name")
   passengerPhone  String        @map("passenger_phone")
   passengerEmail  String?       @map("passenger_email")
+  passengerGender String?       @map("passenger_gender")
   status          BookingStatus @default(DRAFT)
   totalAmount     Int           @map("total_amount")
   soldById        String?       @map("sold_by_id")

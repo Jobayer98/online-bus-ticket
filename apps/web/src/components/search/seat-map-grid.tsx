@@ -17,13 +17,7 @@ type Props = {
   onToggle: (label: string, status: string) => void;
 };
 
-function seatTierClass(seatClass: string): string {
-  if (seatClass === "PREMIUM") {
-    return "after:absolute after:right-[3px] after:top-[3px] after:h-[5px] after:w-[5px] after:rounded-full after:bg-amber-600 after:content-['']";
-  }
-  if (seatClass === "BUSINESS") {
-    return "border-l-[3px] border-l-[var(--primary)]";
-  }
+function seatTierClass(_seatClass: string): string {
   return "";
 }
 
@@ -31,14 +25,15 @@ function seatStatusClasses(seat: SeatCell, isSelected: boolean): string {
   const base =
     "relative box-border h-8 w-9 rounded-[var(--radius-sm)] border border-[var(--green-600)] p-0 text-[0.62rem] font-bold font-inherit";
   const tier = seatTierClass(seat.seatClass);
+  const isFemale = seat.passengerGender === "Female";
 
   if (isSelected) {
     return `${base} ${tier} cursor-pointer bg-[var(--primary)] text-on-primary border-[var(--green-800)]`;
   }
-  if (seat.status === "HELD") {
-    return `${base} ${tier} cursor-not-allowed border-[var(--warning)] bg-amber-100 text-amber-900`;
-  }
-  if (seat.status === "SOLD") {
+  if (seat.status === "HELD" || seat.status === "SOLD") {
+    if (isFemale) {
+      return `${base} ${tier} inline-flex cursor-not-allowed items-center justify-center border-[#c2185b] bg-[#f06595] text-white`;
+    }
     return `${base} ${tier} inline-flex cursor-not-allowed items-center justify-center border-gray-300 bg-gray-100 text-gray-400`;
   }
   return `${base} ${tier} cursor-pointer bg-[var(--green-50)] text-[var(--green-700)]`;
