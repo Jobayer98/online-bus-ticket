@@ -60,10 +60,7 @@ function buildBaseWhere(
     ...(query.seatClass
       ? {
           scheduleSeats: {
-            some: {
-              seatClass: query.seatClass,
-              status: "AVAILABLE",
-            },
+            some: { seatClass: query.seatClass },
           },
         }
       : {}),

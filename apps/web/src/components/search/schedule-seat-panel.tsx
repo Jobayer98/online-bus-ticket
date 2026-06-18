@@ -66,7 +66,33 @@ export function ScheduleSeatPanel({
     selected.includes(s.label),
   );
   const totalFare = selectedSeats.reduce((a, s) => a + s.price, 0);
-  const canProceed = selected.length > 0;
+
+  const hasSeats = selected.length > 0;
+  const hasBoarding = boardingPointId !== "";
+  const hasName = passenger.name.trim() !== "";
+  const hasValidPhone = /^\d{11}$/.test(passenger.phone.replace(/\s/g, ""));
+  const canProceed =
+    availableCount > 0 &&
+    hasSeats &&
+    hasBoarding &&
+    hasName &&
+    hasValidPhone &&
+    agreed;
+
+  const buttonLabel =
+    availableCount === 0
+      ? "No Seats Available"
+      : !hasSeats
+        ? "Select Seats First"
+        : !hasBoarding
+          ? "Select a Boarding Point"
+          : !hasName
+            ? "Enter Your Name"
+            : !hasValidPhone
+              ? "Enter a Valid Phone Number"
+              : !agreed
+                ? "Agree to Terms & Conditions"
+                : "Proceed to Pay »";
 
   function toggleSeat(label: string, status: string) {
     if (status !== "AVAILABLE") return;
@@ -162,6 +188,12 @@ export function ScheduleSeatPanel({
             FRONT
           </span>
         </div>
+
+        {availableCount === 0 && (
+          <p className="m-0 rounded-[var(--radius-sm)] border border-amber-200 bg-amber-50 px-3 py-2 text-center text-[0.75rem] font-medium text-amber-900">
+            All seats are booked. You can still view the seat map below.
+          </p>
+        )}
 
         <SeatMapGrid
           seats={seatMap.seats}
@@ -376,11 +408,7 @@ export function ScheduleSeatPanel({
           aria-busy={loading}
           onClick={() => void handleProceed()}
         >
-          {loading
-            ? "Processing…"
-            : canProceed
-              ? "Proceed to Pay »"
-              : "Select Seats First"}
+          {loading ? "Processing…" : buttonLabel}
         </button>
       </div>
     </div>

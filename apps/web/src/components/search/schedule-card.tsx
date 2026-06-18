@@ -81,6 +81,7 @@ export function ScheduleCard({
     schedule.estimatedArrivalAt,
   );
   const isAc = schedule.busType === "AC";
+  const soldOut = schedule.availableSeats === 0;
 
   return (
     <article
@@ -153,7 +154,7 @@ export function ScheduleCard({
                 className={`h-2 w-2 rounded-full ${availabilityDotClass(schedule.availableSeats)}`}
                 aria-hidden
               />
-              {schedule.availableSeats} seats left
+              {soldOut ? "Sold out — view seat map" : `${schedule.availableSeats} seats left`}
             </span>
           </div>
           <button
@@ -161,7 +162,7 @@ export function ScheduleCard({
             className={`inline-flex min-h-10 min-w-[120px] cursor-pointer items-center justify-center gap-[0.35rem] rounded-[var(--radius-sm)] border-none px-4 py-[0.45rem] text-sm font-semibold font-inherit transition-colors duration-150${expanded ? " border border-[var(--border)] bg-gray-100 text-gray-700 hover:bg-gray-200" : " bg-[var(--primary)] text-on-primary hover:bg-[var(--primary-hover)]"}`}
             onClick={handleToggle}
           >
-            {expanded ? "Cancel" : "Select seat"}
+            {expanded ? "Cancel" : soldOut ? "View seats" : "Select seat"}
             {!expanded && <ArrowRight size={16} aria-hidden />}
           </button>
         </div>
