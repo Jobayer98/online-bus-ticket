@@ -263,7 +263,7 @@ Example: `/search/dhaka-pabna/2026-05-20?busType=AC&timePeriod=MORNING&seatClass
 ```env
 DATABASE_URL=
 JWT_SECRET=
-API_URL=http://localhost:4000
+API_URL=http://localhost:4100
 WEB_URL=http://localhost:3000
 PAYMENT_PROVIDER_API_KEY=   # when integrated
 ```

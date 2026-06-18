@@ -2,7 +2,7 @@ export function paymentWebhookBaseUrl(): string {
   const base =
     process.env.PAYMENT_WEBHOOK_BASE_URL ??
     process.env.API_URL ??
-    "http://localhost:4000";
+    "http://localhost:4100";
   return base.replace(/\/$/, "");
 }
 

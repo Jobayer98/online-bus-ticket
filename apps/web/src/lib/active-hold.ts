@@ -10,7 +10,7 @@ const HOLD_CREATED_ON_LOAD_KEY = "holdCreatedOnLoadToken";
 export const HOLD_BOOKING_IN_PROGRESS_KEY = "holdBookingInProgress";
 /** Set before client navigation to payment — do not release hold. */
 export const HOLD_PAYMENT_NAV_KEY = "holdPaymentNavigation";
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4100";
 
 function shouldSkipHoldRelease(): boolean {
   return (

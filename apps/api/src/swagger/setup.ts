@@ -41,6 +41,6 @@ export async function setupSwagger(app: Express): Promise<void> {
   app.get("/api-docs/", setupHandler);
 
   logger.info(
-    `Swagger UI at http://localhost:${process.env.API_PORT ?? 4000}/api-docs`,
+    `Swagger UI at http://localhost:${process.env.API_PORT ?? 4100}/api-docs`,
   );
 }

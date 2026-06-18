@@ -33,8 +33,8 @@ pnpm dev
 | Service | URL |
 |---------|-----|
 | Web app | http://localhost:3000 |
-| API health | http://localhost:4000/api/v1/health |
-| Swagger UI | http://localhost:4000/api-docs |
+| API health | http://localhost:4100/api/v1/health |
+| Swagger UI | http://localhost:4100/api-docs |
 
 **Dev-only reset:** `pnpm db:bootstrap` wipes the DB, clears CMS uploads, and reseeds the demo tenant.
 
@@ -67,7 +67,7 @@ Tenants are resolved from the subdomain. Use **[lvh.me](http://lvh.me)** — `*.
 Register a new tenant via API:
 
 ```bash
-curl -X POST http://localhost:4000/api/v1/platform/register \
+curl -X POST http://localhost:4100/api/v1/platform/register \
   -H "Content-Type: application/json" \
   -d '{
     "companyName": "My Bus Co",

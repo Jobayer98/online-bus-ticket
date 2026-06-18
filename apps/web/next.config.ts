@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 function cmsRemotePatterns() {
   const patterns: NonNullable<NextConfig["images"]>["remotePatterns"] = [];
 
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4100";
   try {
     const parsed = new URL(apiUrl);
     patterns.push({
@@ -16,7 +16,7 @@ function cmsRemotePatterns() {
     patterns.push({
       protocol: "http" as const,
       hostname: "localhost",
-      port: "4000",
+      port: "4100",
       pathname: "/api/v1/cms/assets/**",
     });
   }

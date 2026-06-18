@@ -25,7 +25,7 @@ Same shape as `POST /payments/confirm`: `{ bookingId, ticket: { id, passengerNum
 ## Example
 
 ```bash
-curl -X POST http://localhost:4000/api/v1/counter/sell \
+curl -X POST http://localhost:4100/api/v1/counter/sell \
   -H "Authorization: Bearer …" \
   -H "Content-Type: application/json" \
   -d '{"scheduleId":"…","seatLabels":["A1"],"boardingPointId":"…","passenger":{"name":"Walk-in","phone":"01700000000"},"method":"CASH"}'

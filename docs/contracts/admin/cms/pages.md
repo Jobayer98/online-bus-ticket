@@ -50,6 +50,6 @@ Manage markdown content pages. Allowed slugs: `about`, `contact`, `terms-and-con
 ## Example
 
 ```bash
-curl http://localhost:4000/api/v1/admin/cms/pages/about \
+curl http://localhost:4100/api/v1/admin/cms/pages/about \
   -H "Authorization: Bearer …"
 ```

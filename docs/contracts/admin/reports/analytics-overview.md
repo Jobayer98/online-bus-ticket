@@ -39,6 +39,6 @@ All revenue metrics use the same gross / refund / net model as the sales report.
 ## Example
 
 ```bash
-curl http://localhost:4000/api/v1/admin/reports/analytics/overview \
+curl http://localhost:4100/api/v1/admin/reports/analytics/overview \
   -H "Authorization: Bearer …"
 ```

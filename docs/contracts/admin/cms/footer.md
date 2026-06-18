@@ -44,6 +44,6 @@ Read or update footer contact block, payment banner, bar links, and powered-by t
 ## Example
 
 ```bash
-curl http://localhost:4000/api/v1/admin/cms/footer \
+curl http://localhost:4100/api/v1/admin/cms/footer \
   -H "Authorization: Bearer …"
 ```

@@ -26,9 +26,9 @@ import { executeCounterSell } from "./counter.service.js";
 
 describe("executeCounterSell", () => {
   const input = {
-    scheduleId: "clh3qbaz40000l8145c6v8v9k",
+    scheduleId: "clh3qbaz41000l8145c6v8v9k",
     seatLabels: ["A1"],
-    boardingPointId: "clh3qbaz40000l8145c6v8v9l",
+    boardingPointId: "clh3qbaz41000l8145c6v8v9l",
     passenger: { name: "Walk-in", phone: "01700000000" },
     method: "CASH" as const,
   };

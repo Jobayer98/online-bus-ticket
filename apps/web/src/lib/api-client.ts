@@ -1,7 +1,7 @@
 import { clearAuthSession } from "./auth-session";
 import { buildApiHeaders } from "./build-api-headers";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4100";
 
 export async function api<T, M = undefined>(
   path: string,

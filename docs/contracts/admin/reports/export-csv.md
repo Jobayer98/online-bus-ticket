@@ -33,7 +33,7 @@ REFUND,clxbook002,dhaka-pabna,-85000,COUNTER,2026-05-21T06:00:00.000Z
 ## Example
 
 ```bash
-curl "http://localhost:4000/api/v1/admin/reports/export/csv?from=2026-05-01&to=2026-05-31" \
+curl "http://localhost:4100/api/v1/admin/reports/export/csv?from=2026-05-01&to=2026-05-31" \
   -H "Authorization: Bearer …" \
   -o sales.csv
 ```

@@ -53,6 +53,6 @@ Returns published page markdown. **404** if slug not published (generic message 
 ## Example
 
 ```bash
-curl -H "x-tenant-slug: demo" http://localhost:4000/api/v1/cms/site
-curl -H "x-tenant-slug: demo" http://localhost:4000/api/v1/cms/pages/about
+curl -H "x-tenant-slug: demo" http://localhost:4100/api/v1/cms/site
+curl -H "x-tenant-slug: demo" http://localhost:4100/api/v1/cms/pages/about
 ```

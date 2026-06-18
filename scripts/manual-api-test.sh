@@ -5,7 +5,7 @@
 
 set -euo pipefail
 
-BASE="${1:-http://localhost:4000}"
+BASE="${1:-http://localhost:4100}"
 API="$BASE/api/v1"
 PASS=0
 FAIL=0

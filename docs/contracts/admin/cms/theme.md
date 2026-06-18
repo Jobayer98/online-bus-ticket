@@ -53,7 +53,7 @@ Read or update brand theme. On PATCH, server recomputes `palette` from `primaryC
 ## Example
 
 ```bash
-curl -X PATCH http://localhost:4000/api/v1/admin/cms/theme \
+curl -X PATCH http://localhost:4100/api/v1/admin/cms/theme \
   -H "Authorization: Bearer …" \
   -H "Content-Type: application/json" \
   -d '{"primaryColor":"#2e7d32","fontFamily":"Inter"}'

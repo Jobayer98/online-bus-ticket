@@ -51,6 +51,6 @@ Channel breakdown uses gross booking revenue only. Refunds are counter-audited r
 ## Example
 
 ```bash
-curl "http://localhost:4000/api/v1/admin/reports/sales?from=2026-05-01&to=2026-05-31" \
+curl "http://localhost:4100/api/v1/admin/reports/sales?from=2026-05-01&to=2026-05-31" \
   -H "Authorization: Bearer …"
 ```

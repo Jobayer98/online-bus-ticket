@@ -20,8 +20,8 @@ Root `openapi.yaml` merges paths via `$ref`. At runtime `@apidevtools/swagger-pa
 
 With the API running (and `ENABLE_SWAGGER` not set to `false`):
 
-- UI: http://localhost:4000/api-docs
-- JSON: http://localhost:4000/api-docs/openapi.json
+- UI: http://localhost:4100/api-docs
+- JSON: http://localhost:4100/api-docs/openapi.json
 
 Each operation includes **request/response examples** and standard error samples for **400**, **401**, **403**, **404**, **409**, and **500** (see `components/common.yaml`).
 

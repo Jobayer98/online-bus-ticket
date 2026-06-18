@@ -44,9 +44,9 @@ No body. Runs in a single transaction:
 ## Example
 
 ```bash
-curl http://localhost:4000/api/v1/admin/cms/preview \
+curl http://localhost:4100/api/v1/admin/cms/preview \
   -H "Authorization: Bearer …"
 
-curl -X POST http://localhost:4000/api/v1/admin/cms/publish \
+curl -X POST http://localhost:4100/api/v1/admin/cms/publish \
   -H "Authorization: Bearer …"
 ```

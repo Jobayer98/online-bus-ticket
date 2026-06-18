@@ -41,7 +41,7 @@ describe("booking routes", () => {
     const res = await request(app)
       .post("/api/v1/bookings/hold")
       .send({
-        scheduleId: "clh3qbaz40000l8145c6v8v9k",
+        scheduleId: "clh3qbaz41000l8145c6v8v9k",
         seatLabels: ["A1"],
         sessionId: "sess-1",
       });
@@ -53,7 +53,7 @@ describe("booking routes", () => {
   it("DELETE /bookings/hold/:id requires sessionId or accessToken", async () => {
     const app = await createTestApp();
     const res = await request(app).delete(
-      "/api/v1/bookings/hold/clh3qbaz40000l8145c6v8v9k",
+      "/api/v1/bookings/hold/clh3qbaz41000l8145c6v8v9k",
     );
 
     expect(res.status).toBe(400);

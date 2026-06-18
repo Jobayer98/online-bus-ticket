@@ -29,7 +29,7 @@ import {
   platformTableWrapClass,
 } from "./platform-styles";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4100";
 
 export function PlatformAnalyticsPanel() {
   const [periodDays, setPeriodDays] = useState(30);

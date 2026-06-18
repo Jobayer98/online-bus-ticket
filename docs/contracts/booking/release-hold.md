@@ -39,5 +39,5 @@ System expiry job uses internal `releaseHoldSystem` (no auth).
 ## Example
 
 ```bash
-curl -X DELETE "http://localhost:4000/api/v1/bookings/hold/clx…?sessionId=uuid-here"
+curl -X DELETE "http://localhost:4100/api/v1/bookings/hold/clx…?sessionId=uuid-here"
 ```

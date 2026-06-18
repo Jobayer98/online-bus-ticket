@@ -77,7 +77,7 @@ Each `ScheduleCardDto` includes:
 ## Example
 
 ```bash
-curl "http://localhost:4000/api/v1/schedules/search?fromStopId=…&toStopId=…&date=2026-05-31&seatClass=BUSINESS"
+curl "http://localhost:4100/api/v1/schedules/search?fromStopId=…&toStopId=…&date=2026-05-31&seatClass=BUSINESS"
 ```
 
 ## Response snippet

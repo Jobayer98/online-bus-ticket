@@ -8,7 +8,7 @@ import { startHoldExpiryJob } from "./jobs/expire-holds.js";
 import { startNotificationWorker, stopNotificationWorker } from "./jobs/notification-worker.js";
 import { logger } from "./lib/logger.js";
 
-const port = Number(process.env.API_PORT ?? 4000);
+const port = Number(process.env.API_PORT ?? 4100);
 
 async function assertNotificationSchema(): Promise<void> {
   try {

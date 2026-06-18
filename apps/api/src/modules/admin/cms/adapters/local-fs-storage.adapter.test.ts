@@ -7,7 +7,7 @@ import { LocalFsStorageAdapter } from "./local-fs-storage.adapter.js";
 describe("LocalFsStorageAdapter", () => {
   let tempDir: string;
   let adapter: LocalFsStorageAdapter;
-  const tenantId = "00000000-0000-4000-8000-000000000001";
+  const tenantId = "00000000-0000-4100-8000-000000000001";
 
   beforeEach(async () => {
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "cms-local-storage-"));

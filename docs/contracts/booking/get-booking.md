@@ -46,6 +46,6 @@ Logged-in users who own the booking may omit `accessToken`.
 ## Example
 
 ```bash
-curl -G "http://localhost:4000/api/v1/bookings/clx…" \
+curl -G "http://localhost:4100/api/v1/bookings/clx…" \
   --data-urlencode "accessToken=…"
 ```

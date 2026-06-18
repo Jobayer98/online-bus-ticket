@@ -77,7 +77,7 @@ Cloudinary-backed URLs are not proxied through this endpoint.
 ## Example
 
 ```bash
-curl -X POST http://localhost:4000/api/v1/admin/cms/assets \
+curl -X POST http://localhost:4100/api/v1/admin/cms/assets \
   -H "Authorization: Bearer …" \
   -H "x-tenant-slug: demo" \
   -F "file=@hero.jpg"

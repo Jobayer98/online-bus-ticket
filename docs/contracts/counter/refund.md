@@ -49,7 +49,7 @@ Counter-only full refund. No payment-gateway reversal — updates booking/paymen
 ## Example
 
 ```bash
-curl -X POST http://localhost:4000/api/v1/counter/refund \
+curl -X POST http://localhost:4100/api/v1/counter/refund \
   -H "Authorization: Bearer …" \
   -H "Content-Type: application/json" \
   -d '{"bookingId":"…","note":"Customer request"}'

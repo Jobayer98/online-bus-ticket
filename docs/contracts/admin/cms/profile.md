@@ -41,7 +41,7 @@ Read or update the singleton site profile (company name, tagline, logo, favicon,
 ## Example
 
 ```bash
-curl -X PATCH http://localhost:4000/api/v1/admin/cms/profile \
+curl -X PATCH http://localhost:4100/api/v1/admin/cms/profile \
   -H "Authorization: Bearer …" \
   -H "Content-Type: application/json" \
   -d '{"companyName":"Shahzadpur Travels","tagline":"TRAVELS","logoUrl":"/images/logo/logo.png"}'

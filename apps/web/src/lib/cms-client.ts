@@ -1,7 +1,7 @@
 /** Client-safe CMS helpers (no next/headers). Server fetch: cms-server.ts */
 
 export function getApiBaseUrl(): string {
-  return process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+  return process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4100";
 }
 
 /** Resolve CMS asset or static web path to a fetchable URL. */

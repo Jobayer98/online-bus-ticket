@@ -2,7 +2,7 @@ import type { CmsAssetUploadDto } from "@repo/shared";
 import { clearAuthSession } from "./auth-session";
 import { buildApiHeaders } from "./build-api-headers";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4100";
 
 /** Resolve CMS image URLs for display (API assets vs static /images). */
 export function resolveCmsAssetUrl(url: string | null | undefined): string {

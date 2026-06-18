@@ -40,7 +40,7 @@ describe("CloudinaryStorageAdapter", () => {
   });
 
   it("uploads with tenant folder and returns secure_url", async () => {
-    const tenantId = "00000000-0000-4000-8000-000000000001";
+    const tenantId = "00000000-0000-4100-8000-000000000001";
     const adapter = new CloudinaryStorageAdapter();
     const buffer = Buffer.from("image");
 

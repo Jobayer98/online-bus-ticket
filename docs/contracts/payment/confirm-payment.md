@@ -47,7 +47,7 @@ Header: `Idempotency-Key` (optional, recommended).
 ## Example
 
 ```bash
-curl -X POST http://localhost:4000/api/v1/payments/confirm \
+curl -X POST http://localhost:4100/api/v1/payments/confirm \
   -H "Content-Type: application/json" \
   -H "Idempotency-Key: pay-abc" \
   -d '{"bookingId":"…","clientSecret":"…"}'

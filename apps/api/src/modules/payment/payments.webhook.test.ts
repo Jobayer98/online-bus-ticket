@@ -37,7 +37,7 @@ describe("refund surface", () => {
     const app = await createTestApp();
     const res = await request(app)
       .post("/api/v1/bookings/refund")
-      .send({ bookingId: "clh3qbaz40000l8145c6v8v9k" });
+      .send({ bookingId: "clh3qbaz41000l8145c6v8v9k" });
 
     expect(res.status).toBe(404);
   });
@@ -46,7 +46,7 @@ describe("refund surface", () => {
     const app = await createTestApp();
     const res = await request(app)
       .post("/api/v1/payments/refund")
-      .send({ bookingId: "clh3qbaz40000l8145c6v8v9k" });
+      .send({ bookingId: "clh3qbaz41000l8145c6v8v9k" });
 
     expect(res.status).toBe(404);
   });
@@ -55,7 +55,7 @@ describe("refund surface", () => {
     const app = await createTestApp();
     const res = await request(app)
       .post("/api/v1/counter/refund")
-      .send({ bookingId: "clh3qbaz40000l8145c6v8v9k" });
+      .send({ bookingId: "clh3qbaz41000l8145c6v8v9k" });
 
     expect(res.status).toBe(401);
     expect(res.body.error.code).toBe("UNAUTHORIZED");
