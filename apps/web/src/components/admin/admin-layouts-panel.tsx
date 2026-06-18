@@ -202,6 +202,13 @@ export function AdminLayoutsPanel() {
           >
             Fill all premium
           </button>
+          <button
+            type="button"
+            className={spBtnSelect}
+            onClick={() => setGrid(fillGrid(grid, "BUSINESS"))}
+          >
+            Fill all business
+          </button>
           <button type="button" className={spBtnBack} onClick={() => setGrid(createEmptyGrid(rows, cols))}>
             Clear grid
           </button>
