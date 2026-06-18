@@ -88,6 +88,7 @@ export function PaymentPageContent() {
 
   const [booking, setBooking] = useState<BookingDto | null>(null);
   const [gateways, setGateways] = useState<PaymentGatewayOptionDto[]>([]);
+  const [selectedGateway, setSelectedGateway] = useState<PaymentGatewayOptionDto["code"] | null>(null);
   const [error, setError] = useState("");
   const [holdExpired, setHoldExpired] = useState(false);
   const [paying, setPaying] = useState(false);
@@ -113,7 +114,10 @@ export function PaymentPageContent() {
       .catch(() => setError("Could not load booking"));
 
     void apiGet<{ gateways: PaymentGatewayOptionDto[] }>("/payments/gateways")
-      .then((r) => setGateways(r.data.gateways))
+      .then((r) => {
+        setGateways(r.data.gateways);
+        if (r.data.gateways.length > 0) setSelectedGateway(r.data.gateways[0].code);
+      })
       .catch(() => setGateways([]));
   }, [bookingId, accessTokenParam]);
 
@@ -398,69 +402,89 @@ export function PaymentPageContent() {
                   No payment gateways are configured. Please contact support.
                 </p>
               ) : (
-                <div className="flex flex-col gap-3">
-                  {gateways.map((g) => (
-                    <div
-                      key={g.code}
-                      className="overflow-hidden rounded-xl border border-gray-200"
-                    >
-                      {/* Gateway header */}
-                      <div className="flex items-center gap-3 border-b border-gray-100 bg-[#f8fafb] px-4 py-3">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--primary)] shadow-sm">
-                          <ShieldCheck size={18} className="text-white" />
-                        </div>
-                        <div>
-                          <p className="m-0 text-[0.85rem] font-bold text-[#1a202c]">
-                            Secure Payment
-                          </p>
-                          <p className="m-0 text-[0.7rem] text-[#718096]">
-                            via {g.displayName} Gateway
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Features */}
-                      <div className="px-4 py-3">
-                        <ul className="m-0 flex list-none flex-col gap-[0.45rem] p-0 text-[0.75rem] text-[#4a5568]">
-                          {[
-                            "bKash, Nagad, Rocket & Mobile Banking",
-                            "Visa, Mastercard & Internet Banking",
-                            "SSL encrypted secure transaction",
-                          ].map((f) => (
-                            <li key={f} className="flex items-start gap-2">
-                              <Check
-                                size={13}
-                                className="mt-[1px] shrink-0 text-[var(--primary)]"
-                                strokeWidth={2.5}
-                              />
-                              {f}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-
-                      {/* Pay button */}
-                      <div className="px-4 pb-4">
-                        <button
-                          type="button"
-                          className={`w-full cursor-pointer overflow-hidden rounded-xl border-none bg-[var(--primary)] py-[0.9rem] font-inherit transition-colors hover:bg-[var(--primary-hover)] disabled:cursor-not-allowed disabled:opacity-50${paying ? " cursor-wait opacity-70" : ""}`}
-                          disabled={!booking || holdExpired || paying}
-                          onClick={() => void handlePay(g.code)}
-                        >
-                          <p className="m-0 text-[1.05rem] font-extrabold text-white">
-                            {paying
-                              ? "Redirecting…"
-                              : booking
-                                ? `Pay ${formatMoneyBdt(booking.totalAmount)}`
-                                : "Loading…"}
-                          </p>
-                          <p className="m-0 text-[0.7rem] font-medium text-green-200">
-                            Complete Secure Payment
-                          </p>
-                        </button>
-                      </div>
+                <div className="overflow-hidden rounded-xl border border-gray-200">
+                  {/* Card header */}
+                  <div className="flex items-center gap-3 border-b border-gray-100 bg-[#f8fafb] px-4 py-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--primary)] shadow-sm">
+                      <ShieldCheck size={18} className="text-white" />
                     </div>
-                  ))}
+                    <div>
+                      <p className="m-0 text-[0.85rem] font-bold text-[#1a202c]">
+                        Secure Payment
+                      </p>
+                      <p className="m-0 text-[0.7rem] text-[#718096]">
+                        Choose your preferred payment method
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Radio options */}
+                  <div className="divide-y divide-gray-100 px-4 pt-3">
+                    {gateways.map((g) => (
+                      <label
+                        key={g.code}
+                        className={`flex cursor-pointer items-center gap-3 py-3 transition-colors${selectedGateway === g.code ? " text-[var(--primary)]" : " text-[#1a202c]"}`}
+                      >
+                        <input
+                          type="radio"
+                          name="gateway"
+                          value={g.code}
+                          checked={selectedGateway === g.code}
+                          onChange={() => setSelectedGateway(g.code)}
+                          className="h-4 w-4 cursor-pointer accent-[var(--primary)]"
+                        />
+                        <span className="text-[0.875rem] font-semibold">
+                          {g.displayName}
+                          {g.settlementRoute === "SYSTEM" && (
+                            <span className="ml-2 text-[0.68rem] font-normal text-[#718096]">
+                              Platform
+                            </span>
+                          )}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+
+                  {/* Features */}
+                  <div className="px-4 pb-3 pt-1">
+                    <ul className="m-0 flex list-none flex-col gap-[0.4rem] p-0 text-[0.75rem] text-[#4a5568]">
+                      {[
+                        "bKash, Nagad, Rocket & Mobile Banking",
+                        "Visa, Mastercard & Internet Banking",
+                        "SSL encrypted secure transaction",
+                      ].map((f) => (
+                        <li key={f} className="flex items-start gap-2">
+                          <Check
+                            size={13}
+                            className="mt-[1px] shrink-0 text-[var(--primary)]"
+                            strokeWidth={2.5}
+                          />
+                          {f}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Pay button */}
+                  <div className="px-4 pb-4">
+                    <button
+                      type="button"
+                      className={`w-full cursor-pointer overflow-hidden rounded-xl border-none bg-[var(--primary)] py-[0.9rem] font-inherit transition-colors hover:bg-[var(--primary-hover)] disabled:cursor-not-allowed disabled:opacity-50${paying ? " cursor-wait opacity-70" : ""}`}
+                      disabled={!booking || !selectedGateway || holdExpired || paying}
+                      onClick={() => selectedGateway && void handlePay(selectedGateway)}
+                    >
+                      <p className="m-0 text-[1.05rem] font-extrabold text-white">
+                        {paying
+                          ? "Redirecting…"
+                          : booking
+                            ? `Pay ${formatMoneyBdt(booking.totalAmount)}`
+                            : "Loading…"}
+                      </p>
+                      <p className="m-0 text-[0.7rem] font-medium text-green-200">
+                        Complete Secure Payment
+                      </p>
+                    </button>
+                  </div>
                 </div>
               )}
 
