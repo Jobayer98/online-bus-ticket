@@ -4,7 +4,6 @@
 
 1. **Monolith first** — one deployable API + one web app, fast to build and operate.
 2. **Microservice-ready** — clear bounded contexts, no cross-module DB access, stable API contracts.
-3. **Human maintainable** — predictable folder layout, shared validation, explicit dependencies between epics.
 
 ---
 
