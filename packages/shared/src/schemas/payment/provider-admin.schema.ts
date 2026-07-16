@@ -124,6 +124,8 @@ export const reviewWithdrawalSchema = z.object({
   reviewNote: z.string().max(500).optional(),
 });
 
+export type ReviewWithdrawalInput = z.infer<typeof reviewWithdrawalSchema>;
+
 export const payPlatformInvoiceSchema = z.object({
   providerCode: paymentProviderCodeSchema,
 });

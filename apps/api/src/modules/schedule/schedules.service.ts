@@ -355,7 +355,7 @@ export async function getSeatMap(scheduleId: string, tenantId?: string) {
     passengerGender: string | null;
   }[];
 
-  function seatGender(ss: typeof schedule.scheduleSeats[number]): string | null {
+  function seatGender(ss: NonNullable<typeof schedule>["scheduleSeats"][number]): string | null {
     const active = ss.bookingSeats.find((bs) => bs.booking?.status !== "CANCELLED");
     return active?.booking?.passengerGender ?? null;
   }

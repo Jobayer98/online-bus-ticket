@@ -2,9 +2,7 @@ import { prisma } from "@repo/database";
 import {
   AppError,
   ErrorCode,
-  bkashCredentialsSchema,
   credentialHintFor,
-  sslCommerzCredentialsSchema,
   type CreateBankAccountInput,
   type CreateWithdrawalInput,
   type PaymentProviderCode,
@@ -15,10 +13,12 @@ import {
 import {
   decryptCredentials,
   decryptPlaintext,
-  encryptCredentials,
   encryptPlaintext,
 } from "../../lib/credential-cipher.js";
-import { getOrCreateWallet, listLedgerEntries } from "../payment/tenant-wallet.service.js";
+import {
+  getOrCreateWallet,
+  listLedgerEntries,
+} from "../payment/tenant-wallet.service.js";
 
 const DISPLAY_NAMES: Record<PaymentProviderCode, string> = {
   BKASH: "bKash",
@@ -69,7 +69,7 @@ export async function listTenantPaymentProviders(
 export async function upsertTenantPaymentProvider(
   tenantId: string,
   code: PaymentProviderCode,
-  input: UpsertTenantPaymentProviderInput,
+  _input: UpsertTenantPaymentProviderInput,
 ): Promise<TenantPaymentProviderDto> {
   const system = await prisma.systemPaymentProvider.findUnique({
     where: { code },
@@ -82,34 +82,21 @@ export async function upsertTenantPaymentProvider(
     );
   }
 
-  const existing = await prisma.tenantPaymentProvider.findUnique({
-    where: { tenantId_code: { tenantId, code } },
-  });
-
-  let credentialsEncrypted = existing?.credentialsEncrypted ?? null;
-  if (input.credentials) {
-    const parsed =
-      code === "BKASH"
-        ? bkashCredentialsSchema.parse(input.credentials)
-        : sslCommerzCredentialsSchema.parse(input.credentials);
-    credentialsEncrypted = encryptCredentials(parsed);
-  }
-
-  const row = await prisma.tenantPaymentProvider.upsert({
-    where: { tenantId_code: { tenantId, code } },
-    create: {
-      tenantId,
-      code,
-      isActive: input.isActive ?? false,
-      sandboxMode: input.sandboxMode ?? true,
-      credentialsEncrypted,
-    },
-    update: {
-      isActive: input.isActive ?? existing?.isActive ?? false,
-      sandboxMode: input.sandboxMode ?? existing?.sandboxMode ?? true,
-      credentialsEncrypted: credentialsEncrypted ?? undefined,
-    },
-  });
+  // const row = await prisma.tenantPaymentProvider.upsert({
+  //   where: { tenantId_code: { tenantId, code } },
+  //   create: {
+  //     tenantId,
+  //     code,
+  //     isActive: input.isActive ?? false,
+  //     sandboxMode: input.sandboxMode ?? true,
+  //     credentialsEncrypted,
+  //   },
+  //   update: {
+  //     isActive: input.isActive ?? existing?.isActive ?? false,
+  //     sandboxMode: input.sandboxMode ?? existing?.sandboxMode ?? true,
+  //     credentialsEncrypted: credentialsEncrypted ?? undefined,
+  //   },
+  // });
 
   const list = await listTenantPaymentProviders(tenantId);
   return list.find((p) => p.code === code)!;
@@ -181,7 +168,9 @@ export async function listBankAccounts(tenantId: string) {
     id: row.id,
     bankName: row.bankName,
     accountName: row.accountName,
-    accountNumberMasked: maskAccountNumber(decryptPlaintext(row.accountNumberEncrypted)),
+    accountNumberMasked: maskAccountNumber(
+      decryptPlaintext(row.accountNumberEncrypted),
+    ),
     isDefault: row.isDefault,
     createdAt: row.createdAt.toISOString(),
   }));
@@ -203,11 +192,7 @@ export async function createWithdrawalRequest(
 ) {
   const wallet = await getOrCreateWallet(tenantId);
   if (wallet.balanceMinor < input.amountMinor) {
-    throw new AppError(
-      ErrorCode.CONFLICT,
-      "Insufficient wallet balance",
-      409,
-    );
+    throw new AppError(ErrorCode.CONFLICT, "Insufficient wallet balance", 409);
   }
 
   const account = await prisma.tenantBankAccount.findFirst({
@@ -260,7 +245,11 @@ function formatWithdrawal(
     paidAt: Date | null;
     createdAt: Date;
   },
-  account: { bankName: string; accountName: string; accountNumberEncrypted: string },
+  account: {
+    bankName: string;
+    accountName: string;
+    accountNumberEncrypted: string;
+  },
 ) {
   return {
     id: row.id,

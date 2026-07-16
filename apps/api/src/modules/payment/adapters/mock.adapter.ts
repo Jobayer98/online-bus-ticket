@@ -1,11 +1,15 @@
 import { randomUUID } from "crypto";
-import { mockCredentialsSchema } from "@repo/shared";
+import { z } from "zod";
 import type {
   CheckoutContext,
   CheckoutSession,
   PaymentProviderAdapter,
   VerifiedPaymentEvent,
 } from "../payment.ports.js";
+
+const mockCredentialsSchema = z.object({
+  simulationOutcome: z.enum(["AUTO_SUCCEED", "AUTO_FAIL", "MANUAL"]).default("MANUAL"),
+});
 
 const API_URL = process.env.API_URL ?? "http://localhost:4100";
 
@@ -41,7 +45,7 @@ function tenantSimulationPageUrl(
   }
 }
 
-export class MockPaymentAdapter implements PaymentProviderAdapter {
+export class MockPaymentAdapter implements Omit<PaymentProviderAdapter, "code"> {
   readonly code = "MOCK" as const;
 
   async createCheckoutSession(
@@ -82,9 +86,7 @@ export class MockPaymentAdapter implements PaymentProviderAdapter {
     return null;
   }
 
-  async queryPayment(
-    providerRef: string,
-  ): Promise<VerifiedPaymentEvent> {
+  async queryPayment(providerRef: string): Promise<VerifiedPaymentEvent> {
     // providerRef format: MOCK-{paymentId}
     const paymentId = providerRef.replace(/^MOCK-/, "");
     return {
