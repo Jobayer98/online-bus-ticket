@@ -6,9 +6,20 @@ x-main-domain: &main-domain
   NEXT_PUBLIC_MAIN_DOMAIN: ${NEXT_PUBLIC_MAIN_DOMAIN:-lvh.me:3000}
 
 services:
+  migrate:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      target: migrate
+    env_file:
+      - ../.env
+    networks:
+      - saas-network
+    restart: "no"
+
   api:
     build:
-      context: .
+      context: ..
       dockerfile: Dockerfile
       target: api
     restart: unless-stopped
@@ -22,14 +33,20 @@ services:
 
   web:
     build:
-      context: .
+      context: ..
       dockerfile: Dockerfile
       target: web
     restart: unless-stopped
     depends_on:
       - api
+    env_file:
+      - ../.env
+    environment:
+      <<: *main-domain
     expose:
       - "3000"
+    ports:
+      - "3000:3000"
     networks:
       - saas-network
     mem_limit: 250m
