@@ -27,6 +27,8 @@ services:
       - .env
     expose:
       - "4100"
+    port:
+      - "127.0.0.1:4100:4100"
     networks:
       - saas-network
     mem_limit: 350m
@@ -46,7 +48,7 @@ services:
     expose:
       - "3000"
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     networks:
       - saas-network
     mem_limit: 250m
