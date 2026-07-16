@@ -2,8 +2,12 @@ import { prisma } from "@repo/database";
 import {
   AppError,
   ErrorCode,
-  type PaymentProviderCode,
+  maskAccountNumber,
 } from "@repo/shared";
+
+type ReviewWithdrawalInput = { reviewNote?: string };
+import { decryptPlaintext } from "../../lib/credential-cipher.js";
+import { debitTenantWalletWithClient } from "../payment/tenant-wallet.service.js";
 import { logPlatformAudit, type PlatformAuditActor } from "./platform-audit.service.js";
 
 export async function listPlatformWithdrawals(status?: string) {

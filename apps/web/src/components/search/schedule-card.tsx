@@ -6,7 +6,7 @@ import { ArrowRight, Bus } from "lucide-react";
 import { useGlobalLoading } from "@/components/global-loading-provider";
 import { apiGet } from "@/lib/api-client";
 import { formatMoneyBdt, formatTime12h } from "@/lib/format";
-import type { HoldDto, ScheduleCardDto, SeatMapDto } from "@repo/shared";
+import type { ScheduleCardDto, SeatMapDto } from "@repo/shared";
 import { ScheduleSeatPanel } from "./schedule-seat-panel";
 
 type Props = {
@@ -15,12 +15,11 @@ type Props = {
   routeLabel: string;
   expanded: boolean;
   onToggle: () => void;
-  onSeatContinue: (payload: {
-    schedule: ScheduleCardDto;
-    hold: HoldDto;
-    boardingPointId: string;
-    boardingPointName: string;
-  }) => void;
+  onBookingComplete: (
+    scheduleId: string,
+    bookingId: string,
+    token: string,
+  ) => void;
 };
 
 function formatTripDuration(departureAt: string, arrivalAt: string): string {
@@ -49,7 +48,7 @@ export function ScheduleCard({
   routeLabel,
   expanded,
   onToggle,
-  onSeatContinue,
+  onBookingComplete,
 }: Props) {
   const [seatMap, setSeatMap] = useState<SeatMapDto | null>(null);
   const [loadingMap, setLoadingMap] = useState(false);
@@ -154,16 +153,24 @@ export function ScheduleCard({
                 className={`h-2 w-2 rounded-full ${availabilityDotClass(schedule.availableSeats)}`}
                 aria-hidden
               />
-              {schedule.availableSeats} seats left
+              {schedule.availableSeats === 0
+                ? "Fully booked"
+                : `${schedule.availableSeats} seats left`}
             </span>
           </div>
           <button
             type="button"
-            className={`inline-flex min-h-10 min-w-[120px] cursor-pointer items-center justify-center gap-[0.35rem] rounded-[var(--radius-sm)] border-none px-4 py-[0.45rem] text-sm font-semibold font-inherit transition-colors duration-150${expanded ? " border border-[var(--border)] bg-gray-100 text-gray-700 hover:bg-gray-200" : " bg-[var(--primary)] text-on-primary hover:bg-[var(--primary-hover)]"}`}
+            className={`inline-flex min-h-10 min-w-[120px] cursor-pointer items-center justify-center gap-[0.35rem] rounded-[var(--radius-sm)] border-none px-4 py-[0.45rem] text-sm font-semibold font-inherit transition-colors duration-150${expanded ? " border border-[var(--border)] bg-gray-100 text-gray-700 hover:bg-gray-200" : schedule.availableSeats === 0 ? " border border-[var(--border)] bg-white text-[var(--text)] hover:bg-gray-50" : " bg-[var(--primary)] text-on-primary hover:bg-[var(--primary-hover)]"}`}
             onClick={handleToggle}
           >
-            {expanded ? "Cancel" : "Select seat"}
-            {!expanded && <ArrowRight size={16} aria-hidden />}
+            {expanded
+              ? "Cancel"
+              : schedule.availableSeats === 0
+                ? "View seats"
+                : "Select seat"}
+            {!expanded && schedule.availableSeats > 0 && (
+              <ArrowRight size={16} aria-hidden />
+            )}
           </button>
         </div>
       </div>
@@ -198,14 +205,7 @@ export function ScheduleCard({
                   schedule={schedule}
                   tripDate={tripDate}
                   seatMap={seatMap}
-                  onContinue={({ hold, boardingPointId, boardingPointName }) =>
-                    onSeatContinue({
-                      schedule,
-                      hold,
-                      boardingPointId,
-                      boardingPointName,
-                    })
-                  }
+                  onComplete={onBookingComplete}
                 />
               )}
             </div>

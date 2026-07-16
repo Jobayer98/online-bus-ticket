@@ -273,6 +273,7 @@ export async function createBookingWithClient(
       passengerName: input.passenger.name,
       passengerPhone: input.passenger.phone,
       passengerEmail: input.passenger.email || null,
+      passengerGender: input.passenger.gender || null,
       status: "HELD",
       totalAmount: hold.items.reduce(
         (sum, i) => sum + i.scheduleSeat.price,
@@ -361,6 +362,18 @@ export async function getBooking(
     include: {
       seats: { include: { scheduleSeat: true } },
       hold: true,
+      boardingPoint: { select: { name: true } },
+      schedule: {
+        include: {
+          coach: { select: { coachNumber: true, busType: true } },
+          route: {
+            include: {
+              fromStop: { select: { city: true } },
+              toStop: { select: { city: true } },
+            },
+          },
+        },
+      },
     },
   });
   if (!booking) {
@@ -378,13 +391,22 @@ export async function getBooking(
     throw new AppError(ErrorCode.BOOKING_NOT_FOUND, "Not found", 404);
   }
 
-  return toBookingDto(
-    booking,
-    booking.holdId
-      ? {
-          holdId: booking.holdId,
-          holdExpiresAt: booking.hold?.expiresAt.toISOString() ?? null,
-        }
-      : undefined,
-  );
+  return {
+    ...toBookingDto(
+      booking,
+      booking.holdId
+        ? {
+            holdId: booking.holdId,
+            holdExpiresAt: booking.hold?.expiresAt.toISOString() ?? null,
+          }
+        : undefined,
+    ),
+    passengerEmail: booking.passengerEmail ?? null,
+    routeFrom: booking.schedule.route.fromStop.city ?? null,
+    routeTo: booking.schedule.route.toStop.city ?? null,
+    departureAt: booking.schedule.departureAt.toISOString(),
+    coachNumber: booking.schedule.coach.coachNumber,
+    busType: booking.schedule.coach.busType,
+    boardingPointName: booking.boardingPoint.name ?? null,
+  };
 }

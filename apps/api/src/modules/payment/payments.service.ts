@@ -354,9 +354,9 @@ export async function confirmPayment(
     if (existing?.status === "COMPLETED" && existing.booking) {
       const ticket = existing.booking.ticket
         ? toIssuedTicket(existing.booking.ticket)
-        : toIssuedTicket(await issueTicket(existing.bookingId));
-      enqueueBookingNotifications(existing.bookingId);
-      return { bookingId: existing.bookingId, ticket };
+        : toIssuedTicket(await issueTicket(existing.booking.id));
+      enqueueBookingNotifications(existing.booking.id);
+      return { bookingId: existing.booking.id, ticket };
     }
   }
 

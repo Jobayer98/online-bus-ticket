@@ -41,7 +41,10 @@ import { adminMembersRouter } from "./modules/admin/members.routes.js";
 
 import { adminPaymentProvidersRouter } from "./modules/admin/payment-providers.routes.js";
 
-import { adminCmsRouter, publicCmsRouter } from "./modules/admin/cms/cms.routes.js";
+import {
+  adminCmsRouter,
+  publicCmsRouter,
+} from "./modules/admin/cms/cms.routes.js";
 
 import {
   platformRouter,
@@ -63,15 +66,10 @@ function shouldSkipCors(path: string): boolean {
   return /^\/api\/v1\/payments\/(callback|webhook)\//.test(path);
 }
 
-
-
 export async function createApp() {
-
   const app = express();
 
   const corsMiddleware = cors(createCorsOptions());
-
-
 
   app.use((req, res, next) => {
     if (shouldSkipCors(req.path)) {
@@ -89,28 +87,20 @@ export async function createApp() {
   app.use(requestIdMiddleware);
 
   app.use(
-
     pinoHttp({
-
       logger,
 
       customProps: (req) => ({ requestId: req.requestId }),
-
     }),
-
   );
 
   app.use(authenticateOptional);
 
-  app.use(tenantResolverMiddleware);
-
   if (process.env.ENABLE_SWAGGER !== "false") {
-
     await setupSwagger(app);
-
   }
 
-
+  app.use(tenantResolverMiddleware);
 
   const v1 = express.Router();
 
@@ -156,13 +146,7 @@ export async function createApp() {
 
   v1.use("/cms", publicCmsRouter);
 
-
-
   app.use("/api/v1", v1);
 
-
-
   return app;
-
 }
-

@@ -18,17 +18,10 @@ import { SearchFooter } from "./search-footer";
 import { SearchFilterBar } from "./search-filter-bar";
 import { ScheduleCard } from "./schedule-card";
 import { ScheduleCardSkeleton } from "./schedule-card-skeleton";
-import {
-  SearchCheckoutForm,
-  type SearchCheckoutState,
-} from "./search-checkout-form";
 import { useSearchPageHoldCleanup } from "@/hooks/use-search-page-hold-cleanup";
-import {
-  releaseActiveHold,
-  setActiveHoldId,
-} from "@/lib/active-hold";
+import { releaseActiveHold } from "@/lib/active-hold";
+import { buildPaymentUrl } from "@/lib/booking-access";
 import type {
-  HoldDto,
   ScheduleCardDto,
   SearchSchedulesFacets,
   SearchSchedulesMeta,
@@ -71,7 +64,6 @@ export function SearchResultsContent() {
   const [acOn, setAcOn] = useState(!busTypeParam || busTypeParam === "AC");
   const [nonAcOn, setNonAcOn] = useState(!busTypeParam || busTypeParam === "NON_AC");
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [checkout, setCheckout] = useState<SearchCheckoutState | null>(null);
   const [clock, setClock] = useState("");
 
   const resolvedFromStopId = route?.fromStopId ?? "";
@@ -233,11 +225,6 @@ export function SearchResultsContent() {
     });
   }
 
-  function clearCheckout() {
-    void releaseActiveHold();
-    setCheckout(null);
-  }
-
   function handleSearch() {
     setFilterError("");
     if (!fromDraft || !toDraft || !date) {
@@ -255,14 +242,14 @@ export function SearchResultsContent() {
       return;
     }
     setExpandedId(null);
-    clearCheckout();
+    void releaseActiveHold();
     const slug = cityPairToRouteSlug(from.city, to.city);
     router.push(buildUrl(slug, date));
   }
 
   function applyChipFilters(nextTime: string, nextSeat: string) {
     setExpandedId(null);
-    clearCheckout();
+    void releaseActiveHold();
     router.replace(
       buildUrl(params.routeSlug, params.date, {
         timePeriod: nextTime,
@@ -276,40 +263,18 @@ export function SearchResultsContent() {
     const next = addDaysIso(params.date, delta);
     if (compareIsoDates(next, todayIso) < 0) return;
     setExpandedId(null);
-    clearCheckout();
+    void releaseActiveHold();
     router.push(buildUrl(params.routeSlug, next));
   }
 
   const canPrevDay = compareIsoDates(addDaysIso(params.date, -1), todayIso) >= 0;
 
-  const checkoutRouteCode = params.routeSlug.toUpperCase();
-
-  function handleSeatContinue(payload: {
-    schedule: ScheduleCardDto;
-    hold: HoldDto;
-    boardingPointId: string;
-    boardingPointName: string;
-  }) {
-    setActiveHoldId(payload.hold.holdId);
-    setCheckout({
-      schedule: payload.schedule,
-      tripDate: params.date,
-      routeCode: checkoutRouteCode,
-      hold: payload.hold,
-      boardingPointId: payload.boardingPointId,
-      boardingPointName: payload.boardingPointName,
-    });
-    setExpandedId(null);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-
-  function handleCheckoutBack() {
-    clearCheckout();
-  }
-
-  function handleHoldExpired() {
-    clearCheckout();
-    setError("Your seat hold expired. Please select seats again.");
+  function handleBookingComplete(
+    scheduleId: string,
+    bookingId: string,
+    token: string,
+  ) {
+    router.push(buildPaymentUrl(scheduleId, bookingId, token));
   }
 
   const stopsReady = stops.length > 0 && Boolean(route);
@@ -357,47 +322,39 @@ export function SearchResultsContent() {
         onNextDay={() => goDay(1)}
       />
 
-      {checkout ? (
-        <SearchCheckoutForm
-          checkout={checkout}
-          onBack={handleCheckoutBack}
-          onHoldExpired={handleHoldExpired}
-        />
-      ) : (
-        <div className="mx-auto flex max-w-[1200px] flex-col gap-[0.65rem] px-4 pb-6 max-[767px]:px-3">
-          {loading &&
-            Array.from({ length: 3 }).map((_, i) => (
-              <ScheduleCardSkeleton key={i} />
-            ))}
-          {error && (
-            <div className="border border-[var(--border)] bg-white p-8 text-center text-[0.75rem] text-[var(--danger)]">
-              {error}
-            </div>
-          )}
-          {!loading && !error && schedules.length === 0 && (
-            <div className="border border-[var(--border)] bg-white p-8 text-center text-[#666]">
-              No buses found for this date.
-            </div>
-          )}
-          {!loading &&
-            !error &&
-            schedules.map((s) => (
-              <ScheduleCard
-                key={s.scheduleId}
-                schedule={s}
-                tripDate={params.date}
-                routeLabel={routeLabel}
-                expanded={expandedId === s.scheduleId}
-                onToggle={() =>
-                  setExpandedId((id) =>
-                    id === s.scheduleId ? null : s.scheduleId,
-                  )
-                }
-                onSeatContinue={handleSeatContinue}
-              />
-            ))}
-        </div>
-      )}
+      <div className="mx-auto flex max-w-[1200px] flex-col gap-[0.65rem] px-4 pb-6 max-[767px]:px-3">
+        {loading &&
+          Array.from({ length: 3 }).map((_, i) => (
+            <ScheduleCardSkeleton key={i} />
+          ))}
+        {error && (
+          <div className="border border-[var(--border)] bg-white p-8 text-center text-[0.75rem] text-[var(--danger)]">
+            {error}
+          </div>
+        )}
+        {!loading && !error && schedules.length === 0 && (
+          <div className="border border-[var(--border)] bg-white p-8 text-center text-[#666]">
+            No buses found for this date.
+          </div>
+        )}
+        {!loading &&
+          !error &&
+          schedules.map((s) => (
+            <ScheduleCard
+              key={s.scheduleId}
+              schedule={s}
+              tripDate={params.date}
+              routeLabel={routeLabel}
+              expanded={expandedId === s.scheduleId}
+              onToggle={() =>
+                setExpandedId((id) =>
+                  id === s.scheduleId ? null : s.scheduleId,
+                )
+              }
+              onBookingComplete={handleBookingComplete}
+            />
+          ))}
+      </div>
 
       <SearchFooter />
     </div>

@@ -50,7 +50,7 @@ describe("searchSchedules (E14-18/E14-20)", () => {
     const resultCall = prismaMock.schedule.findMany.mock.calls[1]?.[0];
     expect(resultCall?.where).toMatchObject({
       scheduleSeats: {
-        some: { seatClass: SeatClass.BUSINESS, status: "AVAILABLE" },
+        some: { seatClass: SeatClass.BUSINESS },
       },
     });
   });
