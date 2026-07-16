@@ -23,14 +23,12 @@ RUN turbo prune @repo/web --docker
 FROM base AS installer-api
 WORKDIR /app
 COPY --from=pruner-api /app/out/json/ .
-RUN pnpm install --frozen-lockfile
-RUN pnpm store prune
+RUN pnpm install --frozen-lockfile --ignore-scripts
 
 FROM base AS installer-web
 WORKDIR /app
 COPY --from=pruner-web /app/out/json/ .
-RUN pnpm install --frozen-lockfile
-RUN pnpm store prune
+RUN pnpm install --frozen-lockfile --ignore-scripts
 
 # ─── build: api ──────────────────────────────────────────────────────────────
 FROM base AS builder-api
@@ -53,6 +51,18 @@ RUN pnpm --filter @repo/database generate
 RUN pnpm --filter @repo/shared build
 RUN pnpm --filter @repo/web build
 
+# ─── migrate ────────────────────────────────────────────────────────────────
+FROM base AS migrate
+ENV NODE_ENV=production
+WORKDIR /app
+COPY --from=builder-api /app/node_modules ./node_modules
+COPY --from=builder-api /app/packages/database/node_modules ./packages/database/node_modules
+COPY --from=builder-api /app/packages/database/prisma ./packages/database/prisma
+COPY --from=builder-api /app/packages/database/package.json ./packages/database/package.json
+COPY --from=builder-api /app/package.json ./package.json
+WORKDIR /app/packages/database
+CMD ["npx", "prisma", "migrate", "deploy"]
+
 # ─── runtime: api ────────────────────────────────────────────────────────────
 FROM node:${NODE_VERSION}-alpine AS api
 ENV NODE_ENV=production
@@ -61,12 +71,15 @@ WORKDIR /app
 
 COPY --from=builder-api --chown=appuser:appgroup /app/apps/api/dist ./apps/api/dist
 COPY --from=builder-api --chown=appuser:appgroup /app/apps/api/package.json ./apps/api/package.json
+COPY --from=builder-api --chown=appuser:appgroup /app/apps/api/node_modules ./apps/api/node_modules
 COPY --from=builder-api --chown=appuser:appgroup /app/packages/database/dist ./packages/database/dist
 COPY --from=builder-api --chown=appuser:appgroup /app/packages/database/package.json ./packages/database/package.json
+COPY --from=builder-api --chown=appuser:appgroup /app/packages/database/node_modules ./packages/database/node_modules
 COPY --from=builder-api --chown=appuser:appgroup /app/packages/database/generated ./packages/database/generated
 COPY --from=builder-api --chown=appuser:appgroup /app/packages/database/prisma ./packages/database/prisma
 COPY --from=builder-api --chown=appuser:appgroup /app/packages/shared/dist ./packages/shared/dist
 COPY --from=builder-api --chown=appuser:appgroup /app/packages/shared/package.json ./packages/shared/package.json
+COPY --from=builder-api --chown=appuser:appgroup /app/packages/shared/node_modules ./packages/shared/node_modules
 COPY --from=builder-api --chown=appuser:appgroup /app/node_modules ./node_modules
 COPY --from=builder-api --chown=appuser:appgroup /app/package.json ./package.json
 COPY --from=builder-api --chown=appuser:appgroup /app/apps/api/openapi ./apps/api/openapi
