@@ -39,6 +39,7 @@ function cmsRemotePatterns() {
 }
 
 const nextConfig: NextConfig = {
+  output: "standalone",
   transpilePackages: ["@repo/shared"],
   images: {
     remotePatterns: cmsRemotePatterns(),
