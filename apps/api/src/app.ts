@@ -100,13 +100,13 @@ export async function createApp() {
     await setupSwagger(app);
   }
 
-  app.use(tenantResolverMiddleware);
-
   const v1 = express.Router();
 
-  v1.use(platformApiTelemetryMiddleware);
-
   v1.use(healthRouter);
+
+  app.use(tenantResolverMiddleware);
+
+  v1.use(platformApiTelemetryMiddleware);
 
   v1.use("/platform/register", platformRegisterRouter);
   v1.use("/platform/auth", platformAuthRouter);

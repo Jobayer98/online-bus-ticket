@@ -18,10 +18,8 @@ services:
     restart: "no"
 
   api:
-    build:
-      context: ..
-      dockerfile: Dockerfile
-      target: api
+    image: rashed200/bus-api:latest
+    target: api
     restart: unless-stopped
     env_file:
       - .env
@@ -34,10 +32,8 @@ services:
     mem_limit: 350m
 
   web:
-    build:
-      context: ..
-      dockerfile: Dockerfile
-      target: web
+    image: rashed200/bus-web:latest
+    target: web
     restart: unless-stopped
     depends_on:
       - api

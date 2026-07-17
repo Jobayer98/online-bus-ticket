@@ -1,0 +1,73 @@
+# syntax=docker/dockerfile:1.7
+
+ARG NODE_VERSION=22
+
+########################
+# Base
+########################
+FROM node:${NODE_VERSION}-bookworm-slim AS base
+
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+
+RUN corepack enable
+
+WORKDIR /app
+
+########################
+# Prune
+########################
+FROM base AS pruner
+
+RUN pnpm add -g turbo
+
+COPY . .
+
+RUN turbo prune @repo/web --docker
+
+########################
+# Install
+########################
+FROM base AS deps
+
+COPY --from=pruner /app/out/json/ .
+COPY --from=pruner /app/out/pnpm-lock.yaml .
+
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
+    pnpm install --frozen-lockfile
+
+########################
+# Build
+########################
+FROM base AS builder
+
+COPY --from=deps /app .
+COPY --from=pruner /app/out/full .
+
+ENV NODE_ENV=production
+
+RUN pnpm --filter @repo/shared build
+RUN pnpm --filter @repo/web build
+
+########################
+# Runtime
+########################
+FROM node:${NODE_VERSION}-bookworm-slim AS runner
+
+ENV NODE_ENV=production
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
+
+RUN groupadd -r nextjs && useradd -r -g nextjs nextjs
+
+WORKDIR /app
+
+COPY --from=builder --chown=nextjs:nextjs /app/apps/web/.next/standalone ./
+COPY --from=builder --chown=nextjs:nextjs /app/apps/web/.next/static ./apps/web/.next/static
+COPY --from=builder --chown=nextjs:nextjs /app/apps/web/public ./apps/web/public
+
+USER nextjs
+
+EXPOSE 3000
+
+CMD ["node", "apps/web/server.js"]
