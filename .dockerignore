@@ -1,20 +1,46 @@
+# Dependency directories
+
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+.pnpm-debug.log
+
+# Build outputs and dist folders
+
+dist/
+build/
+.next/
+.nuxt/
+out/
+
+# Environment variables and secrets
+
+.env
+.env._
+!.env.example
+secrets/
+_.pem
+\*.key
+
+# Version control
+
 .git
-.turbo
-node*modules
-**/node_modules
-**/.next
-**/dist
-**/uploads
-.env
-*.log
-.github
-dist
-.next
-coverage
-.vscode
-.env
-.env.\_
+.gitignore
+.gitattributes
+
+# IDEs and system configuration files
+
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Docker configuration files
+
 Dockerfile
+Dockerfile.\*
+.dockerignore
 docker-compose.yml
 README.md
 docs
